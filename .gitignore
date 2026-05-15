@@ -1,0 +1,11 @@
+# Folders
+__pycache__/
+node_modules/
+vendor/
+bin/
+docs/
+
+# File Types
+*.ini
+*.gch
+*.exe
