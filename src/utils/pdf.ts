@@ -67,6 +67,33 @@ const drawField = (doc: jsPDF, label: string, x: number, y: number, w: number) =
   doc.addField(buildTextField(label.toLowerCase().replace(/\s+/g, "_"), x, y, w));
 };
 
+const drawCompressedText = (
+  doc: jsPDF,
+  lines: string[],
+  x: number,
+  y: number,
+  spaceScale = 0.2
+): void => {
+  const lineHeight = (doc.getFontSize() * doc.getLineHeightFactor()) / doc.internal.scaleFactor;
+  const spaceWidth = doc.getTextWidth(" ") * spaceScale;
+
+  lines.forEach((line, lineIndex) => {
+    let cursorX = x;
+    const words = line.split(" ");
+
+    words.forEach((word, wordIndex) => {
+      if (word) {
+        doc.text(word, cursorX, y + lineIndex * lineHeight);
+        cursorX += doc.getTextWidth(word);
+      }
+
+      if (wordIndex < words.length - 1) {
+        cursorX += spaceWidth;
+      }
+    });
+  });
+};
+
 /**
  * A utility function to generate a rental agreement PDF from the provided form data.
  *
@@ -117,15 +144,15 @@ export const generateRentalPDF = async ({
   doc.setFontSize(18);
   doc.text("RENTAL AGREEMENT", centerX, 28.5, { align: "center" });
   doc.setFontSize(11);
-  doc.text("NO DRIVER UNDER THE AGE OF 21", centerX, 34.5, { align: "center" });
+  doc.text("NO DRIVER UNDER THE AGE OF 21", centerX, 33, { align: "center" });
 
   // Rental Agreement Number
   doc.setFont("Cousine", "normal", 700);
   doc.setFontSize(8);
-  doc.text("NO.", pageWidth - 54, 37);
+  doc.text("NO.", pageWidth - 54, 35);
   const roField = new AcroFormTextField();
   roField.x = pageWidth - 49;
-  roField.y = 30;
+  roField.y = 28;
   roField.width = 44;
   roField.height = 8;
   doc.addField(roField);
@@ -138,7 +165,7 @@ export const generateRentalPDF = async ({
   // field.textAlign = textAlign;
   // field.multiline = false;
 
-  let currentY = 38.5;
+  let currentY = 36.5;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
   doc.line(5, currentY, pageWidth - 5, currentY); // Horizontal divider
@@ -225,16 +252,14 @@ export const generateRentalPDF = async ({
   doc.setFontSize(8);
   doc.setTextColor(59, 59, 59);
   doc.setCharSpace(-0.2);
-  doc.text(
+  drawCompressedText(
+    doc,
     [
       "ONLY THE BELOW NAMED PERSONS ARE AUTHORIZED AS ADDITIONAL DRIVERS.",
       "IF NONE, PRINT \"NONE\" ACROSS THIS SECTION AND HAVE SIGNED BY RENTEE.",
     ],
-    6,
-    currentY,
-    {
-      lineHeightFactor: 1.1,
-    }
+    5,
+    currentY
   );
   doc.setCharSpace(0);
 
@@ -248,7 +273,7 @@ export const generateRentalPDF = async ({
 
   // ---- COLUMN 2 ----
 
-  currentY = 41.5;
+  currentY = 39.5;
   drawField(doc, "VEHICLE #", 126.5, currentY, 19.5);
   doc.setDrawColor(0, 0, 0);
   doc.line(146.2, currentY - 3, 146.2, currentY + 5);
