@@ -1,10 +1,9 @@
 ---
 name: Feature
 about: A new feature request
-title: ''
+title: ""
 labels: feature
-assignees: ''
-
+assignees: ""
 ---
 
 ### Description

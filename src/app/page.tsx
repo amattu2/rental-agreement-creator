@@ -1,6 +1,6 @@
 "use client";
 
-import { TimesheetForm } from "@/components/form";
+import { RentalAgreementForm } from "@/components/form/index";
 import { IframeWrapper } from "@/components/iframe";
 import { FormSchema, FORM_SCHEMA } from "@/schemas/form";
 import { generateRentalPDF } from "@/utils/pdf";
@@ -9,32 +9,59 @@ import { Box, Grid } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useLocalStorage } from "usehooks-ts";
 
 const DefaultForm: FormSchema = {
-  monthYear: dayjs(),
-  workDays: {
-    Monday: true,
-    Tuesday: true,
-    Wednesday: true,
-    Thursday: true,
-    Friday: true,
-    Saturday: true,
-    Sunday: false,
+  agreement_number: "",
+  rentee: {
+    full_name: "",
+    address_street1: "",
+    address_city: "",
+    address_state: "",
+    address_zip: "",
+    verified: false,
+    driver_license_number: "",
+    driver_license_state: "",
+    driver_license_expiration: dayjs(null),
+    date_of_birth: dayjs(null),
+    cell_phone: "",
+    alternate_phone: "",
+    email: "",
   },
-  events: [],
-  employees: [{ fullName: "" }],
-};
-
-const CachedForm: Pick<FormSchema, "workDays" | "employees"> = {
-  workDays: DefaultForm.workDays,
-  employees: DefaultForm.employees,
+  rentee_employer: {
+    company: "",
+    position: "",
+    address_street1: "",
+    address_city: "",
+    address_state: "",
+    address_zip: "",
+  },
+  rentee_insurance: {
+    company: "",
+    policy_number: "",
+  },
+  additional_drivers: [],
+  rental_vehicle: {
+    identifier: "",
+    VIN: "",
+    license_plate: "",
+    year: new Date().getFullYear(),
+    make: "",
+    model: "",
+    color: "",
+  },
+  rental_agreement_info: {
+    odometer_in: 0,
+    date_in: dayjs(null),
+    odometer_out: 0,
+    date_out: dayjs(null),
+    max_distance: 0,
+    max_distance_measurement: "MI",
+    max_payload: 0,
+    max_payload_measurement: "LB",
+  },
 };
 
 const Page = () => {
-  const [prevForm, setPrevForm] = useLocalStorage<typeof CachedForm>("previous-form", CachedForm, {
-    initializeWithValue: false,
-  });
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
   const methods = useForm<FormSchema>({
@@ -58,24 +85,13 @@ const Page = () => {
     };
 
     setObjectUrl(URL.createObjectURL(await generateRentalPDF(newData)));
-    setPrevForm({
-      workDays: data.workDays,
-      employees: data.employees,
-    });
   };
-
-  useEffect(() => {
-    methods.reset({
-      ...methods.getValues(),
-      ...prevForm,
-    });
-  }, [methods, prevForm]);
 
   useEffect(() => {
     if (objectUrl) {
       window.open(objectUrl, "_blank");
     }
-    
+
     return () => {
       if (!objectUrl) {
         return;
@@ -90,7 +106,7 @@ const Page = () => {
       <Grid size={{ lg: 6, xs: 12 }}>
         <FormProvider {...methods}>
           <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} sx={{ p: 3 }}>
-            <TimesheetForm />
+            <RentalAgreementForm />
           </Box>
         </FormProvider>
       </Grid>

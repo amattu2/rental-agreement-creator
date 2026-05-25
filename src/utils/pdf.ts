@@ -189,7 +189,7 @@ export const generateRentalPDF = async ({
   doc.text("VERIFIED", 105.5, currentY);
   doc.addField(doc.buildTextField("VERIFIED", 101.5, currentY, 23.5));
   doc.setDrawColor(0, 0, 0);
-  doc.line(101.5, 46.5, 101.5, 54.5);
+  doc.line(101.5, currentY - 3, 101.5, currentY + 5);
   doc.setDrawColor(59, 59, 59);
   currentY += 5; // 54.5
   doc.line(5, currentY, pageWidth - 5, currentY);
@@ -221,7 +221,7 @@ export const generateRentalPDF = async ({
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3; // 81.5
-  doc.drawField("LOCAL CONTACT", 6, currentY, 119); // TODO: Replace with email address
+  doc.drawField("EMAIL ADDRESS", 6, currentY, 119);
   currentY += 5; // 86.5
   doc.line(5, currentY, 125.5, currentY);
 
@@ -257,7 +257,7 @@ export const generateRentalPDF = async ({
   doc.drawCompressedText(
     [
       "ONLY THE BELOW NAMED PERSONS ARE AUTHORIZED AS ADDITIONAL DRIVERS.",
-      "IF NONE, PRINT \"NONE\" ACROSS THIS SECTION AND HAVE SIGNED BY RENTEE.",
+      'IF NONE, PRINT "NONE" ACROSS THIS SECTION AND HAVE SIGNED BY RENTEE.',
     ],
     5,
     currentY

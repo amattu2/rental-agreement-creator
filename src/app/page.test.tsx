@@ -2,29 +2,16 @@ import type { FormSchema } from "@/schemas/form";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import Page from "./page";
 
-const storedForm: Pick<FormSchema, "workDays" | "employees"> = {
-  workDays: {
-    Monday: true,
-    Tuesday: true,
-    Wednesday: true,
-    Thursday: true,
-    Friday: true,
-    Saturday: false,
-    Sunday: false,
-  },
-  employees: [{ fullName: "Stored Employee" }],
-};
-
 const mockSetPrevForm = vitest.fn();
-const mockGenerateTimesheetPDF = vitest.fn<(data: FormSchema) => Blob>(
+const mockGenerateRentalPDF = vitest.fn<(data: FormSchema) => Blob>(
   () => new Blob(["pdf"], { type: "application/pdf" })
 );
 const mockIframeWrapper = vitest.fn(({ src }: { src: string | null }) => (
   <div data-testid="iframe-src">{src ?? "null"}</div>
 ));
 
-vi.mock("@/components/form", () => ({
-  TimesheetForm: () => <button type="submit">Generate PDF</button>,
+vi.mock("@/components/form/index", () => ({
+  RentalAgreementForm: () => <button type="submit">Generate PDF</button>,
 }));
 
 vi.mock("@/components/iframe", () => ({
@@ -32,7 +19,7 @@ vi.mock("@/components/iframe", () => ({
 }));
 
 vi.mock("@/utils/pdf", () => ({
-  generateTimesheetPDF: (data: FormSchema) => mockGenerateTimesheetPDF(data),
+  generateRentalPDF: (data: FormSchema) => mockGenerateRentalPDF(data),
 }));
 
 vi.mock("@hookform/resolvers/zod", () => ({
@@ -42,17 +29,12 @@ vi.mock("@hookform/resolvers/zod", () => ({
   }),
 }));
 
-vi.mock("usehooks-ts", () => ({
-  useLocalStorage: () => [storedForm, mockSetPrevForm] as const,
-}));
-
 describe("Page", () => {
   const createObjectURLSpy = vitest.fn<(blob: Blob) => string>();
   const revokeObjectURLSpy = vitest.fn<(url: string) => void>();
 
   beforeEach(() => {
-    mockSetPrevForm.mockClear();
-    mockGenerateTimesheetPDF.mockClear();
+    mockGenerateRentalPDF.mockClear();
     mockIframeWrapper.mockClear();
     createObjectURLSpy.mockReset().mockReturnValueOnce("blob:first").mockReturnValue("blob:second");
     revokeObjectURLSpy.mockReset();
@@ -105,19 +87,6 @@ describe("Page", () => {
     expect(revokeObjectURLSpy).toHaveBeenCalledTimes(1);
     expect(revokeObjectURLSpy).toHaveBeenCalledWith("blob:first");
     expect(screen.getByTestId("iframe-src")).toHaveTextContent("blob:second");
-  });
-
-  it("should persist workDays and employees after submit", async () => {
-    render(<Page />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Generate PDF" }));
-
-    await waitFor(() => {
-      expect(mockSetPrevForm).toHaveBeenCalledTimes(1);
-    });
-
-    expect(mockSetPrevForm).toHaveBeenCalledWith(storedForm);
-    expect(mockGenerateTimesheetPDF).toHaveBeenCalledTimes(1);
   });
 
   it("should revoke the current object URL on unmount", async () => {

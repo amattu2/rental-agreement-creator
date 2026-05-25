@@ -1,79 +1,184 @@
 import { Dayjs } from "dayjs";
 import z from "zod";
 
+const RENTEE_SCHEMA = z.object({
+  full_name: z
+    .string()
+    .min(1, "Rentee name is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  address_street1: z
+    .string()
+    .min(1, "Home address is required")
+    .max(100, "Maximum of 100 characters allowed"),
+  address_city: z.string().min(1, "City is required").max(50, "Maximum of 50 characters allowed"),
+  address_state: z.string().min(1, "State is required").max(50, "Maximum of 50 characters allowed"),
+  address_zip: z
+    .string()
+    .min(1, "Zip code is required")
+    .max(20, "Maximum of 20 characters allowed"),
+  verified: z.boolean().default(false),
+
+  driver_license_number: z
+    .string()
+    .min(1, "Driver's license number is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  driver_license_state: z
+    .string()
+    .min(1, "Driver's license state is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  driver_license_expiration: z
+    .custom<Dayjs>()
+    .refine((date) => date !== null && date.isValid(), "Driver's license expiration is required"),
+
+  date_of_birth: z
+    .custom<Dayjs>()
+    .refine((date) => date !== null && date.isValid(), "Date of birth is required"),
+  cell_phone: z
+    .string()
+    .min(1, "Cell phone number is required")
+    .max(20, "Maximum of 20 characters allowed"),
+  alternate_phone: z.string().max(20, "Maximum of 20 characters allowed").optional(),
+
+  email: z
+    .email()
+    .min(1, "Email address is required")
+    .max(100, "Maximum of 100 characters allowed"),
+});
+
+const RENTEE_EMPLOYER_SCHEMA = z.object({
+  company: z
+    .string()
+    .min(1, "Employer name is required")
+    .max(100, "Maximum of 100 characters allowed"),
+  position: z.string().min(1, "Position is required").max(100, "Maximum of 100 characters allowed"),
+  address_street1: z
+    .string()
+    .min(1, "Employer address is required")
+    .max(100, "Maximum of 100 characters allowed"),
+  address_city: z
+    .string()
+    .min(1, "Employer city is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  address_state: z
+    .string()
+    .min(1, "Employer state is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  address_zip: z
+    .string()
+    .min(1, "Employer zip code is required")
+    .max(20, "Maximum of 20 characters allowed"),
+});
+
+const RENTEE_INSURANCE_SCHEMA = z.object({
+  company: z
+    .string()
+    .min(1, "Insurance company is required")
+    .max(100, "Maximum of 100 characters allowed"),
+  policy_number: z
+    .string()
+    .min(1, "Insurance policy number is required")
+    .max(50, "Maximum of 50 characters allowed"),
+});
+
+const ADDITIONAL_DRIVER_SCHEMA = z.object({
+  full_name: z
+    .string()
+    .min(1, "Additional driver name is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  date_of_birth: z
+    .custom<Dayjs>()
+    .refine((date) => date !== null && date.isValid(), "Date of birth is required"),
+  driver_license_number: z
+    .string()
+    .min(1, "Driver's license number is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  driver_license_expiration: z
+    .custom<Dayjs>()
+    .refine((date) => date !== null && date.isValid(), "Driver's license expiration is required"),
+});
+
+const RENTAL_VEHICLE_SCHEMA = z.object({
+  identifier: z
+    .string()
+    .min(1, "Vehicle identifier is required")
+    .max(50, "Maximum of 50 characters allowed"),
+  VIN: z.string().min(1, "Vehicle VIN is required").max(17, "Maximum of 17 characters allowed"),
+  license_plate: z
+    .string()
+    .min(1, "Vehicle license plate is required")
+    .max(15, "Maximum of 15 characters allowed"),
+  year: z
+    .number()
+    .int()
+    .min(1900, "Vehicle year must be a valid year")
+    .max(new Date().getFullYear() + 1, "Vehicle year cannot be in the future"),
+  make: z.string().min(1, "Vehicle make is required").max(50, "Maximum of 50 characters allowed"),
+  model: z.string().min(1, "Vehicle model is required").max(50, "Maximum of 50 characters allowed"),
+  color: z.string().min(1, "Vehicle color is required").max(50, "Maximum of 50 characters allowed"),
+});
+
+const RENTAL_AGREEMENT_INFO_SCHEMA = z
+  .object({
+    odometer_in: z.number().int().min(0, "Odometer reading must be a non-negative integer"),
+    date_in: z
+      .custom<Dayjs>()
+      .refine((date) => date !== null && date.isValid(), "Date in is required"),
+    odometer_out: z.number().int().min(0, "Odometer reading must be a non-negative integer"),
+    date_out: z
+      .custom<Dayjs>()
+      .refine((date) => date !== null && date.isValid(), "Date out is required"),
+    max_distance: z.number().int().min(0, "Maximum distance must be a non-negative integer"),
+    max_distance_measurement: z.enum(
+      ["MI", "KM"],
+      "Maximum distance measurement must be either 'MI' or 'KM'"
+    ),
+    max_payload: z.number().int().min(0, "Maximum payload must be a non-negative integer"),
+    max_payload_measurement: z.enum(
+      ["LB", "KG"],
+      "Maximum payload measurement must be either 'LB' or 'KG'"
+    ),
+  })
+  .superRefine((data, ctx) => {
+    if (data.date_in && data.date_out && data.date_in.isAfter(data.date_out)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["date_in"],
+        message: "Date in must be before date out",
+      });
+    }
+    if (
+      data.odometer_in !== undefined &&
+      data.odometer_out !== undefined &&
+      data.odometer_in > data.odometer_out
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["odometer_in"],
+        message: "Odometer in must be less than or equal to odometer out",
+      });
+    }
+    // TODO: Expand these rules. e.g. odometer_in does not exceed odometer_out by more than max_distance
+  });
+
 export const FORM_SCHEMA = z
   .object({
-    monthYear: z
-      .custom<Dayjs>()
-      .refine((date) => date !== null && date.isValid(), "Timesheet period is required"),
-    workDays: z
-      .object({
-        Monday: z.boolean(),
-        Tuesday: z.boolean(),
-        Wednesday: z.boolean(),
-        Thursday: z.boolean(),
-        Friday: z.boolean(),
-        Saturday: z.boolean(),
-        Sunday: z.boolean(),
-      })
-      .refine((workDays) => Object.values(workDays).some((day) => day), {
-        message: "At least one workday must be selected",
-      }),
-    events: z
-      .array(
-        z.object({
-          date: z
-            .custom<Dayjs>()
-            .refine((date) => date !== null && date.isValid(), "Event date is required"),
-          description: z
-            .string()
-            .max(35, "Maximum of 35 characters allowed")
-            .default("")
-            .optional(),
-        })
-      )
-      .default([])
+    agreement_number: z
+      .string()
+      .min(1, "Agreement number is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    rentee: RENTEE_SCHEMA,
+    rentee_employer: RENTEE_EMPLOYER_SCHEMA,
+    rentee_insurance: RENTEE_INSURANCE_SCHEMA,
+    additional_drivers: z
+      .array(ADDITIONAL_DRIVER_SCHEMA)
+      .max(2, "Maximum of 2 additional drivers allowed")
       .optional(),
-    employees: z
-      .array(
-        z.object({
-          fullName: z
-            .string()
-            .min(1, "Employee name is required")
-            .max(50, "Maximum of 50 characters allowed"),
-        })
-      )
-      .min(1, "At least one employee is required"),
+    // TODO: Remaining fields from column 1 of the form (e.g., Vehicle damage waiver)
+
+    rental_vehicle: RENTAL_VEHICLE_SCHEMA,
+    rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,
+    // TODO: Remaining fields from column 2 (e.g., rental rates, signatures)
   })
-  .superRefine(({ monthYear, events }, ctx) => {
-    const uniqueDates = new Set<string>();
-    events?.forEach((event, index) => {
-      if (!event.date?.isValid()) {
-        return;
-      }
-
-      if (
-        monthYear?.isValid() &&
-        (!event.date.isSame(monthYear, "month") || !event.date.isSame(monthYear, "year"))
-      ) {
-        ctx.addIssue({
-          code: "custom",
-          path: [`events.${index}.date`],
-          message: `Date must be in ${monthYear.format("MMMM YYYY")}`,
-        });
-      }
-
-      const dateStr = event.date.format("YYYYMMDD");
-      if (uniqueDates.has(dateStr)) {
-        ctx.addIssue({
-          code: "custom",
-          path: [`events.${index}.date`],
-          message: "Event dates must be unique",
-        });
-      } else {
-        uniqueDates.add(dateStr);
-      }
-    });
-  });
+  .strict();
 
 export type FormSchema = z.infer<typeof FORM_SCHEMA>;

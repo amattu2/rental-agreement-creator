@@ -1,6 +1,12 @@
 declare module "jspdf" {
   interface jsPDF {
-    buildTextField(name: string, x: number, y: number, w: number, height?: number): AcroFormTextField;
+    buildTextField(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      height?: number
+    ): AcroFormTextField;
     buildComboField(
       name: string,
       x: number,
@@ -14,7 +20,13 @@ declare module "jspdf" {
   }
 
   interface jsPDFAPI {
-    buildTextField(name: string, x: number, y: number, w: number, height?: number): AcroFormTextField;
+    buildTextField(
+      name: string,
+      x: number,
+      y: number,
+      w: number,
+      height?: number
+    ): AcroFormTextField;
     buildComboField(
       name: string,
       x: number,
