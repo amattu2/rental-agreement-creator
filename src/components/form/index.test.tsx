@@ -95,4 +95,11 @@ describe("RentalAgreementForm", () => {
 
     expect(screen.getByText("Additional driver 1")).toBeInTheDocument();
   });
+
+  it("renders the submit and reset actions", () => {
+    renderForm();
+
+    expect(screen.getByRole("button", { name: "Generate Agreement" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
+  });
 });

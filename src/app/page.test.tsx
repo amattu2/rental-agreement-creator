@@ -11,7 +11,12 @@ const mockIframeWrapper = vitest.fn(({ src }: { src: string | null }) => (
 ));
 
 vi.mock("@/components/form/index", () => ({
-  RentalAgreementForm: () => <button type="submit">Generate PDF</button>,
+  RentalAgreementForm: () => (
+    <>
+      <button type="submit">Generate Agreement</button>
+      <button type="button">Reset</button>
+    </>
+  ),
 }));
 
 vi.mock("@/components/iframe", () => ({
@@ -61,7 +66,7 @@ describe("Page", () => {
   it("should create an object URL and pass it to the iframe on submit", async () => {
     render(<Page />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Generate PDF" }));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Agreement" }));
 
     await waitFor(() => {
       expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
@@ -74,12 +79,12 @@ describe("Page", () => {
   it("should revoke the previous object URL on a second submit", async () => {
     render(<Page />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Generate PDF" }));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Agreement" }));
     await waitFor(() => {
       expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Generate PDF" }));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Agreement" }));
     await waitFor(() => {
       expect(createObjectURLSpy).toHaveBeenCalledTimes(2);
     });
@@ -92,7 +97,7 @@ describe("Page", () => {
   it("should revoke the current object URL on unmount", async () => {
     const { unmount } = render(<Page />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Generate PDF" }));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Agreement" }));
     await waitFor(() => {
       expect(createObjectURLSpy).toHaveBeenCalledTimes(1);
     });

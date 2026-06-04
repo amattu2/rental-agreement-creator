@@ -42,42 +42,31 @@ const RENTEE_SCHEMA = z.object({
   email: z
     .email()
     .min(1, "Email address is required")
-    .max(100, "Maximum of 100 characters allowed"),
+    .max(100, "Maximum of 100 characters allowed")
+    .optional(),
 });
 
 const RENTEE_EMPLOYER_SCHEMA = z.object({
   company: z
-    .string()
-    .min(1, "Employer name is required")
-    .max(100, "Maximum of 100 characters allowed"),
-  position: z.string().min(1, "Position is required").max(100, "Maximum of 100 characters allowed"),
-  address_street1: z
-    .string()
-    .min(1, "Employer address is required")
-    .max(100, "Maximum of 100 characters allowed"),
-  address_city: z
-    .string()
-    .min(1, "Employer city is required")
-    .max(50, "Maximum of 50 characters allowed"),
-  address_state: z
-    .string()
-    .min(1, "Employer state is required")
-    .max(50, "Maximum of 50 characters allowed"),
-  address_zip: z
-    .string()
-    .min(1, "Employer zip code is required")
-    .max(20, "Maximum of 20 characters allowed"),
+    .string().max(100, "Maximum of 100 characters allowed").optional(),
+  position: z.string().max(100, "Maximum of 100 characters allowed").optional(),
+  address_street1: z.string().max(100, "Maximum of 100 characters allowed").optional(),
+  address_city: z.string().max(50, "Maximum of 50 characters allowed").optional(),
+  address_state: z.string().max(50, "Maximum of 50 characters allowed").optional(),
+  address_zip: z.string().max(20, "Maximum of 20 characters allowed").optional(),
 });
 
 const RENTEE_INSURANCE_SCHEMA = z.object({
   company: z
     .string()
     .min(1, "Insurance company is required")
-    .max(100, "Maximum of 100 characters allowed"),
+    .max(100, "Maximum of 100 characters allowed")
+    .optional(),
   policy_number: z
     .string()
     .min(1, "Insurance policy number is required")
-    .max(50, "Maximum of 50 characters allowed"),
+    .max(50, "Maximum of 50 characters allowed")
+    .optional(),
 });
 
 const ADDITIONAL_DRIVER_SCHEMA = z.object({
