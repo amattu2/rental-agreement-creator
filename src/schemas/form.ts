@@ -127,11 +127,11 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
     ),
   })
   .superRefine((data, ctx) => {
-    if (data.date_in && data.date_out && data.date_in.isAfter(data.date_out)) {
+    if (data.date_in && data.date_out && data.date_in.isBefore(data.date_out)) {
       ctx.addIssue({
         code: "custom",
         path: ["date_in"],
-        message: "Date in must be before date out",
+        message: "Date in cannot be before date out",
       });
     }
     if (
