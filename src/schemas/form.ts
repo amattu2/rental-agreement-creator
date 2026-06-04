@@ -125,6 +125,14 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
       ["LB", "KG"],
       "Maximum payload measurement must be either 'LB' or 'KG'"
     ),
+    fuel_level_out: z.enum(
+      ["E", "1/4", "1/2", "3/4", "F"],
+      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
+    ),
+    fuel_level_in: z.enum(
+      ["E", "1/4", "1/2", "3/4", "F"],
+      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
+    ),
   })
   .superRefine((data, ctx) => {
     if (data.date_in && data.date_out && data.date_in.isBefore(data.date_out)) {

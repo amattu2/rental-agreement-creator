@@ -1,12 +1,6 @@
 declare module "jspdf" {
   interface jsPDF {
-    buildTextField(
-      name: string,
-      x: number,
-      y: number,
-      w: number,
-      height?: number
-    ): AcroFormTextField;
+    buildTextField(name: string, x: number, y: number, w: number, height?: number): void;
     buildComboField(
       name: string,
       x: number,
@@ -14,19 +8,13 @@ declare module "jspdf" {
       w: number,
       options: string[],
       height?: number
-    ): AcroFormComboBox;
+    ): void;
     drawField(label: string, x: number, y: number, w: number): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
   }
 
   interface jsPDFAPI {
-    buildTextField(
-      name: string,
-      x: number,
-      y: number,
-      w: number,
-      height?: number
-    ): AcroFormTextField;
+    buildTextField(name: string, x: number, y: number, w: number, height?: number): void;
     buildComboField(
       name: string,
       x: number,
@@ -34,7 +22,7 @@ declare module "jspdf" {
       w: number,
       options: string[],
       height?: number
-    ): AcroFormComboBox;
+    ): void;
     drawField(label: string, x: number, y: number, w: number): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
   }

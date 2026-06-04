@@ -11,7 +11,7 @@ jsPDF.API.buildTextField = function (
   y: number,
   w: number,
   height = 5
-): AcroFormTextField {
+): void {
   const field = new AcroFormTextField();
   field.value = ""; // TODO: Allow setting this value from the form data
   field.defaultValue = "";
@@ -27,7 +27,7 @@ jsPDF.API.buildTextField = function (
   field.width = w;
   field.height = height;
 
-  return field;
+  this.addField(field);
 };
 
 jsPDF.API.buildComboField = function (
@@ -38,7 +38,7 @@ jsPDF.API.buildComboField = function (
   w: number,
   options: string[],
   height = 5
-): AcroFormComboBox {
+): void {
   const field = new AcroFormComboBox();
   field.fieldName = name;
   field.commitOnSelChange = true;
@@ -56,7 +56,7 @@ jsPDF.API.buildComboField = function (
     field.addOption(option);
   }
 
-  return field;
+  this.addField(field);
 };
 
 jsPDF.API.drawField = function (this: jsPDF, label: string, x: number, y: number, w: number): void {
@@ -67,7 +67,7 @@ jsPDF.API.drawField = function (this: jsPDF, label: string, x: number, y: number
   this.text(label, x, y);
 
   // Field Input
-  this.addField(this.buildTextField(label.toLowerCase().replace(/\s+/g, "_"), x, y, w));
+  this.buildTextField(label.toLowerCase().replace(/\s+/g, "_"), x, y, w);
 };
 
 jsPDF.API.drawCompressedText = function (
@@ -104,7 +104,12 @@ jsPDF.API.drawCompressedText = function (
  * @returns A Blob representing the generated PDF
  */
 export const generateRentalPDF = async (
-  { NEXT_PUBLIC_COMPANY_NAME, NEXT_PUBLIC_ADDRESS_LINE1, NEXT_PUBLIC_ADDRESS_LINE2 }: EnvSchema,
+  {
+    NEXT_PUBLIC_APP_NAME,
+    NEXT_PUBLIC_COMPANY_NAME,
+    NEXT_PUBLIC_ADDRESS_LINE1,
+    NEXT_PUBLIC_ADDRESS_LINE2,
+  }: EnvSchema,
   form: FormSchema
 ): Promise<Readonly<Blob>> => {
   const doc = new jsPDF({
@@ -115,11 +120,11 @@ export const generateRentalPDF = async (
   });
 
   doc.setProperties({
-    title: `Rental Agreement ${form.agreement_number}`,
+    title: `Rental Agreement - ${form.agreement_number}`,
     subject: `Rental agreement form ${form.agreement_number}`,
     author: NEXT_PUBLIC_COMPANY_NAME,
-    creator: process.env.NEXT_PUBLIC_APP_NAME || "",
-    keywords: `Automotive, Rental, Agreement, PDF, Form, ${process.env.NEXT_PUBLIC_APP_NAME}`,
+    creator: NEXT_PUBLIC_APP_NAME,
+    keywords: `Automotive, Rental, Agreement, PDF, Form, ${NEXT_PUBLIC_APP_NAME}`,
   });
   doc.setLanguage("en-US");
 
@@ -187,7 +192,7 @@ export const generateRentalPDF = async (
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.text("VERIFIED", 105.5, currentY);
-  doc.addField(doc.buildTextField("VERIFIED", 101.5, currentY, 23.5));
+  doc.buildTextField("VERIFIED", 101.5, currentY, 23.5);
   doc.setDrawColor(0, 0, 0);
   doc.line(101.5, currentY - 3, 101.5, currentY + 5);
   doc.setDrawColor(59, 59, 59);
@@ -196,7 +201,7 @@ export const generateRentalPDF = async (
   currentY += 3; // 57.5
   doc.drawField("CITY", 6, currentY, 47.4);
   doc.drawField("STATE", 54.2, currentY, 47);
-  doc.addField(doc.buildTextField("ZIP CODE", 102, currentY, 22.6));
+  doc.buildTextField("ZIP CODE", 102, currentY, 22.6);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.text("ZIP CODE", 105.5, currentY);
@@ -206,7 +211,7 @@ export const generateRentalPDF = async (
   currentY += 3; // 65.5
   doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4);
   doc.drawField("STATE", 54.2, currentY, 47);
-  doc.addField(doc.buildTextField("EXP. DATE", 102, currentY, 22.6));
+  doc.buildTextField("EXP. DATE", 102, currentY, 22.6);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.text("EXP. DATE", 105.5, currentY);
@@ -251,7 +256,7 @@ export const generateRentalPDF = async (
 
   currentY += 3.5;
   doc.setFont("Cousine", "normal", 400);
-  doc.setFontSize(8);
+  doc.setFontSize(7.8);
   doc.setTextColor(59, 59, 59);
   doc.setCharSpace(-0.2);
   doc.drawCompressedText(
@@ -266,11 +271,45 @@ export const generateRentalPDF = async (
 
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.3);
-  doc.rect(90, currentY, 26, 38);
+  doc.rect(99.5, currentY - 1.6, 24, 38);
+  doc.setFont("Archivo Black", "normal");
+  doc.setFontSize(10);
+  doc.text("FUEL", 111.5, currentY + 2, { align: "center" });
+  doc.setFontSize(8);
+  doc.text("OUT", 105, currentY + 7, { align: "center" });
+  doc.text("IN", 118, currentY + 7, { align: "center" });
+  doc.line(99.5, currentY + 8.5, 123.5, currentY + 8.5);
+  doc.line(111.5, currentY + 8.5, 111.5, currentY + 36.4);
+  doc.setFontSize(10);
+  doc.text(["E", "1/4", "1/2", "3/4", "F"], 105, currentY + 13, {
+    align: "center",
+    lineHeightFactor: 1.5,
+  });
+  doc.text(["E", "1/4", "1/2", "3/4", "F"], 118, currentY + 13, {
+    align: "center",
+    lineHeightFactor: 1.5,
+  });
 
-  // reset
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(8);
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
+
+  // TODO: abstract this to a helper?
+  doc.buildTextField("ADDITIONAL_DRIVER_1_NAME", 6, currentY + 6, 15, 5);
+  doc.text("NAME", 13.5, currentY + 15.5, { align: "center" });
+  doc.line(5, currentY + 16.5, 99.5, currentY + 16.5);
+
+  doc.buildTextField("ADDITIONAL_DRIVER_1_DOB", 21, currentY + 6, 15, 5);
+  doc.text("DOB", 28.5, currentY + 15.5, { align: "center" });
+  doc.line(20, currentY + 16.5, 99.5, currentY + 16.5);
+
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(5, currentY + 38.5, 125.5, currentY + 38.5); // Horizontal divider
+  doc.setDrawColor(59, 59, 59);
+  doc.setLineWidth(0.2);
+  currentY += 38.5;
 
   // ---- COLUMN 2 ----
 
@@ -304,11 +343,11 @@ export const generateRentalPDF = async (
   doc.setTextColor(59, 59, 59);
   doc.text("ODOMETER", 126.5, currentY);
   doc.text("IN", 136.5, currentY + 3.5);
-  doc.addField(doc.buildTextField("ODOMETER_IN", 143, currentY - 2.6, 14.5, 7.5));
+  doc.buildTextField("ODOMETER_IN", 143, currentY - 2.6, 14.5, 7.5);
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
   doc.drawField("DATE & TIME IN", 158.8, currentY, 32); // Date Field
-  doc.addField(doc.buildTextField("DATE_TIME_IN", 192, currentY, 19)); // Time field
+  doc.buildTextField("DATE_TIME_IN", 192, currentY, 19); // Time field
 
   currentY += 8;
   doc.setDrawColor(0, 0, 0);
@@ -318,19 +357,19 @@ export const generateRentalPDF = async (
   doc.setTextColor(59, 59, 59);
   doc.text("ODOMETER", 126.5, currentY);
   doc.text("OUT", 135, currentY + 3.5);
-  doc.addField(doc.buildTextField("ODOMETER_OUT", 143, currentY - 2.6, 14.5, 7.5));
+  doc.buildTextField("ODOMETER_OUT", 143, currentY - 2.6, 14.5, 7.5);
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
   doc.drawField("DATE & TIME OUT", 158.8, currentY, 32); // Date Field
-  doc.addField(doc.buildTextField("DATE_TIME_OUT", 192, currentY, 19)); // Time field
+  doc.buildTextField("DATE_TIME_OUT", 192, currentY, 19); // Time field
 
   currentY += 8;
   doc.drawField("MAX DISTANCE ALLOWED", 126.5, currentY, 32);
-  doc.addField(doc.buildComboField("MAX_DISTANCE_MEASUREMENT", 160, currentY, 11, ["MI", "KM"]));
+  doc.buildComboField("MAX_DISTANCE_MEASUREMENT", 160, currentY, 11, ["MI", "KM"]);
   doc.setDrawColor(59, 59, 59);
   doc.line(171.5, currentY - 3, 171.5, currentY + 5);
   doc.drawField("MAX PAYLOAD ALLOWED", 172, currentY, 28);
-  doc.addField(doc.buildComboField("MAX_PAYLOAD_MEASUREMENT", 201.5, currentY, 9.5, ["LBS", "KG"]));
+  doc.buildComboField("MAX_PAYLOAD_MEASUREMENT", 201.5, currentY, 9.5, ["LBS", "KG"]);
 
   currentY += 8.5;
   doc.setFont("Cousine", "normal", 400);
