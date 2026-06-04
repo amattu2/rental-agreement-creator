@@ -16,7 +16,7 @@ const RENTEE_SCHEMA = z.object({
     .string()
     .min(1, "Zip code is required")
     .max(20, "Maximum of 20 characters allowed"),
-  verified: z.boolean().default(false),
+  verified: z.boolean(),
 
   driver_license_number: z
     .string()
@@ -47,8 +47,7 @@ const RENTEE_SCHEMA = z.object({
 });
 
 const RENTEE_EMPLOYER_SCHEMA = z.object({
-  company: z
-    .string().max(100, "Maximum of 100 characters allowed").optional(),
+  company: z.string().max(100, "Maximum of 100 characters allowed").optional(),
   position: z.string().max(100, "Maximum of 100 characters allowed").optional(),
   address_street1: z.string().max(100, "Maximum of 100 characters allowed").optional(),
   address_city: z.string().max(50, "Maximum of 50 characters allowed").optional(),

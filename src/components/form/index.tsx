@@ -1,211 +1,34 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { Controller, Path, useFieldArray, useFormContext } from "react-hook-form";
-import {
-  Box,
-  Button,
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  IconButton,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import dayjs from "dayjs";
-import type { Dayjs } from "dayjs";
 import { FormSchema } from "@/schemas/form";
+import { CheckboxInput } from "../CheckboxInput";
+import { DateInput } from "../DateInput";
+import { FieldCell } from "../FieldCell";
+import { FieldRow } from "../FieldRow";
+import { NumberInput } from "../NumberInput";
+import { Section } from "../Section";
+import { SelectInput } from "../SelectInput";
+import { Subsection } from "../Subsection";
+import { TextInput } from "../TextInput";
 
 const MAX_ADDITIONAL_DRIVERS = 2;
 
-const Section = ({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: ReactNode;
-}) => (
-  <Box mb={4}>
-    <Typography variant="h6" mb={1}>
-      {title}
-    </Typography>
-    <Typography variant="body2" color="text.secondary" mb={2}>
-      {description}
-    </Typography>
-    {children}
-  </Box>
-);
+const DISTANCE_MEASUREMENT_OPTIONS = [
+  { label: "Miles (MI)", value: "MI" },
+  { label: "Kilometers (KM)", value: "KM" },
+];
 
-const Subsection = ({ title, children }: { title: string; children: ReactNode }) => (
-  <Box>
-    <Typography variant="subtitle1" fontWeight={600} mb={1}>
-      {title}
-    </Typography>
-    {children}
-  </Box>
-);
-
-const FieldRow = ({ children }: { children: ReactNode }) => (
-  <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-    {children}
-  </Stack>
-);
-
-const FieldCell = ({ children }: { children: ReactNode }) => (
-  <Box sx={{ flex: 1, minWidth: 0 }}>{children}</Box>
-);
-
-const TextInput = ({
-  name,
-  label,
-  placeholder,
-}: {
-  name: Path<FormSchema>;
-  label: string;
-  placeholder?: string;
-}) => {
-  const { control } = useFormContext<FormSchema>();
-
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState: { error } }) => (
-        <TextField
-          {...field}
-          value={field.value ?? ""}
-          onChange={(event) => field.onChange(event.target.value)}
-          label={label}
-          placeholder={placeholder}
-          fullWidth
-          size="small"
-          error={!!error}
-          helperText={error?.message}
-        />
-      )}
-    />
-  );
-};
-
-const NumberInput = ({ name, label }: { name: Path<FormSchema>; label: string }) => {
-  const { control } = useFormContext<FormSchema>();
-
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState: { error } }) => (
-        <TextField
-          {...field}
-          value={field.value ?? ""}
-          onChange={(event) => {
-            const nextValue = event.target.value === "" ? undefined : Number(event.target.value);
-            field.onChange(Number.isNaN(nextValue) ? 0 : nextValue);
-          }}
-          label={label}
-          type="number"
-          slotProps={{ htmlInput: { step: 1, min: 0 } }}
-          fullWidth
-          size="small"
-          error={!!error}
-          helperText={error?.message}
-        />
-      )}
-    />
-  );
-};
-
-const DateInput = ({ name, label }: { name: Path<FormSchema>; label: string }) => {
-  const { control } = useFormContext<FormSchema>();
-
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState: { error } }) => (
-        <DatePicker
-          value={(field.value ?? null) as Dayjs | null}
-          onChange={(date) => field.onChange(date)}
-          label={label}
-          slotProps={{
-            textField: {
-              fullWidth: true,
-              size: "small",
-              error: !!error,
-              helperText: error?.message,
-            },
-          }}
-        />
-      )}
-    />
-  );
-};
-
-const SelectInput = ({
-  name,
-  label,
-  options,
-}: {
-  name: Path<FormSchema>;
-  label: string;
-  options: Array<{ label: string; value: string }>;
-}) => {
-  const { control } = useFormContext<FormSchema>();
-
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState: { error } }) => (
-        <TextField
-          {...field}
-          select
-          value={field.value ?? ""}
-          onChange={(event) => field.onChange(event.target.value)}
-          label={label}
-          fullWidth
-          size="small"
-          error={!!error}
-          helperText={error?.message}
-        >
-          {options.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
-      )}
-    />
-  );
-};
-
-const CheckboxInput = ({ name, label }: { name: Path<FormSchema>; label: string }) => {
-  const { control } = useFormContext<FormSchema>();
-
-  return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field }) => (
-        <FormControlLabel
-          control={
-            <Checkbox checked={!!field.value} onChange={(_, checked) => field.onChange(checked)} />
-          }
-          label={label}
-        />
-      )}
-    />
-  );
-};
+const PAYLOAD_MEASUREMENT_OPTIONS = [
+  { label: "Pounds (LB)", value: "LB" },
+  { label: "Kilograms (KG)", value: "KG" },
+];
 
 export const RentalAgreementForm = () => {
   const { control, reset } = useFormContext<FormSchema>();
@@ -446,10 +269,10 @@ export const RentalAgreementForm = () => {
           <Stack spacing={3}>
             <FieldRow>
               <FieldCell>
-                <DateInput name="rental_agreement_info.date_in" label="Pickup date" />
+                <DateInput name="rental_agreement_info.date_out" label="Pickup date" />
               </FieldCell>
               <FieldCell>
-                <DateInput name="rental_agreement_info.date_out" label="Return date" />
+                <DateInput name="rental_agreement_info.date_in" label="Return date" />
               </FieldCell>
             </FieldRow>
 
@@ -460,7 +283,7 @@ export const RentalAgreementForm = () => {
               <FieldCell>
                 <NumberInput name="rental_agreement_info.odometer_out" label="Odometer at return" />
               </FieldCell>
-            </FieldRow>            
+            </FieldRow>
 
             <FieldRow>
               <FieldCell>
@@ -470,10 +293,7 @@ export const RentalAgreementForm = () => {
                 <SelectInput
                   name="rental_agreement_info.max_distance_measurement"
                   label="Distance unit"
-                  options={[
-                    { label: "Miles (MI)", value: "MI" },
-                    { label: "Kilometers (KM)", value: "KM" },
-                  ]}
+                  options={DISTANCE_MEASUREMENT_OPTIONS}
                 />
               </FieldCell>
             </FieldRow>
@@ -486,10 +306,7 @@ export const RentalAgreementForm = () => {
                 <SelectInput
                   name="rental_agreement_info.max_payload_measurement"
                   label="Payload unit"
-                  options={[
-                    { label: "Pounds (LB)", value: "LB" },
-                    { label: "Kilograms (KG)", value: "KG" },
-                  ]}
+                  options={PAYLOAD_MEASUREMENT_OPTIONS}
                 />
               </FieldCell>
             </FieldRow>
@@ -502,7 +319,7 @@ export const RentalAgreementForm = () => {
           <Button type="submit" variant="contained" fullWidth>
             Generate Agreement
           </Button>
-          <Button type="button" variant="text" fullWidth onClick={() => reset()}>
+          <Button type="button" variant="text" color="error" fullWidth onClick={() => reset()}>
             Reset
           </Button>
         </Stack>

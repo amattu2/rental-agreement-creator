@@ -53,7 +53,7 @@ const DefaultForm: FormSchema = {
     odometer_in: 0,
     date_in: dayjs(null),
     odometer_out: 0,
-    date_out: dayjs(null),
+    date_out: dayjs(),
     max_distance: 0,
     max_distance_measurement: "MI",
     max_payload: 0,
@@ -66,9 +66,7 @@ const Page = () => {
 
   const methods = useForm<FormSchema>({
     resolver: zodResolver(FORM_SCHEMA),
-    defaultValues: {
-      ...DefaultForm,
-    },
+    defaultValues: DefaultForm,
   });
 
   const onSubmit = async (data: FormSchema) => {
