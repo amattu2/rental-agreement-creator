@@ -2,6 +2,7 @@
 
 import { RentalAgreementForm } from "@/components/form/index";
 import { IframeWrapper } from "@/components/iframe";
+import { ENV_SCHEMA } from "@/schemas/env";
 import { FormSchema, FORM_SCHEMA } from "@/schemas/form";
 import { generateRentalPDF } from "@/utils/pdf";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +10,7 @@ import { Box, Grid } from "@mui/material";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import z from "zod";
 
 const DefaultForm: FormSchema = {
   agreement_number: "",
@@ -70,19 +72,15 @@ const Page = () => {
   });
 
   const onSubmit = async (data: FormSchema) => {
-    // TODO: Use the actual form for this data
-    const [COMPANY_NAME, ADDRESS_LINE1, ADDRESS_LINE2] = [
-      process.env.NEXT_PUBLIC_COMPANY_NAME || "",
-      process.env.NEXT_PUBLIC_COMPANY_ADDRESS_LINE1 || "",
-      process.env.NEXT_PUBLIC_COMPANY_ADDRESS_LINE2 || "",
-    ];
-    const newData = {
-      COMPANY_NAME,
-      ADDRESS_LINE1,
-      ADDRESS_LINE2,
-    };
+    const envData = z.parse(ENV_SCHEMA, {
+      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+      NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+      NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
+      NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
+      NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
+    });
 
-    setObjectUrl(URL.createObjectURL(await generateRentalPDF(newData)));
+    setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, data)));
   };
 
   useEffect(() => {

@@ -2,6 +2,7 @@ import { FormSchema } from "@/schemas/form";
 import jsPDF, { AcroFormTextField, AcroFormComboBox } from "jspdf";
 import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
+import { EnvSchema } from "@/schemas/env";
 
 jsPDF.API.buildTextField = function (
   this: jsPDF,
@@ -102,16 +103,10 @@ jsPDF.API.drawCompressedText = function (
  * @param data - The form data used to generate the rental agreement PDF
  * @returns A Blob representing the generated PDF
  */
-export const generateRentalPDF = async ({
-  COMPANY_NAME,
-  ADDRESS_LINE1,
-  ADDRESS_LINE2,
-}: {
-  // TODO: use form schema
-  COMPANY_NAME: string;
-  ADDRESS_LINE1: string;
-  ADDRESS_LINE2: string;
-}): Promise<Readonly<Blob>> => {
+export const generateRentalPDF = async (
+  { NEXT_PUBLIC_COMPANY_NAME, NEXT_PUBLIC_ADDRESS_LINE1, NEXT_PUBLIC_ADDRESS_LINE2 }: EnvSchema,
+  form: FormSchema
+): Promise<Readonly<Blob>> => {
   const doc = new jsPDF({
     orientation: "p",
     unit: "mm",
@@ -120,9 +115,9 @@ export const generateRentalPDF = async ({
   });
 
   doc.setProperties({
-    title: `Rental Agreement {TODO}`,
-    subject: `Rental agreement form {TODO}`,
-    author: COMPANY_NAME,
+    title: `Rental Agreement ${form.agreement_number}`,
+    subject: `Rental agreement form ${form.agreement_number}`,
+    author: NEXT_PUBLIC_COMPANY_NAME,
     creator: process.env.NEXT_PUBLIC_APP_NAME || "",
     keywords: `Automotive, Rental, Agreement, PDF, Form, ${process.env.NEXT_PUBLIC_APP_NAME}`,
   });
@@ -136,10 +131,15 @@ export const generateRentalPDF = async ({
   // Company Heading
   doc.setFont("Carlito", "normal");
   doc.setFontSize(14);
-  doc.text([COMPANY_NAME, ADDRESS_LINE1, ADDRESS_LINE2], centerX, 7.5, {
-    align: "center",
-    lineHeightFactor: 1.2,
-  });
+  doc.text(
+    [NEXT_PUBLIC_COMPANY_NAME, NEXT_PUBLIC_ADDRESS_LINE1, NEXT_PUBLIC_ADDRESS_LINE2],
+    centerX,
+    7.5,
+    {
+      align: "center",
+      lineHeightFactor: 1.2,
+    }
+  );
 
   // Document Title
   doc.setFont("Archivo Black", "normal");
