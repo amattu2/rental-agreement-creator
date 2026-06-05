@@ -60,6 +60,8 @@ const DefaultForm: FormSchema = {
     max_distance_measurement: "MI",
     max_payload: 0,
     max_payload_measurement: "LB",
+    fuel_level_in: "F",
+    fuel_level_out: "F",
   },
 };
 
