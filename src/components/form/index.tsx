@@ -18,20 +18,12 @@ import { Section } from "../Section";
 import { SelectInput } from "../SelectInput";
 import { Subsection } from "../Subsection";
 import { TextInput } from "../TextInput";
-
-const MAX_ADDITIONAL_DRIVERS = 2;
-
-const DISTANCE_MEASUREMENT_OPTIONS = [
-  { label: "Miles (MI)", value: "MI" },
-  { label: "Kilometers (KM)", value: "KM" },
-];
-
-const PAYLOAD_MEASUREMENT_OPTIONS = [
-  { label: "Pounds (LB)", value: "LB" },
-  { label: "Kilograms (KG)", value: "KG" },
-];
-
-const FUEL_LEVEL_OPTIONS = ["E", "1/4", "1/2", "3/4", "F"];
+import {
+  MAX_ADDITIONAL_DRIVERS,
+  FUEL_LEVEL_OPTIONS,
+  DISTANCE_MEASUREMENT_OPTIONS,
+  PAYLOAD_MEASUREMENT_OPTIONS,
+} from "@/config/constants";
 
 export const RentalAgreementForm = () => {
   const { control, reset } = useFormContext<FormSchema>();
@@ -303,7 +295,7 @@ export const RentalAgreementForm = () => {
                   options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
                 />
               </FieldCell>
-            </FieldRow>            
+            </FieldRow>
 
             <FieldRow>
               <FieldCell>

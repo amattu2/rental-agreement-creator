@@ -4,6 +4,11 @@ import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
 import { EnvSchema } from "@/schemas/env";
 import { formatDate, formatNumber } from "./text";
+import {
+  DISTANCE_MEASUREMENT_OPTIONS,
+  FUEL_LEVEL_OPTIONS,
+  PAYLOAD_MEASUREMENT_OPTIONS,
+} from "@/config/constants";
 
 jsPDF.API.buildTextField = function (
   this: jsPDF,
@@ -304,11 +309,11 @@ export const generateRentalPDF = async (
   doc.line(99.5, currentY + 8.5, 123.5, currentY + 8.5);
   doc.line(111.5, currentY + 8.5, 111.5, currentY + 40.4);
   doc.setFontSize(10);
-  doc.text(["E", "1/4", "1/2", "3/4", "F"], 105, currentY + 13, {
+  doc.text(FUEL_LEVEL_OPTIONS, 105, currentY + 13, {
     align: "center",
     lineHeightFactor: 1.8,
   });
-  doc.text(["E", "1/4", "1/2", "3/4", "F"], 118, currentY + 13, {
+  doc.text(FUEL_LEVEL_OPTIONS, 118, currentY + 13, {
     align: "center",
     lineHeightFactor: 1.8,
   });
@@ -524,7 +529,7 @@ export const generateRentalPDF = async (
     160,
     currentY,
     11,
-    ["MI", "KM"],
+    DISTANCE_MEASUREMENT_OPTIONS.map((option) => option.value),
     5,
     form.rental_agreement_info.max_distance_measurement
   );
@@ -542,7 +547,7 @@ export const generateRentalPDF = async (
     201.5,
     currentY,
     9.5,
-    ["LB", "KG"],
+    PAYLOAD_MEASUREMENT_OPTIONS.map((option) => option.value),
     5,
     form.rental_agreement_info.max_payload_measurement
   );

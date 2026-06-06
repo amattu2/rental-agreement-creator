@@ -1,46 +1,57 @@
+import {
+  DISTANCE_MEASUREMENT_OPTIONS,
+  FUEL_LEVEL_OPTIONS,
+  PAYLOAD_MEASUREMENT_OPTIONS,
+} from "@/config/constants";
 import dayjs, { Dayjs } from "dayjs";
 import z from "zod";
 
-const RENTEE_SCHEMA = z.object({
-  full_name: z
-    .string()
-    .min(1, "Rentee name is required")
-    .max(50, "Maximum of 50 characters allowed"),
-  address_street1: z
-    .string()
-    .min(1, "Home address is required")
-    .max(100, "Maximum of 100 characters allowed"),
-  address_city: z.string().min(1, "City is required").max(50, "Maximum of 50 characters allowed"),
-  address_state: z.string().min(1, "State is required").max(50, "Maximum of 50 characters allowed"),
-  address_zip: z
-    .string()
-    .min(1, "Zip code is required")
-    .max(20, "Maximum of 20 characters allowed"),
-  verified: z.boolean(),
+const RENTEE_SCHEMA = z
+  .object({
+    full_name: z
+      .string()
+      .min(1, "Rentee name is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    address_street1: z
+      .string()
+      .min(1, "Home address is required")
+      .max(100, "Maximum of 100 characters allowed"),
+    address_city: z.string().min(1, "City is required").max(50, "Maximum of 50 characters allowed"),
+    address_state: z
+      .string()
+      .min(1, "State is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    address_zip: z
+      .string()
+      .min(1, "Zip code is required")
+      .max(20, "Maximum of 20 characters allowed"),
+    verified: z.boolean(),
 
-  driver_license_number: z
-    .string()
-    .min(1, "Driver's license number is required")
-    .max(50, "Maximum of 50 characters allowed"),
-  driver_license_state: z
-    .string()
-    .min(1, "Driver's license state is required")
-    .max(50, "Maximum of 50 characters allowed"),
-  driver_license_expiration: z
-    .custom<Dayjs>()
-    .refine((date) => date !== null && date.isValid(), "Driver's license expiration is required"),
+    driver_license_number: z
+      .string()
+      .min(1, "Driver's license number is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    driver_license_state: z
+      .string()
+      .min(1, "Driver's license state is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    driver_license_expiration: z
+      .custom<Dayjs>()
+      .refine((date) => date !== null && date.isValid(), "Driver's license expiration is required"),
 
-  date_of_birth: z
-    .custom<Dayjs>()
-    .refine((date) => date !== null && date.isValid(), "Date of birth is required"),
-  cell_phone: z
-    .string()
-    .min(1, "Cell phone number is required")
-    .max(20, "Maximum of 20 characters allowed"),
-  alternate_phone: z.string().max(20, "Maximum of 20 characters allowed").optional(),
+    date_of_birth: z
+      .custom<Dayjs>()
+      .refine((date) => date !== null && date.isValid(), "Date of birth is required"),
+    cell_phone: z
+      .string()
+      .min(1, "Cell phone number is required")
+      .max(20, "Maximum of 20 characters allowed"),
+    alternate_phone: z.string().max(20, "Maximum of 20 characters allowed").optional(),
 
-  email: z.union([z.literal(""), z.email().max(100, "Maximum of 100 characters allowed")]).optional(),
-})
+    email: z
+      .union([z.literal(""), z.email().max(100, "Maximum of 100 characters allowed")])
+      .optional(),
+  })
   .superRefine((data, ctx) => {
     if (data.driver_license_expiration && data.driver_license_expiration.isBefore(dayjs())) {
       ctx.addIssue({
@@ -129,21 +140,21 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
       .custom<Dayjs>()
       .refine((date) => date !== null && date.isValid(), "Date out is required"),
     fuel_level_out: z.enum(
-      ["E", "1/4", "1/2", "3/4", "F"],
-      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
+      FUEL_LEVEL_OPTIONS,
+      `Fuel level must be one of ${FUEL_LEVEL_OPTIONS.join(", ")}`
     ),
     fuel_level_in: z.enum(
-      ["E", "1/4", "1/2", "3/4", "F"],
-      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
-    ),      
+      FUEL_LEVEL_OPTIONS,
+      `Fuel level must be one of ${FUEL_LEVEL_OPTIONS.join(", ")}`
+    ),
     max_distance: z.number().int().min(0, "Maximum distance must be a non-negative integer"),
     max_distance_measurement: z.enum(
-      ["MI", "KM"],
+      DISTANCE_MEASUREMENT_OPTIONS.map((option) => option.value),
       "Maximum distance measurement must be either 'MI' or 'KM'"
     ),
     max_payload: z.number().int().min(0, "Maximum payload must be a non-negative integer"),
     max_payload_measurement: z.enum(
-      ["LB", "KG"],
+      PAYLOAD_MEASUREMENT_OPTIONS.map((option) => option.value),
       "Maximum payload measurement must be either 'LB' or 'KG'"
     ),
   })
