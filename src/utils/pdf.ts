@@ -324,6 +324,7 @@ export const generateRentalPDF = async (
   doc.setLineWidth(0.2);
 
   currentY += 5;
+  const additionalDriversSectionTopY = currentY - 1;
   doc.buildTextField(
     "ADDITIONAL_DRIVER_1_NAME",
     6,
@@ -410,6 +411,19 @@ export const generateRentalPDF = async (
   );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("EXPIRES", 68, currentY + 7.5);
+
+  if (!form.additional_drivers || form.additional_drivers.length === 0) {
+    doc.setFont("Archivo Black", "normal");
+    doc.setFontSize(30);
+    doc.setTextColor(170, 170, 170);
+    doc.setCharSpace(1.8);
+    doc.text("NONE", 38, additionalDriversSectionTopY + 34, { angle: 40, align: "center" });
+    doc.text("NONE", 78, additionalDriversSectionTopY + 34, { angle: 40, align: "center" });
+    doc.setCharSpace(0);
+    doc.setFont("Cousine", "normal", 400);
+    doc.setFontSize(8);
+    doc.setTextColor(59, 59, 59);
+  }
 
   currentY += 9.5;
   doc.setDrawColor(0, 0, 0);
