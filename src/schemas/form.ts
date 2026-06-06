@@ -1,4 +1,4 @@
-import { Dayjs } from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import z from "zod";
 
 const RENTEE_SCHEMA = z.object({
@@ -40,7 +40,24 @@ const RENTEE_SCHEMA = z.object({
   alternate_phone: z.string().max(20, "Maximum of 20 characters allowed").optional(),
 
   email: z.union([z.literal(""), z.email().max(100, "Maximum of 100 characters allowed")]).optional(),
-});
+})
+  .superRefine((data, ctx) => {
+    if (data.driver_license_expiration && data.driver_license_expiration.isBefore(dayjs())) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["driver_license_expiration"],
+        message: "Driver's license cannot be expired",
+      });
+    }
+
+    if (data.date_of_birth && data.date_of_birth.isAfter(dayjs())) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["date_of_birth"],
+        message: "Date of birth must be in the past",
+      });
+    }
+  });
 
 const RENTEE_EMPLOYER_SCHEMA = z.object({
   company: z.string().max(100, "Maximum of 100 characters allowed").optional(),
@@ -111,6 +128,14 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
     date_out: z
       .custom<Dayjs>()
       .refine((date) => date !== null && date.isValid(), "Date out is required"),
+    fuel_level_out: z.enum(
+      ["E", "1/4", "1/2", "3/4", "F"],
+      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
+    ),
+    fuel_level_in: z.enum(
+      ["E", "1/4", "1/2", "3/4", "F"],
+      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
+    ),      
     max_distance: z.number().int().min(0, "Maximum distance must be a non-negative integer"),
     max_distance_measurement: z.enum(
       ["MI", "KM"],
@@ -120,14 +145,6 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
     max_payload_measurement: z.enum(
       ["LB", "KG"],
       "Maximum payload measurement must be either 'LB' or 'KG'"
-    ),
-    fuel_level_out: z.enum(
-      ["E", "1/4", "1/2", "3/4", "F"],
-      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
-    ),
-    fuel_level_in: z.enum(
-      ["E", "1/4", "1/2", "3/4", "F"],
-      "Fuel level must be one of E, 1/4, 1/2, 3/4, F"
     ),
   })
   .superRefine((data, ctx) => {

@@ -290,6 +290,23 @@ export const RentalAgreementForm = () => {
 
             <FieldRow>
               <FieldCell>
+                <SelectInput
+                  name="rental_agreement_info.fuel_level_out"
+                  label="Fuel level at pickup"
+                  options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
+                />
+              </FieldCell>
+              <FieldCell>
+                <SelectInput
+                  name="rental_agreement_info.fuel_level_in"
+                  label="Fuel level at return"
+                  options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
+                />
+              </FieldCell>
+            </FieldRow>            
+
+            <FieldRow>
+              <FieldCell>
                 <NumberInput name="rental_agreement_info.max_distance" label="Maximum distance" />
               </FieldCell>
               <FieldCell>
@@ -310,23 +327,6 @@ export const RentalAgreementForm = () => {
                   name="rental_agreement_info.max_payload_measurement"
                   label="Payload unit"
                   options={PAYLOAD_MEASUREMENT_OPTIONS}
-                />
-              </FieldCell>
-            </FieldRow>
-
-            <FieldRow>
-              <FieldCell>
-                <SelectInput
-                  name="rental_agreement_info.fuel_level_out"
-                  label="Fuel level at pickup"
-                  options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
-                />
-              </FieldCell>
-              <FieldCell>
-                <SelectInput
-                  name="rental_agreement_info.fuel_level_in"
-                  label="Fuel level at return"
-                  options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
                 />
               </FieldCell>
             </FieldRow>
