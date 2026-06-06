@@ -1,6 +1,6 @@
-import { Dayjs } from "dayjs";
+import Dayjs from "dayjs";
 
-export const formatDate = (value: Dayjs | undefined, template = "MM/DD/YYYY"): string => {
+export const formatDate = (value: Dayjs.Dayjs | undefined, template = "MM/DD/YYYY"): string => {
   if (!value || !(value instanceof Dayjs) || !value.isValid()) {
     return "";
   }
