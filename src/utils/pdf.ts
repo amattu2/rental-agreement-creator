@@ -421,9 +421,6 @@ export const generateRentalPDF = async (
     doc.text("NONE", 38, additionalDriversSectionTopY + 34, { angle: 40, align: "center" });
     doc.text("NONE", 78, additionalDriversSectionTopY + 34, { angle: 40, align: "center" });
     doc.setCharSpace(0);
-    doc.setFont("Cousine", "normal", 400);
-    doc.setFontSize(8);
-    doc.setTextColor(59, 59, 59);
   }
 
   currentY += 9.5;
@@ -432,6 +429,42 @@ export const generateRentalPDF = async (
   doc.line(5, currentY, 125.5, currentY);
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
+
+  currentY += 3.5;
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(7.8);
+  doc.setTextColor(0, 0, 0);
+  doc.setCharSpace(0);
+  doc.text("VEHICLE DAMAGE WAIVER", 5, currentY);
+  currentY += 5;
+  doc.text("RATES:", 5, currentY);
+  doc.buildTextField("VDW_RATE_PER_DAY", 16, currentY - 3, 15, 4, formatNumber(form.vehicle_damage_waiver?.rate_per_day));
+  doc.line(16, currentY + 1, 31, currentY + 1);
+  doc.text("PER DAY", 32, currentY);
+  doc.buildTextField("VDW_RATE_PER_WEEK", 45, currentY - 3, 15, 4, formatNumber(form.vehicle_damage_waiver?.rate_per_week));
+  doc.line(45, currentY + 1, 60, currentY + 1);
+  doc.text("PER WEEK", 61, currentY);
+  currentY += 3.8;
+  doc.setCharSpace(-0.2);
+  doc.setLineHeightFactor(0.96);
+  doc.text(
+    [
+      "BY INITIALING, RENTEE ACCEPTS OR DECLINES VEHICLE DAMAGE WAIVER AT THE",
+      "RATES LISTED ABOVE BY DECLINING WAIVER, RENTEE ACCEPTS FULL RESPONSIBILITY",
+      "FOR ALL LOSS/DAMAGE TO THE RENTED VEHICLE UP TO                    PER OCCURRENCE,",
+      "REGARDLESS OR CAUSE NOTICE, WAIVER DOES NOT COVER LOSS OR DAMAGE RESULTING FROM",
+      "ANY VIOLATION OR PARAGRAPH 1 OR 2 ON PAGE 2 OF THIS AGREEMENT, FOR MISSING VEHICLE",
+      "PARTS OR FOR INTERIOR VEHICLE DAMAGE OTHER THAN NORMAL WEAR AND TEAR CAUSED BY",
+      "VEHICLE OCCUPANTS INCLUDING ANIMALS."
+    ],
+    5,
+    currentY
+  );
+  doc.setLineHeightFactor(1);
+  doc.setCharSpace(0);
+  // TODO: add field and underline for that big gap above
+  doc.text("VEHICLE DAMAGE WAIVER IS NOT INSURANCE", 60.25, currentY + 20, { align: "center" });
+  // TODO: add accepts or declines text boxes
 
   // ---- COLUMN 2 ----
 

@@ -42,6 +42,8 @@ const DefaultForm: FormSchema = {
     policy_number: "",
   },
   additional_drivers: [],
+  vehicle_damage_waiver: undefined,
+  personal_accident_insurance: undefined,
   rental_vehicle: {
     identifier: "",
     VIN: "",

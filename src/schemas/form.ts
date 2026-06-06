@@ -1,6 +1,7 @@
 import {
   DISTANCE_MEASUREMENT_OPTIONS,
   FUEL_LEVEL_OPTIONS,
+  MAX_ADDITIONAL_DRIVERS,
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
 import dayjs, { Dayjs } from "dayjs";
@@ -80,16 +81,8 @@ const RENTEE_EMPLOYER_SCHEMA = z.object({
 });
 
 const RENTEE_INSURANCE_SCHEMA = z.object({
-  company: z
-    .string()
-    .min(1, "Insurance company is required")
-    .max(100, "Maximum of 100 characters allowed")
-    .optional(),
-  policy_number: z
-    .string()
-    .min(1, "Insurance policy number is required")
-    .max(50, "Maximum of 50 characters allowed")
-    .optional(),
+  company: z.string().max(100, "Maximum of 100 characters allowed").optional(),
+  policy_number: z.string().max(50, "Maximum of 50 characters allowed").optional(),
 });
 
 const ADDITIONAL_DRIVER_SCHEMA = z.object({
@@ -107,6 +100,16 @@ const ADDITIONAL_DRIVER_SCHEMA = z.object({
   driver_license_expiration: z
     .custom<Dayjs>()
     .refine((date) => date !== null && date.isValid(), "Driver's license expiration is required"),
+});
+
+const VEHICLE_DAMAGE_WAIVER_SCHEMA = z.object({
+  rate_per_day: z.number().min(1, "Rate per day must be a positive number"),
+  rate_per_week: z.number().min(1, "Rate per week must be a positive number"),
+  damage_liability_limit: z.number().min(1, "Damage liability limit must be a positive number"),
+});
+
+const PERSONAL_ACCIDENT_INSURANCE_SCHEMA = z.object({
+  rate_per_day: z.number().min(1, "Rate per day must be a positive number"),
 });
 
 const RENTAL_VEHICLE_SCHEMA = z.object({
@@ -131,11 +134,11 @@ const RENTAL_VEHICLE_SCHEMA = z.object({
 
 const RENTAL_AGREEMENT_INFO_SCHEMA = z
   .object({
-    odometer_in: z.number().int().min(0, "Odometer reading must be a non-negative integer"),
+    odometer_in: z.number().int().min(1, "Odometer reading must be greater than 0"),
     date_in: z
       .custom<Dayjs>()
       .refine((date) => date !== null && date.isValid(), "Date in is required"),
-    odometer_out: z.number().int().min(0, "Odometer reading must be a non-negative integer"),
+    odometer_out: z.number().int().min(1, "Odometer reading must be greater than 0"),
     date_out: z
       .custom<Dayjs>()
       .refine((date) => date !== null && date.isValid(), "Date out is required"),
@@ -191,9 +194,13 @@ export const FORM_SCHEMA = z
     rentee_insurance: RENTEE_INSURANCE_SCHEMA,
     additional_drivers: z
       .array(ADDITIONAL_DRIVER_SCHEMA)
-      .max(2, "Maximum of 2 additional drivers allowed")
+      .max(
+        MAX_ADDITIONAL_DRIVERS,
+        `Maximum of ${MAX_ADDITIONAL_DRIVERS} additional drivers allowed`
+      )
       .optional(),
-    // TODO: Remaining fields from column 1 of the form (e.g., Vehicle damage waiver)
+    vehicle_damage_waiver: VEHICLE_DAMAGE_WAIVER_SCHEMA.optional(),
+    personal_accident_insurance: PERSONAL_ACCIDENT_INSURANCE_SCHEMA.optional(),
 
     rental_vehicle: RENTAL_VEHICLE_SCHEMA,
     rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,

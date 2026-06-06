@@ -46,6 +46,8 @@ const defaultValues: FormSchema = {
     policy_number: "",
   },
   additional_drivers: [],
+  vehicle_damage_waiver: undefined,
+  personal_accident_insurance: undefined,
   rental_vehicle: {
     identifier: "",
     VIN: "",
@@ -92,6 +94,8 @@ describe("RentalAgreementForm", () => {
     expect(screen.getByRole("heading", { name: "Agreement number" })).toBeInTheDocument();
     expect(screen.getByText("Rentee details")).toBeInTheDocument();
     expect(screen.getByText("Additional drivers")).toBeInTheDocument();
+    expect(screen.getByText("Vehicle Damage Waiver")).toBeInTheDocument();
+    expect(screen.getByText("Personal Accident Insurance")).toBeInTheDocument();
     expect(screen.getByText("Rental vehicle")).toBeInTheDocument();
     expect(screen.getByText("Agreement info")).toBeInTheDocument();
   });
@@ -102,6 +106,28 @@ describe("RentalAgreementForm", () => {
     fireEvent.click(screen.getByRole("button", { name: "Add driver" }));
 
     expect(screen.getByText("Additional driver 1")).toBeInTheDocument();
+  });
+
+  it("keeps vehicle damage waiver fields hidden until added", () => {
+    renderForm();
+
+    expect(screen.queryByLabelText("Rate per day")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add Vehicle Damage Waiver" }));
+
+    expect(screen.getByLabelText("Rate per day")).toBeInTheDocument();
+    expect(screen.getByLabelText("Rate per week")).toBeInTheDocument();
+    expect(screen.getByLabelText("Damage liability limit")).toBeInTheDocument();
+  });
+
+  it("keeps personal accident insurance fields hidden until added", () => {
+    renderForm();
+
+    expect(screen.queryByRole("spinbutton", { name: "Rate per day" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add Personal Accident Insurance" }));
+
+    expect(screen.getByRole("spinbutton", { name: "Rate per day" })).toBeInTheDocument();
   });
 
   it("renders the submit and reset actions", () => {

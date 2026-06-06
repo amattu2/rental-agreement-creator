@@ -26,7 +26,7 @@ import {
 } from "@/config/constants";
 
 export const RentalAgreementForm = () => {
-  const { control, reset } = useFormContext<FormSchema>();
+  const { control, reset, setValue, watch } = useFormContext<FormSchema>();
 
   const {
     fields: additionalDriverFields,
@@ -37,14 +37,130 @@ export const RentalAgreementForm = () => {
     name: "additional_drivers",
   });
 
+  const vehicleDamageWaiver = watch("vehicle_damage_waiver");
+  const hasVehicleDamageWaiver = vehicleDamageWaiver !== undefined;
+  const personalAccidentInsurance = watch("personal_accident_insurance");
+  const hasPersonalAccidentInsurance = personalAccidentInsurance !== undefined;
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box sx={{ p: 3 }}>
         <Section
-          title="Agreement number"
-          description="Enter the reference number used to identify this rental agreement."
+          title="Agreement Information"
+          description="Enter the automotive rental agreement information."
         >
-          <TextInput name="agreement_number" label="Agreement number" />
+          <Stack spacing={3}>
+            <TextInput name="agreement_number" label="Agreement number" />
+
+            <FieldRow>
+              <FieldCell>
+                <DateTimeInput name="rental_agreement_info.date_out" label="Pickup date" />
+              </FieldCell>
+              <FieldCell>
+                <DateTimeInput name="rental_agreement_info.date_in" label="Return date" />
+              </FieldCell>
+            </FieldRow>
+
+            <FieldRow>
+              <FieldCell>
+                <NumberInput name="rental_agreement_info.max_distance" label="Maximum distance" />
+              </FieldCell>
+              <FieldCell>
+                <SelectInput
+                  name="rental_agreement_info.max_distance_measurement"
+                  label="Distance unit"
+                  options={DISTANCE_MEASUREMENT_OPTIONS}
+                />
+              </FieldCell>
+            </FieldRow>
+
+            <FieldRow>
+              <FieldCell>
+                <NumberInput name="rental_agreement_info.max_payload" label="Maximum payload" />
+              </FieldCell>
+              <FieldCell>
+                <SelectInput
+                  name="rental_agreement_info.max_payload_measurement"
+                  label="Payload unit"
+                  options={PAYLOAD_MEASUREMENT_OPTIONS}
+                />
+              </FieldCell>
+            </FieldRow>
+          </Stack>
+        </Section>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Section
+          title="Rental Vehicle"
+          description="Enter the vehicle being rented, including its identifying details and appearance."
+        >
+          <Stack spacing={3}>
+            <Subsection title="Vehicle Information">
+              <Stack spacing={2}>
+                <TextInput name="rental_vehicle.identifier" label="Vehicle identifier (Stock #)" />
+
+                <TextInput name="rental_vehicle.VIN" label="VIN" />
+
+                <FieldRow>
+                  <FieldCell>
+                    <NumberInput name="rental_vehicle.year" label="Year" />
+                  </FieldCell>
+                  <FieldCell>
+                    <TextInput name="rental_vehicle.make" label="Make" />
+                  </FieldCell>
+                  <FieldCell>
+                    <TextInput name="rental_vehicle.model" label="Model" />
+                  </FieldCell>
+                </FieldRow>
+
+                <FieldRow>
+                  <FieldCell>
+                    <TextInput name="rental_vehicle.license_plate" label="License plate" />
+                  </FieldCell>
+                  <FieldCell>
+                    <TextInput name="rental_vehicle.color" label="Color" />
+                  </FieldCell>
+                </FieldRow>
+              </Stack>
+            </Subsection>
+
+            <Subsection title="Vehicle Condition">
+              <Stack spacing={2}>
+                <FieldRow>
+                  <FieldCell>
+                    <NumberInput
+                      name="rental_agreement_info.odometer_out"
+                      label="Odometer at pickup"
+                    />
+                  </FieldCell>
+                  <FieldCell>
+                    <NumberInput
+                      name="rental_agreement_info.odometer_in"
+                      label="Odometer at return"
+                    />
+                  </FieldCell>
+                </FieldRow>
+
+                <FieldRow>
+                  <FieldCell>
+                    <SelectInput
+                      name="rental_agreement_info.fuel_level_out"
+                      label="Fuel level at pickup"
+                      options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
+                    />
+                  </FieldCell>
+                  <FieldCell>
+                    <SelectInput
+                      name="rental_agreement_info.fuel_level_in"
+                      label="Fuel level at return"
+                      options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
+                    />
+                  </FieldCell>
+                </FieldRow>
+              </Stack>
+            </Subsection>
+          </Stack>
         </Section>
 
         <Divider sx={{ my: 3 }} />
@@ -103,7 +219,7 @@ export const RentalAgreementForm = () => {
             <TextInput name="rentee.email" label="Email address" />
 
             <Subsection title="Employer information">
-              <Stack spacing={3}>
+              <Stack spacing={2}>
                 <FieldRow>
                   <FieldCell>
                     <TextInput name="rentee_employer.company" label="Employer name" />
@@ -149,59 +265,58 @@ export const RentalAgreementForm = () => {
           title="Additional drivers"
           description="Add up to two additional drivers authorized to use the rental vehicle."
         >
-          <Stack spacing={2} mb={2}>
-            {additionalDriverFields.map((field, index) => (
-              <Box
-                key={field.id}
-                sx={{ border: 1, borderColor: "divider", borderRadius: 1.5, p: 2 }}
-              >
-                <Stack spacing={2}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 2,
-                    }}
+          {additionalDriverFields.map((field, index) => (
+            <Box
+              key={field.id}
+              sx={{ border: 1, borderColor: "divider", borderRadius: 1.5, p: 2 }}
+              mb={2}
+            >
+              <Stack spacing={2}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                  }}
+                >
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Additional driver {index + 1}
+                  </Typography>
+                  <IconButton
+                    color="error"
+                    size="small"
+                    onClick={() => removeAdditionalDriver(index)}
                   >
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      Additional driver {index + 1}
-                    </Typography>
-                    <IconButton
-                      color="error"
-                      size="small"
-                      onClick={() => removeAdditionalDriver(index)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
 
-                  <TextInput name={`additional_drivers.${index}.full_name`} label="Full name" />
+                <TextInput name={`additional_drivers.${index}.full_name`} label="Full name" />
 
-                  <FieldRow>
-                    <FieldCell>
-                      <DateInput
-                        name={`additional_drivers.${index}.date_of_birth`}
-                        label="Date of birth"
-                      />
-                    </FieldCell>
-                    <FieldCell>
-                      <TextInput
-                        name={`additional_drivers.${index}.driver_license_number`}
-                        label="Driver's license number"
-                      />
-                    </FieldCell>
-                    <FieldCell>
-                      <DateInput
-                        name={`additional_drivers.${index}.driver_license_expiration`}
-                        label="Driver's license expiration"
-                      />
-                    </FieldCell>
-                  </FieldRow>
-                </Stack>
-              </Box>
-            ))}
-          </Stack>
+                <FieldRow>
+                  <FieldCell>
+                    <DateInput
+                      name={`additional_drivers.${index}.date_of_birth`}
+                      label="Date of birth"
+                    />
+                  </FieldCell>
+                  <FieldCell>
+                    <TextInput
+                      name={`additional_drivers.${index}.driver_license_number`}
+                      label="Driver's license number"
+                    />
+                  </FieldCell>
+                  <FieldCell>
+                    <DateInput
+                      name={`additional_drivers.${index}.driver_license_expiration`}
+                      label="Driver's license expiration"
+                    />
+                  </FieldCell>
+                </FieldRow>
+              </Stack>
+            </Box>
+          ))}
 
           <Button
             startIcon={<AddIcon />}
@@ -224,105 +339,141 @@ export const RentalAgreementForm = () => {
         <Divider sx={{ my: 3 }} />
 
         <Section
-          title="Rental vehicle"
-          description="Enter the vehicle being rented, including its identifying details and appearance."
+          title="Vehicle Damage Waiver"
+          description="Optionally add vehicle damage waiver rates and the liability limit."
         >
-          <Stack spacing={3}>
-            <TextInput name="rental_vehicle.identifier" label="Vehicle identifier" />
+          {hasVehicleDamageWaiver && (
+            <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1.5, p: 2 }} mb={2}>
+              <Stack spacing={2}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                  }}
+                >
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Vehicle Damage Waiver
+                  </Typography>
+                  <IconButton
+                    color="error"
+                    size="small"
+                    onClick={() =>
+                      setValue("vehicle_damage_waiver", undefined, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
 
-            <TextInput name="rental_vehicle.VIN" label="VIN" />
+                <FieldRow>
+                  <FieldCell>
+                    <NumberInput name="vehicle_damage_waiver.rate_per_day" label="Rate per day" />
+                  </FieldCell>
+                  <FieldCell>
+                    <NumberInput name="vehicle_damage_waiver.rate_per_week" label="Rate per week" />
+                  </FieldCell>
+                  <FieldCell>
+                    <NumberInput
+                      name="vehicle_damage_waiver.damage_liability_limit"
+                      label="Damage liability limit"
+                    />
+                  </FieldCell>
+                </FieldRow>
+              </Stack>
+            </Box>
+          )}
 
-            <FieldRow>
-              <FieldCell>
-                <NumberInput name="rental_vehicle.year" label="Year" />
-              </FieldCell>
-              <FieldCell>
-                <TextInput name="rental_vehicle.make" label="Make" />
-              </FieldCell>
-              <FieldCell>
-                <TextInput name="rental_vehicle.model" label="Model" />
-              </FieldCell>
-            </FieldRow>
-
-            <FieldRow>
-              <FieldCell>
-                <TextInput name="rental_vehicle.license_plate" label="License plate" />
-              </FieldCell>
-              <FieldCell>
-                <TextInput name="rental_vehicle.color" label="Color" />
-              </FieldCell>
-            </FieldRow>
-          </Stack>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={() =>
+              setValue(
+                "vehicle_damage_waiver",
+                {
+                  rate_per_day: 0,
+                  rate_per_week: 0,
+                  damage_liability_limit: 0,
+                },
+                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+              )
+            }
+            variant="outlined"
+            size="small"
+            disabled={hasVehicleDamageWaiver}
+          >
+            Add Vehicle Damage Waiver
+          </Button>
         </Section>
 
         <Divider sx={{ my: 3 }} />
 
         <Section
-          title="Agreement info"
-          description="Set the rental terms, pickup and return details, and usage limits."
+          title="Personal Accident Insurance"
+          description="Optionally add personal accident insurance details."
         >
-          <Stack spacing={3}>
-            <FieldRow>
-              <FieldCell>
-                <DateTimeInput name="rental_agreement_info.date_out" label="Pickup date" />
-              </FieldCell>
-              <FieldCell>
-                <DateTimeInput name="rental_agreement_info.date_in" label="Return date" />
-              </FieldCell>
-            </FieldRow>
+          {hasPersonalAccidentInsurance && (
+            <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1.5, p: 2 }} mb={2}>
+              <Stack spacing={2}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                  }}
+                >
+                  <Typography variant="subtitle2" fontWeight={600}>
+                    Personal Accident Insurance
+                  </Typography>
+                  <IconButton
+                    color="error"
+                    size="small"
+                    onClick={() =>
+                      setValue("personal_accident_insurance", undefined, {
+                        shouldDirty: true,
+                        shouldTouch: true,
+                        shouldValidate: true,
+                      })
+                    }
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
 
-            <FieldRow>
-              <FieldCell>
-                <NumberInput name="rental_agreement_info.odometer_out" label="Odometer at pickup" />
-              </FieldCell>
-              <FieldCell>
-                <NumberInput name="rental_agreement_info.odometer_in" label="Odometer at return" />
-              </FieldCell>
-            </FieldRow>
+                <FieldRow>
+                  <FieldCell>
+                    <NumberInput
+                      name="personal_accident_insurance.rate_per_day"
+                      label="Rate per day"
+                    />
+                  </FieldCell>
+                </FieldRow>
+              </Stack>
+            </Box>
+          )}
 
-            <FieldRow>
-              <FieldCell>
-                <SelectInput
-                  name="rental_agreement_info.fuel_level_out"
-                  label="Fuel level at pickup"
-                  options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
-                />
-              </FieldCell>
-              <FieldCell>
-                <SelectInput
-                  name="rental_agreement_info.fuel_level_in"
-                  label="Fuel level at return"
-                  options={FUEL_LEVEL_OPTIONS.map((level) => ({ label: level, value: level }))}
-                />
-              </FieldCell>
-            </FieldRow>
-
-            <FieldRow>
-              <FieldCell>
-                <NumberInput name="rental_agreement_info.max_distance" label="Maximum distance" />
-              </FieldCell>
-              <FieldCell>
-                <SelectInput
-                  name="rental_agreement_info.max_distance_measurement"
-                  label="Distance unit"
-                  options={DISTANCE_MEASUREMENT_OPTIONS}
-                />
-              </FieldCell>
-            </FieldRow>
-
-            <FieldRow>
-              <FieldCell>
-                <NumberInput name="rental_agreement_info.max_payload" label="Maximum payload" />
-              </FieldCell>
-              <FieldCell>
-                <SelectInput
-                  name="rental_agreement_info.max_payload_measurement"
-                  label="Payload unit"
-                  options={PAYLOAD_MEASUREMENT_OPTIONS}
-                />
-              </FieldCell>
-            </FieldRow>
-          </Stack>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={() =>
+              setValue(
+                "personal_accident_insurance",
+                {
+                  rate_per_day: 0,
+                },
+                { shouldDirty: true, shouldTouch: true, shouldValidate: true }
+              )
+            }
+            variant="outlined"
+            size="small"
+            disabled={hasPersonalAccidentInsurance}
+          >
+            Add Personal Accident Insurance
+          </Button>
         </Section>
 
         <Divider sx={{ my: 3 }} />

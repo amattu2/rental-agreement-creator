@@ -8,5 +8,10 @@ export const formatDate = (value: Dayjs | undefined, template = "MM/DD/YYYY"): s
   return value.format(template);
 };
 
-export const formatNumber = (value: number | undefined): string =>
-  value === undefined ? "" : String(value);
+export const formatNumber = (value: number | undefined): string => {
+  if (typeof value !== "number" || isNaN(value)) {
+    return "";
+  }
+
+  return String(value);
+};
