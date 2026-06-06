@@ -141,12 +141,12 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
     if (
       data.odometer_in !== undefined &&
       data.odometer_out !== undefined &&
-      data.odometer_in > data.odometer_out
+      data.odometer_out > data.odometer_in
     ) {
       ctx.addIssue({
         code: "custom",
         path: ["odometer_in"],
-        message: "Odometer in must be less than or equal to odometer out",
+        message: "Odometer at return must be greater than or equal to odometer at pickup",
       });
     }
     // TODO: Expand these rules. e.g. odometer_in does not exceed odometer_out by more than max_distance
