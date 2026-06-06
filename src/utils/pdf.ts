@@ -703,7 +703,7 @@ export const generateRentalPDF = async (
   });
   doc.line(151.5, currentY + 3.8, 188.5, currentY + 3.8);
   doc.setFont("Cousine", "normal", 700);
-  doc.setFontSize(9);
+  doc.setFontSize(11);
   doc.setTextColor(255, 64, 64);
   doc.text(
     formatDate(form.rental_agreement_info.date_in, "MM/DD/YYYY hh:mm A"),
