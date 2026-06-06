@@ -10,6 +10,7 @@ import dayjs from "dayjs";
 import { FormSchema } from "@/schemas/form";
 import { CheckboxInput } from "../CheckboxInput";
 import { DateInput } from "../DateInput";
+import { DateTimeInput } from "../DateTimeInput";
 import { FieldCell } from "../FieldCell";
 import { FieldRow } from "../FieldRow";
 import { NumberInput } from "../NumberInput";
@@ -271,10 +272,10 @@ export const RentalAgreementForm = () => {
           <Stack spacing={3}>
             <FieldRow>
               <FieldCell>
-                <DateInput name="rental_agreement_info.date_out" label="Pickup date" />
+                <DateTimeInput name="rental_agreement_info.date_out" label="Pickup date" />
               </FieldCell>
               <FieldCell>
-                <DateInput name="rental_agreement_info.date_in" label="Return date" />
+                <DateTimeInput name="rental_agreement_info.date_in" label="Return date" />
               </FieldCell>
             </FieldRow>
 

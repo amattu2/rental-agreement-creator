@@ -39,11 +39,7 @@ const RENTEE_SCHEMA = z.object({
     .max(20, "Maximum of 20 characters allowed"),
   alternate_phone: z.string().max(20, "Maximum of 20 characters allowed").optional(),
 
-  email: z
-    .email()
-    .min(1, "Email address is required")
-    .max(100, "Maximum of 100 characters allowed")
-    .optional(),
+  email: z.union([z.literal(""), z.email().max(100, "Maximum of 100 characters allowed")]).optional(),
 });
 
 const RENTEE_EMPLOYER_SCHEMA = z.object({
@@ -135,11 +131,11 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
     ),
   })
   .superRefine((data, ctx) => {
-    if (data.date_in && data.date_out && data.date_in.isBefore(data.date_out)) {
+    if (data.date_in && data.date_out && !data.date_in.isAfter(data.date_out)) {
       ctx.addIssue({
         code: "custom",
         path: ["date_in"],
-        message: "Date in cannot be before date out",
+        message: "Return date and time must be after pickup date and time",
       });
     }
     if (

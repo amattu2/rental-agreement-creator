@@ -10,6 +10,12 @@ vi.mock("@mui/x-date-pickers/DatePicker", () => ({
   ),
 }));
 
+vi.mock("@mui/x-date-pickers/DateTimePicker", () => ({
+  DateTimePicker: ({ label }: { label: string }) => (
+    <div data-testid={`date-time-picker-${label}`}>{label}</div>
+  ),
+}));
+
 const defaultValues: FormSchema = {
   agreement_number: "",
   rentee: {
