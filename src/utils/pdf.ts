@@ -283,7 +283,7 @@ export const generateRentalPDF = async (
   currentY += 3.5;
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(7.8);
-  doc.setTextColor(59, 59, 59);
+  doc.setTextColor(0, 0, 0);
   doc.setCharSpace(-0.2);
   doc.setLineHeightFactor(0.95);
   doc.drawCompressedText(
@@ -297,6 +297,7 @@ export const generateRentalPDF = async (
   doc.setLineHeightFactor(1);
   doc.setCharSpace(0);
 
+  doc.setTextColor(59, 59, 59);
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.3);
   doc.rect(99.5, currentY - 1.6, 24, 42);
