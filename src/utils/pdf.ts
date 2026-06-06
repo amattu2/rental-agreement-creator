@@ -3,6 +3,7 @@ import jsPDF, { AcroFormTextField, AcroFormComboBox } from "jspdf";
 import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
 import { EnvSchema } from "@/schemas/env";
+import { formatDate, formatNumber } from "./text";
 
 jsPDF.API.buildTextField = function (
   this: jsPDF,
@@ -10,12 +11,13 @@ jsPDF.API.buildTextField = function (
   x: number,
   y: number,
   w: number,
-  height = 5
+  height = 5,
+  value = ""
 ): void {
   const field = new AcroFormTextField();
-  field.value = ""; // TODO: Allow setting this value from the form data
-  field.defaultValue = "";
-  field.fontName = "Cousine";
+  field.value = value;
+  field.defaultValue = value;
+  field.fontName = "Helvetica";
   field.fontStyle = "normal";
   field.fontSize = 8;
   field.maxFontSize = 8;
@@ -37,12 +39,13 @@ jsPDF.API.buildComboField = function (
   y: number,
   w: number,
   options: string[],
-  height = 5
+  height = 5,
+  selectedValue = ""
 ): void {
   const field = new AcroFormComboBox();
   field.fieldName = name;
   field.commitOnSelChange = true;
-  field.fontName = "Cousine";
+  field.fontName = "Helvetica";
   field.fontStyle = "normal";
   field.fontSize = 8;
   field.maxFontSize = 8;
@@ -56,10 +59,20 @@ jsPDF.API.buildComboField = function (
     field.addOption(option);
   }
 
+  field.value = selectedValue;
+  field.defaultValue = selectedValue;
+
   this.addField(field);
 };
 
-jsPDF.API.drawField = function (this: jsPDF, label: string, x: number, y: number, w: number): void {
+jsPDF.API.drawField = function (
+  this: jsPDF,
+  label: string,
+  x: number,
+  y: number,
+  w: number,
+  value = ""
+): void {
   // Field Label
   this.setFont("Cousine", "normal", 400);
   this.setFontSize(8);
@@ -67,7 +80,7 @@ jsPDF.API.drawField = function (this: jsPDF, label: string, x: number, y: number
   this.text(label, x, y);
 
   // Field Input
-  this.buildTextField(label.toLowerCase().replace(/\s+/g, "_"), x, y, w);
+  this.buildTextField(label.toLowerCase().replace(/\s+/g, "_"), x, y, w, 5, value);
 };
 
 jsPDF.API.drawCompressedText = function (
@@ -158,19 +171,20 @@ export const generateRentalPDF = async (
   doc.setFontSize(8);
   doc.text("NO.", pageWidth - 54, 35);
   const roField = new AcroFormTextField();
+  roField.hasAppearanceStream = true;
+  roField.fieldName = "AGREEMENT_NUMBER";
+  roField.value = form.agreement_number;
+  roField.defaultValue = form.agreement_number;
+  roField.fontName = "Helvetica";
+  roField.fontStyle = "normal";
+  roField.fontSize = 10;
+  roField.maxFontSize = 10;
+  roField.textAlign = "left";
   roField.x = pageWidth - 49;
   roField.y = 28;
   roField.width = 44;
   roField.height = 8;
   doc.addField(roField);
-  // field.fieldName = options.textField;
-  // field.value = text;
-  // field.defaultValue = text;
-  // field.fontName = "Helvetica";
-  // field.fontStyle = options.fontStyle || "normal";
-  // field.fontSize = doc.getFontSize();
-  // field.textAlign = textAlign;
-  // field.multiline = false;
 
   let currentY = 36.5;
   doc.setDrawColor(0, 0, 0);
@@ -180,7 +194,7 @@ export const generateRentalPDF = async (
   currentY += 3; // 41.5
 
   // ---- COLUMN 1 ----
-  doc.drawField("RENTEE NAME", 6, currentY, 119);
+  doc.drawField("RENTEE NAME", 6, currentY, 119, form.rentee.full_name);
 
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
@@ -188,20 +202,20 @@ export const generateRentalPDF = async (
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3; // 49.5
-  doc.drawField("HOME ADDRESS", 6, currentY, 95);
+  doc.drawField("HOME ADDRESS", 6, currentY, 95, form.rentee.address_street1);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.text("VERIFIED", 105.5, currentY);
-  doc.buildTextField("VERIFIED", 101.5, currentY, 23.5);
+  doc.buildTextField("VERIFIED", 101.5, currentY, 23.5, 5, form.rentee.verified ? "YES" : "NO");
   doc.setDrawColor(0, 0, 0);
   doc.line(101.5, currentY - 3, 101.5, currentY + 5);
   doc.setDrawColor(59, 59, 59);
   currentY += 5; // 54.5
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3; // 57.5
-  doc.drawField("CITY", 6, currentY, 47.4);
-  doc.drawField("STATE", 54.2, currentY, 47);
-  doc.buildTextField("ZIP CODE", 102, currentY, 22.6);
+  doc.drawField("CITY", 6, currentY, 47.4, form.rentee.address_city);
+  doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state);
+  doc.buildTextField("RENTEE_ZIP_CODE", 102, currentY, 22.6, 5, form.rentee.address_zip);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.text("ZIP CODE", 105.5, currentY);
@@ -209,9 +223,16 @@ export const generateRentalPDF = async (
   currentY += 5; // 62.5
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3; // 65.5
-  doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4);
-  doc.drawField("STATE", 54.2, currentY, 47);
-  doc.buildTextField("EXP. DATE", 102, currentY, 22.6);
+  doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4, form.rentee.driver_license_number);
+  doc.drawField("STATE", 54.2, currentY, 47, form.rentee.driver_license_state);
+  doc.buildTextField(
+    "DRIVER_LICENSE_EXPIRATION",
+    102,
+    currentY,
+    22.6,
+    5,
+    formatDate(form.rentee.driver_license_expiration)
+  );
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.text("EXP. DATE", 105.5, currentY);
@@ -219,38 +240,38 @@ export const generateRentalPDF = async (
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3; // 73.5
-  doc.drawField("DATE OF BIRTH", 6, currentY, 47.4);
-  doc.drawField("CELL PHONE #", 54.2, currentY, 47);
-  doc.drawField("ALT PHONE #", 102, currentY, 22.6);
+  doc.drawField("DATE OF BIRTH", 6, currentY, 47.4, formatDate(form.rentee.date_of_birth));
+  doc.drawField("CELL PHONE #", 54.2, currentY, 47, form.rentee.cell_phone);
+  doc.drawField("ALT PHONE #", 102, currentY, 22.6, form.rentee.alternate_phone ?? "");
   currentY += 5; // 78.5
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3; // 81.5
-  doc.drawField("EMAIL ADDRESS", 6, currentY, 119);
+  doc.drawField("EMAIL ADDRESS", 6, currentY, 119, form.rentee.email ?? "");
   currentY += 5; // 86.5
   doc.line(5, currentY, 125.5, currentY);
 
   currentY += 3; // 89.5
-  doc.drawField("EMPLOYER", 6, currentY, 64);
-  doc.drawField("POSITION", 71, currentY, 54);
+  doc.drawField("EMPLOYER", 6, currentY, 64, form.rentee_employer.company ?? "");
+  doc.drawField("POSITION", 71, currentY, 54, form.rentee_employer.position ?? "");
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3; // 94.5
-  doc.drawField("EMPLOYER'S ADDRESS", 6, currentY, 119);
+  doc.drawField("EMPLOYER'S ADDRESS", 6, currentY, 119, form.rentee_employer.address_street1 ?? "");
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("CITY", 6, currentY, 47.4);
-  doc.drawField("STATE", 54.2, currentY, 47);
-  doc.drawField("ZIP CODE", 102, currentY, 22.6);
+  doc.drawField("CITY", 6, currentY, 47.4, form.rentee_employer.address_city ?? "");
+  doc.drawField("STATE", 54.2, currentY, 47, form.rentee_employer.address_state ?? "");
+  doc.drawField("ZIP CODE", 102, currentY, 22.6, form.rentee_employer.address_zip ?? "");
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("INSURANCE CO.", 6, currentY, 53);
-  doc.drawField("POLICY #", 60, currentY, 54);
+  doc.drawField("INSURANCE CO.", 6, currentY, 53, form.rentee_insurance.company ?? "");
+  doc.drawField("POLICY #", 60, currentY, 54, form.rentee_insurance.policy_number ?? "");
   currentY += 5;
   doc.line(5, currentY, 125.5, currentY);
 
@@ -298,34 +319,90 @@ export const generateRentalPDF = async (
   doc.setLineWidth(0.2);
 
   currentY += 5;
-  doc.buildTextField("ADDITIONAL_DRIVER_1_NAME", 6, currentY, 59, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_1_NAME",
+    6,
+    currentY,
+    59,
+    4,
+    form.additional_drivers?.[0]?.full_name ?? ""
+  );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("NAME", 6, currentY + 7.5);
-  doc.buildTextField("ADDITIONAL_DRIVER_1_DOB", 68, currentY, 28, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_1_DOB",
+    68,
+    currentY,
+    28,
+    4,
+    formatDate(form.additional_drivers?.[0]?.date_of_birth)
+  );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("DATE OF BIRTH", 68, currentY + 7.5);
 
   currentY += 9.5;
-  doc.buildTextField("ADDITIONAL_DRIVER_1_LICENSE", 6, currentY, 59, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_1_LICENSE",
+    6,
+    currentY,
+    59,
+    4,
+    form.additional_drivers?.[0]?.driver_license_number ?? ""
+  );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("DRIVER'S LICENSE #", 6, currentY + 7.5);
-  doc.buildTextField("ADDITIONAL_DRIVER_1_LICENSE_EXPIRATION", 68, currentY, 28, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_1_LICENSE_EXPIRATION",
+    68,
+    currentY,
+    28,
+    4,
+    formatDate(form.additional_drivers?.[0]?.driver_license_expiration)
+  );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("EXPIRES", 68, currentY + 7.5);
 
   currentY += 9.5;
-  doc.buildTextField("ADDITIONAL_DRIVER_2_NAME", 6, currentY, 59, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_2_NAME",
+    6,
+    currentY,
+    59,
+    4,
+    form.additional_drivers?.[1]?.full_name ?? ""
+  );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("NAME", 6, currentY + 7.5);
-  doc.buildTextField("ADDITIONAL_DRIVER_2_DOB", 68, currentY, 28, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_2_DOB",
+    68,
+    currentY,
+    28,
+    4,
+    formatDate(form.additional_drivers?.[1]?.date_of_birth)
+  );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("DATE OF BIRTH", 68, currentY + 7.5);
-  
+
   currentY += 9.5;
-  doc.buildTextField("ADDITIONAL_DRIVER_2_LICENSE", 6, currentY, 59, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_2_LICENSE",
+    6,
+    currentY,
+    59,
+    4,
+    form.additional_drivers?.[1]?.driver_license_number ?? ""
+  );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("DRIVER'S LICENSE #", 6, currentY + 7.5);
-  doc.buildTextField("ADDITIONAL_DRIVER_2_LICENSE_EXPIRATION", 68, currentY, 28, 4);
+  doc.buildTextField(
+    "ADDITIONAL_DRIVER_2_LICENSE_EXPIRATION",
+    68,
+    currentY,
+    28,
+    4,
+    formatDate(form.additional_drivers?.[1]?.driver_license_expiration)
+  );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("EXPIRES", 68, currentY + 7.5);
 
@@ -339,23 +416,29 @@ export const generateRentalPDF = async (
   // ---- COLUMN 2 ----
 
   currentY = 39.5;
-  doc.drawField("VEHICLE #", 126.5, currentY, 19.5);
+  doc.drawField("VEHICLE #", 126.5, currentY, 19.5, form.rental_vehicle.identifier);
   doc.setDrawColor(0, 0, 0);
   doc.line(146.2, currentY - 3, 146.2, currentY + 5);
-  doc.drawField("VIN", 147, currentY, 36.5);
+  doc.drawField("VIN", 147, currentY, 36.5, form.rental_vehicle.VIN);
   doc.line(184, currentY - 3, 184, currentY + 5);
-  doc.drawField("LICENSE #", 184.8, currentY, 26);
+  doc.drawField("LICENSE #", 184.8, currentY, 26, form.rental_vehicle.license_plate);
   currentY += 5;
   doc.setDrawColor(59, 59, 59);
   doc.line(125.5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("YEAR", 126.5, currentY, 15.5);
+  doc.drawField("YEAR", 126.5, currentY, 15.5, formatNumber(form.rental_vehicle.year));
   doc.setDrawColor(0, 0, 0);
   doc.line(142.5, currentY - 3, 142.5, currentY + 5);
-  doc.drawField("MAKE", 143, currentY, 33.2);
+  doc.drawField("MAKE", 143, currentY, 33.2, form.rental_vehicle.make);
   doc.line(176.5, currentY - 3, 176.5, currentY + 5);
-  doc.drawField("MODEL/COLOR", 177.3, currentY, 33.5);
+  doc.drawField(
+    "MODEL/COLOR",
+    177.3,
+    currentY,
+    33.5,
+    `${form.rental_vehicle.model} / ${form.rental_vehicle.color}`
+  );
   currentY += 5;
   doc.setDrawColor(59, 59, 59);
   doc.line(125.5, currentY, pageWidth - 5, currentY);
@@ -368,11 +451,31 @@ export const generateRentalPDF = async (
   doc.setTextColor(59, 59, 59);
   doc.text("ODOMETER", 126.5, currentY);
   doc.text("IN", 136.5, currentY + 3.5);
-  doc.buildTextField("ODOMETER_IN", 143, currentY - 2.6, 14.5, 7.5);
+  doc.buildTextField(
+    "ODOMETER_IN",
+    143,
+    currentY - 2.6,
+    14.5,
+    7.5,
+    formatNumber(form.rental_agreement_info.odometer_in)
+  );
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
-  doc.drawField("DATE & TIME IN", 158.8, currentY, 32); // Date Field
-  doc.buildTextField("DATE_TIME_IN", 192, currentY, 19); // Time field
+  doc.drawField(
+    "DATE & TIME IN",
+    158.8,
+    currentY,
+    32,
+    formatDate(form.rental_agreement_info.date_in)
+  );
+  doc.buildTextField(
+    "DATE_TIME_IN",
+    192,
+    currentY,
+    19,
+    5,
+    formatDate(form.rental_agreement_info.date_in, "hh:mm A")
+  );
 
   currentY += 8;
   doc.setDrawColor(0, 0, 0);
@@ -382,19 +485,67 @@ export const generateRentalPDF = async (
   doc.setTextColor(59, 59, 59);
   doc.text("ODOMETER", 126.5, currentY);
   doc.text("OUT", 135, currentY + 3.5);
-  doc.buildTextField("ODOMETER_OUT", 143, currentY - 2.6, 14.5, 7.5);
+  doc.buildTextField(
+    "ODOMETER_OUT",
+    143,
+    currentY - 2.6,
+    14.5,
+    7.5,
+    formatNumber(form.rental_agreement_info.odometer_out)
+  );
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
-  doc.drawField("DATE & TIME OUT", 158.8, currentY, 32); // Date Field
-  doc.buildTextField("DATE_TIME_OUT", 192, currentY, 19); // Time field
+  doc.drawField(
+    "DATE & TIME OUT",
+    158.8,
+    currentY,
+    32,
+    formatDate(form.rental_agreement_info.date_out)
+  );
+  doc.buildTextField(
+    "DATE_TIME_OUT",
+    192,
+    currentY,
+    19,
+    5,
+    formatDate(form.rental_agreement_info.date_out, "hh:mm A")
+  );
 
   currentY += 8;
-  doc.drawField("MAX DISTANCE ALLOWED", 126.5, currentY, 32);
-  doc.buildComboField("MAX_DISTANCE_MEASUREMENT", 160, currentY, 11, ["MI", "KM"]);
+  doc.drawField(
+    "MAX DISTANCE ALLOWED",
+    126.5,
+    currentY,
+    32,
+    formatNumber(form.rental_agreement_info.max_distance)
+  );
+  doc.buildComboField(
+    "MAX_DISTANCE_MEASUREMENT",
+    160,
+    currentY,
+    11,
+    ["MI", "KM"],
+    5,
+    form.rental_agreement_info.max_distance_measurement
+  );
   doc.setDrawColor(59, 59, 59);
   doc.line(171.5, currentY - 3, 171.5, currentY + 5);
-  doc.drawField("MAX PAYLOAD ALLOWED", 172, currentY, 28);
-  doc.buildComboField("MAX_PAYLOAD_MEASUREMENT", 201.5, currentY, 9.5, ["LBS", "KG"]);
+  doc.drawField(
+    "MAX PAYLOAD ALLOWED",
+    172,
+    currentY,
+    28,
+    formatNumber(form.rental_agreement_info.max_payload)
+  );
+  doc.buildComboField(
+    "MAX_PAYLOAD_MEASUREMENT",
+    201.5,
+    currentY,
+    9.5,
+    ["LB", "KG"],
+    5,
+    form.rental_agreement_info.max_payload_measurement
+  );
 
   currentY += 8.5;
   doc.setFont("Cousine", "normal", 400);
@@ -408,7 +559,12 @@ export const generateRentalPDF = async (
   doc.setFont("Cousine", "normal", 700);
   doc.setFontSize(9);
   doc.setTextColor(255, 64, 64);
-  doc.text("00/00/0000 00:00 AM", 170, currentY + 9, { align: "center" });
+  doc.text(
+    formatDate(form.rental_agreement_info.date_in, "MM/DD/YYYY hh:mm A"),
+    170,
+    currentY + 9,
+    { align: "center" }
+  );
 
   return doc.output("blob");
 };
