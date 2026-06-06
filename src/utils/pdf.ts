@@ -520,8 +520,9 @@ export const generateRentalPDF = async (
   doc.setLineHeightFactor(0.96);
   doc.text(
     [
-      "BY INITIALING, RENTEE ACCEPTS OR DECLINES PERSONAL ACCIDENT",
-      "INSURANCE (PAI) AT THE ADDITIONAL DAILY RATE OF                   PER DAY,",
+      "BY INITIALING, RENTEE ACCEPTS OR DECLINES PERSONAL",
+      "ACCIDENT INSURANCE (PAI) AT THE ADDITIONAL",
+      "DAILY RATE OF                   PER DAY.",
     ],
     5,
     currentY
@@ -530,29 +531,29 @@ export const generateRentalPDF = async (
   doc.setLineHeightFactor(1);
   doc.buildTextField(
     "PAI_RATE_PER_DAY",
-    76.5,
-    currentY + 0.5,
+    25.5,
+    currentY + 3,
     26,
     3.8,
     formatNumber(form.personal_accident_insurance?.rate_per_day)
   );
-  doc.line(76.5, currentY + 4, 102.5, currentY + 4);
+  doc.line(25.5, currentY + 6, 51.5, currentY + 6);
   doc.setDrawColor(0, 0, 0);
   doc.setFontSize(7);
-  doc.rect(91.5, currentY + 6, 15, 8);
+  doc.rect(91.5, currentY - 4, 15, 8);
   doc.setFontSize(7);
-  doc.text("ACCEPTS", 99, currentY + 9, { align: "center" });
+  doc.text("ACCEPTS", 99, currentY - 1, { align: "center" });
   doc.setFontSize(10);
-  doc.text("×", 92, currentY + 12.5);
-  doc.buildTextField("PAI_ACCEPT_INITIAL", 93.5, currentY + 9, 12.5, 5);
-  doc.rect(108.5, currentY + 6, 15, 8);
+  doc.text("×", 92, currentY + 3.5);
+  doc.buildTextField("PAI_ACCEPT_INITIAL", 93.5, currentY - 1, 12.5, 5);
+  doc.rect(108.5, currentY - 4, 15, 8);
   doc.setFontSize(7);
-  doc.text("DECLINES", 116, currentY + 9, { align: "center" });
+  doc.text("DECLINES", 116, currentY - 1, { align: "center" });
   doc.setFontSize(10);
-  doc.text("×", 109, currentY + 12.5);
-  doc.buildTextField("PAI_DECLINE_INITIAL", 110.5, currentY + 9, 12.5, 5);
+  doc.text("×", 109, currentY + 3.5);
+  doc.buildTextField("PAI_DECLINE_INITIAL", 110.5, currentY - 1, 12.5, 5);
 
-  currentY += 15.5;
+  currentY += 8;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
   doc.line(5, currentY, 125.5, currentY);
