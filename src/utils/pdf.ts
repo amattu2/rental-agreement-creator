@@ -438,10 +438,24 @@ export const generateRentalPDF = async (
   doc.text("VEHICLE DAMAGE WAIVER", 5, currentY);
   currentY += 5;
   doc.text("RATES:", 5, currentY);
-  doc.buildTextField("VDW_RATE_PER_DAY", 16, currentY - 3, 15, 4, formatNumber(form.vehicle_damage_waiver?.rate_per_day));
+  doc.buildTextField(
+    "VDW_RATE_PER_DAY",
+    16,
+    currentY - 3,
+    15,
+    4,
+    formatNumber(form.vehicle_damage_waiver?.rate_per_day)
+  );
   doc.line(16, currentY + 1, 31, currentY + 1);
   doc.text("PER DAY", 32, currentY);
-  doc.buildTextField("VDW_RATE_PER_WEEK", 45, currentY - 3, 15, 4, formatNumber(form.vehicle_damage_waiver?.rate_per_week));
+  doc.buildTextField(
+    "VDW_RATE_PER_WEEK",
+    45,
+    currentY - 3,
+    15,
+    4,
+    formatNumber(form.vehicle_damage_waiver?.rate_per_week)
+  );
   doc.line(45, currentY + 1, 60, currentY + 1);
   doc.text("PER WEEK", 61, currentY);
   currentY += 3.8;
@@ -454,17 +468,38 @@ export const generateRentalPDF = async (
       "FOR ALL LOSS/DAMAGE TO THE RENTED VEHICLE UP TO                    PER OCCURRENCE,",
       "REGARDLESS OR CAUSE NOTICE, WAIVER DOES NOT COVER LOSS OR DAMAGE RESULTING FROM",
       "ANY VIOLATION OR PARAGRAPH 1 OR 2 ON PAGE 2 OF THIS AGREEMENT, FOR MISSING VEHICLE",
-      "PARTS OR FOR INTERIOR VEHICLE DAMAGE OTHER THAN NORMAL WEAR AND TEAR CAUSED BY",
-      "VEHICLE OCCUPANTS INCLUDING ANIMALS."
+      "PARTS OR FOR INTERIOR VEHICLE DAMAGE OTHER THAN NORMAL WEAR AND TEAR",
+      "CAUSED BY VEHICLE OCCUPANTS INCLUDING ANIMALS.",
     ],
     5,
     currentY
   );
   doc.setLineHeightFactor(1);
   doc.setCharSpace(0);
-  // TODO: add field and underline for that big gap above
+  doc.buildTextField("VDW_DAMAGE_LIABILITY_LIMIT", 75, currentY + 2.5, 26, 3.8, formatNumber(form.vehicle_damage_waiver?.damage_liability_limit));
+  doc.line(75, currentY + 5.5, 101, currentY + 5.5);
   doc.text("VEHICLE DAMAGE WAIVER IS NOT INSURANCE", 60.25, currentY + 20, { align: "center" });
-  // TODO: add accepts or declines text boxes
+  
+  doc.setDrawColor(0, 0, 0);
+  doc.setFontSize(7);
+  doc.rect(108.5, currentY - 10.5, 15, 8);
+  doc.text("ACCEPTS", 116, currentY - 7.5, { align: "center" });
+  doc.setFontSize(10);
+  doc.text("×", 109, currentY - 3);
+  doc.buildTextField("VDW_ACCEPT_INITIAL", 110.5, currentY - 7.5, 12.5, 5);
+  doc.rect(108.5, currentY + 12, 15, 8);
+  doc.setFontSize(7);
+  doc.text("DECLINES", 116, currentY + 15, { align: "center" });
+  doc.setFontSize(10);
+  doc.text("×", 109, currentY + 19.5);
+  doc.buildTextField("VDW_DECLINE_INITIAL", 110.5, currentY + 15, 12.5, 5);
+
+  currentY += 21.5;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(5, currentY, 125.5, currentY);
+  doc.setDrawColor(59, 59, 59);
+  doc.setLineWidth(0.2);
 
   // ---- COLUMN 2 ----
 
