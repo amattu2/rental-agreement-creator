@@ -259,6 +259,7 @@ export const generateRentalPDF = async (
   doc.setFontSize(7.8);
   doc.setTextColor(59, 59, 59);
   doc.setCharSpace(-0.2);
+  doc.setLineHeightFactor(0.95);
   doc.drawCompressedText(
     [
       "ONLY THE BELOW NAMED PERSONS ARE AUTHORIZED AS ADDITIONAL DRIVERS.",
@@ -267,11 +268,12 @@ export const generateRentalPDF = async (
     5,
     currentY
   );
+  doc.setLineHeightFactor(1);
   doc.setCharSpace(0);
 
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.3);
-  doc.rect(99.5, currentY - 1.6, 24, 38);
+  doc.rect(99.5, currentY - 1.6, 24, 42);
   doc.setFont("Archivo Black", "normal");
   doc.setFontSize(10);
   doc.text("FUEL", 111.5, currentY + 2, { align: "center" });
@@ -279,15 +281,15 @@ export const generateRentalPDF = async (
   doc.text("OUT", 105, currentY + 7, { align: "center" });
   doc.text("IN", 118, currentY + 7, { align: "center" });
   doc.line(99.5, currentY + 8.5, 123.5, currentY + 8.5);
-  doc.line(111.5, currentY + 8.5, 111.5, currentY + 36.4);
+  doc.line(111.5, currentY + 8.5, 111.5, currentY + 40.4);
   doc.setFontSize(10);
   doc.text(["E", "1/4", "1/2", "3/4", "F"], 105, currentY + 13, {
     align: "center",
-    lineHeightFactor: 1.5,
+    lineHeightFactor: 1.8,
   });
   doc.text(["E", "1/4", "1/2", "3/4", "F"], 118, currentY + 13, {
     align: "center",
-    lineHeightFactor: 1.5,
+    lineHeightFactor: 1.8,
   });
 
   doc.setFont("Cousine", "normal", 400);
@@ -295,21 +297,44 @@ export const generateRentalPDF = async (
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
 
-  // TODO: abstract this to a helper?
-  doc.buildTextField("ADDITIONAL_DRIVER_1_NAME", 6, currentY + 6, 15, 5);
-  doc.text("NAME", 13.5, currentY + 15.5, { align: "center" });
-  doc.line(5, currentY + 16.5, 99.5, currentY + 16.5);
+  currentY += 5;
+  doc.buildTextField("ADDITIONAL_DRIVER_1_NAME", 6, currentY, 59, 4);
+  doc.line(6, currentY + 4.5, 65, currentY + 4.5);
+  doc.text("NAME", 6, currentY + 7.5);
+  doc.buildTextField("ADDITIONAL_DRIVER_1_DOB", 68, currentY, 28, 4);
+  doc.line(68, currentY + 4.5, 96, currentY + 4.5);
+  doc.text("DATE OF BIRTH", 68, currentY + 7.5);
 
-  doc.buildTextField("ADDITIONAL_DRIVER_1_DOB", 21, currentY + 6, 15, 5);
-  doc.text("DOB", 28.5, currentY + 15.5, { align: "center" });
-  doc.line(20, currentY + 16.5, 99.5, currentY + 16.5);
+  currentY += 9.5;
+  doc.buildTextField("ADDITIONAL_DRIVER_1_LICENSE", 6, currentY, 59, 4);
+  doc.line(6, currentY + 4.5, 65, currentY + 4.5);
+  doc.text("DRIVER'S LICENSE #", 6, currentY + 7.5);
+  doc.buildTextField("ADDITIONAL_DRIVER_1_LICENSE_EXPIRATION", 68, currentY, 28, 4);
+  doc.line(68, currentY + 4.5, 96, currentY + 4.5);
+  doc.text("EXPIRES", 68, currentY + 7.5);
 
+  currentY += 9.5;
+  doc.buildTextField("ADDITIONAL_DRIVER_2_NAME", 6, currentY, 59, 4);
+  doc.line(6, currentY + 4.5, 65, currentY + 4.5);
+  doc.text("NAME", 6, currentY + 7.5);
+  doc.buildTextField("ADDITIONAL_DRIVER_2_DOB", 68, currentY, 28, 4);
+  doc.line(68, currentY + 4.5, 96, currentY + 4.5);
+  doc.text("DATE OF BIRTH", 68, currentY + 7.5);
+  
+  currentY += 9.5;
+  doc.buildTextField("ADDITIONAL_DRIVER_2_LICENSE", 6, currentY, 59, 4);
+  doc.line(6, currentY + 4.5, 65, currentY + 4.5);
+  doc.text("DRIVER'S LICENSE #", 6, currentY + 7.5);
+  doc.buildTextField("ADDITIONAL_DRIVER_2_LICENSE_EXPIRATION", 68, currentY, 28, 4);
+  doc.line(68, currentY + 4.5, 96, currentY + 4.5);
+  doc.text("EXPIRES", 68, currentY + 7.5);
+
+  currentY += 9.5;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
-  doc.line(5, currentY + 38.5, 125.5, currentY + 38.5); // Horizontal divider
+  doc.line(5, currentY, 125.5, currentY);
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
-  currentY += 38.5;
 
   // ---- COLUMN 2 ----
 
