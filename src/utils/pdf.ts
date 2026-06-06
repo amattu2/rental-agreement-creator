@@ -476,10 +476,17 @@ export const generateRentalPDF = async (
   );
   doc.setLineHeightFactor(1);
   doc.setCharSpace(0);
-  doc.buildTextField("VDW_DAMAGE_LIABILITY_LIMIT", 75, currentY + 2.5, 26, 3.8, formatNumber(form.vehicle_damage_waiver?.damage_liability_limit));
+  doc.buildTextField(
+    "VDW_DAMAGE_LIABILITY_LIMIT",
+    75,
+    currentY + 2.5,
+    26,
+    3.8,
+    formatNumber(form.vehicle_damage_waiver?.damage_liability_limit)
+  );
   doc.line(75, currentY + 5.5, 101, currentY + 5.5);
   doc.text("VEHICLE DAMAGE WAIVER IS NOT INSURANCE", 60.25, currentY + 20, { align: "center" });
-  
+
   doc.setDrawColor(0, 0, 0);
   doc.setFontSize(7);
   doc.rect(108.5, currentY - 10.5, 15, 8);
@@ -495,6 +502,57 @@ export const generateRentalPDF = async (
   doc.buildTextField("VDW_DECLINE_INITIAL", 110.5, currentY + 15, 12.5, 5);
 
   currentY += 21.5;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.line(5, currentY, 125.5, currentY);
+  doc.setDrawColor(59, 59, 59);
+  doc.setLineWidth(0.2);
+
+  // Personal accident insurance
+  currentY += 3.5;
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.setCharSpace(0);
+  doc.text("PERSONAL ACCIDENT INSURANCE", 5, currentY);
+  currentY += 5;
+  doc.setCharSpace(-0.2);
+  doc.setLineHeightFactor(0.96);
+  doc.text(
+    [
+      "BY INITIALING, RENTEE ACCEPTS OR DECLINES PERSONAL ACCIDENT",
+      "INSURANCE (PAI) AT THE ADDITIONAL DAILY RATE OF                   PER DAY,",
+    ],
+    5,
+    currentY
+  );
+  doc.setCharSpace(0);
+  doc.setLineHeightFactor(1);
+  doc.buildTextField(
+    "PAI_RATE_PER_DAY",
+    76.5,
+    currentY + 0.5,
+    26,
+    3.8,
+    formatNumber(form.personal_accident_insurance?.rate_per_day)
+  );
+  doc.line(76.5, currentY + 4, 102.5, currentY + 4);
+  doc.setDrawColor(0, 0, 0);
+  doc.setFontSize(7);
+  doc.rect(91.5, currentY + 6, 15, 8);
+  doc.setFontSize(7);
+  doc.text("ACCEPTS", 99, currentY + 9, { align: "center" });
+  doc.setFontSize(10);
+  doc.text("×", 92, currentY + 12.5);
+  doc.buildTextField("PAI_ACCEPT_INITIAL", 93.5, currentY + 9, 12.5, 5);
+  doc.rect(108.5, currentY + 6, 15, 8);
+  doc.setFontSize(7);
+  doc.text("DECLINES", 116, currentY + 9, { align: "center" });
+  doc.setFontSize(10);
+  doc.text("×", 109, currentY + 12.5);
+  doc.buildTextField("PAI_DECLINE_INITIAL", 110.5, currentY + 9, 12.5, 5);
+
+  currentY += 15.5;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
   doc.line(5, currentY, 125.5, currentY);
