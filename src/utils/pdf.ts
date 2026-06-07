@@ -747,16 +747,41 @@ export const generateRentalPDF = async (
   doc.setFont("Cousine", "normal", 700);
   doc.setFontSize(11);
   doc.setTextColor(255, 64, 64);
+  doc.setCharSpace(0.1);
   doc.text(
-    formatDate(form.rental_agreement_info.date_in, "MM/DD/YYYY hh:mm A"),
+    formatDate(form.rental_agreement_info.date_in, "ddd, MMMM D, YYYY h:mm A"),
     170,
-    currentY + 9,
+    currentY + 9.5,
     { align: "center" }
   );
+  doc.setCharSpace(0);
 
   currentY += 12.7;
   doc.setFillColor("#DBD7D2");
   doc.rect(dividerX + 0.2, currentY, 85, 7.65, "F");
+  doc.setFont("Cousine", "normal", 700);
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text(["RENTAL RATES", "DO NOT", "INCLUDE FUEL"], dividerX + 30, currentY + 2.5, {
+    align: "center",
+    lineHeightFactor: 0.8,
+  });
+  doc.line(dividerX + 60, currentY, dividerX + 60, currentY + 100); // TODO: Extend this as needed
+  doc.text("CHARGES", dividerX + 72, currentY + 4.5, { align: "center" });
+
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(8);
+  doc.setTextColor(59, 59, 59);
+
+  // TODO: Hourly, Daily, Weekly, Mileage rates
+
+  // TODO: Other charges (VDW, PAI)
+
+  // TODO: Totals
+
+  // TODO: Warning / Disclosures
+
+  // TODO: Signatures
 
   return doc.output("blob");
 };
