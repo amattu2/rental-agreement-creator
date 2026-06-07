@@ -9,13 +9,15 @@ import { DEFAULT_FORM } from "@/config/constants";
 import { generateRentalPDF } from "@/utils/pdf";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Grid } from "@mui/material";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import z from "zod";
 
 const Page = () => {
+  const router = useRouter();
   const searchParams = useSearchParams();
+
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const databaseApi = useMemo<DatabaseApi>(() => createIndexedDbDatabaseApi(), []);
   const agreementUuid = useMemo<string | null>(() => searchParams.get("uuid"), [searchParams]);
@@ -34,8 +36,15 @@ const Page = () => {
     });
 
     try {
-      await databaseApi.createAgreement(data);
-      await databaseApi.createVehicle(data.rental_vehicle);
+      if (agreementUuid) {
+        await databaseApi.updateAgreement(agreementUuid, data);
+        await databaseApi.updateVehicle(agreementUuid, data.rental_vehicle);
+      } else {
+        const agreement = await databaseApi.createAgreement(data);
+        await databaseApi.createVehicle(data.rental_vehicle);
+
+        router.push(`/agreement?uuid=${agreement.uuid}`);
+      }
     } catch (error) {
       console.error("Failed to add agreement to database", error);
     }
@@ -68,6 +77,7 @@ const Page = () => {
     } else {
       methods.reset(DEFAULT_FORM);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
