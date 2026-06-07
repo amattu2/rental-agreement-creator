@@ -558,7 +558,7 @@ export const generateRentalPDF = async (
   doc.line(5, currentY, 125.5, currentY);
 
   // NOTE: This is a buffer section that can be adjusted as needed
-  currentY += 30;
+  currentY += 34;
   doc.line(5, currentY, 125.5, currentY);
 
   doc.setLineWidth(0.5);
