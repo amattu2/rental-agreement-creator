@@ -88,10 +88,6 @@ const Page = () => {
   };
 
   useEffect(() => {
-    if (objectUrl) {
-      window.open(objectUrl, "_blank");
-    }
-
     return () => {
       if (!objectUrl) {
         return;
