@@ -19,7 +19,14 @@ declare module "jspdf" {
       height?: number,
       selectedValue?: string
     ): void;
-    drawField(label: string, x: number, y: number, w: number, value?: string): void;
+    drawField(
+      label: string,
+      x: number,
+      y: number,
+      w: number,
+      value?: string,
+      fieldName?: string
+    ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     appendDocument(appendedDocument: ArrayBuffer): Promise<PDFDocument>;
   }
@@ -42,7 +49,14 @@ declare module "jspdf" {
       height?: number,
       selectedValue?: string
     ): void;
-    drawField(label: string, x: number, y: number, w: number, value?: string): void;
+    drawField(
+      label: string,
+      x: number,
+      y: number,
+      w: number,
+      value?: string,
+      fieldName?: string
+    ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     appendDocument(appendedDocument: ArrayBuffer): Promise<PDFDocument>;
   }

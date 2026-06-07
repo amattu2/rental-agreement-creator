@@ -98,7 +98,8 @@ jsPDF.API.drawField = function (
   x: number,
   y: number,
   w: number,
-  value = ""
+  value = "",
+  fieldName?: string
 ): void {
   // Field Label
   this.setFont("Cousine", "normal", 400);
@@ -107,7 +108,7 @@ jsPDF.API.drawField = function (
   this.text(label, x, y);
 
   // Field Input
-  this.buildTextField(label.toLowerCase().replace(/\s+/g, "_"), x, y, w, 5, value);
+  this.buildTextField((fieldName ?? label).toLowerCase().replace(/\s+/g, "_"), x, y, w, 5, value);
 };
 
 jsPDF.API.drawCompressedText = function (
@@ -233,7 +234,7 @@ export const generateRentalPDF = async (
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3;
   doc.drawField("CITY", 6, currentY, 47.4, form.rentee.address_city);
-  doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state);
+  doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state, "RENTEE_STATE");
   doc.buildTextField("RENTEE_ZIP_CODE", 102, currentY, 22.6, 5, form.rentee.address_zip);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
@@ -243,7 +244,14 @@ export const generateRentalPDF = async (
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3;
   doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4, form.rentee.driver_license_number);
-  doc.drawField("STATE", 54.2, currentY, 47, form.rentee.driver_license_state);
+  doc.drawField(
+    "STATE",
+    54.2,
+    currentY,
+    47,
+    form.rentee.driver_license_state,
+    "DRIVER_LICENSE_STATE"
+  );
   doc.buildTextField(
     "DRIVER_LICENSE_EXPIRATION",
     102,
@@ -282,9 +290,30 @@ export const generateRentalPDF = async (
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("CITY", 6, currentY, 47.4, form.rentee_employer.address_city ?? "");
-  doc.drawField("STATE", 54.2, currentY, 47, form.rentee_employer.address_state ?? "");
-  doc.drawField("ZIP CODE", 102, currentY, 22.6, form.rentee_employer.address_zip ?? "");
+  doc.drawField(
+    "CITY",
+    6,
+    currentY,
+    47.4,
+    form.rentee_employer.address_city ?? "",
+    "EMPLOYER_CITY"
+  );
+  doc.drawField(
+    "STATE",
+    54.2,
+    currentY,
+    47,
+    form.rentee_employer.address_state ?? "",
+    "EMPLOYER_STATE"
+  );
+  doc.drawField(
+    "ZIP CODE",
+    102,
+    currentY,
+    22.6,
+    form.rentee_employer.address_zip ?? "",
+    "EMPLOYER_ZIP_CODE"
+  );
   currentY += 5;
   doc.line(5, currentY, dividerX, currentY);
 
