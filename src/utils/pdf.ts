@@ -799,8 +799,9 @@ export const generateRentalPDF = async (
   doc.setCharSpace(0);
 
   currentY += 12.7;
+  const chargesLineStartY = currentY;
   doc.setFillColor("#DBD7D2");
-  doc.rect(dividerX + 0.2, currentY, 85, 7.65, "F");
+  doc.rect(dividerX + 0.3, currentY, 84.8, 7.65, "F");
   doc.setFont("Cousine", "normal", 700);
   doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);
@@ -808,14 +809,13 @@ export const generateRentalPDF = async (
     align: "center",
     lineHeightFactor: 0.8,
   });
-  doc.line(dividerX + 60, currentY, dividerX + 60, currentY + 100); // TODO: Extend this as needed
   doc.text("CHARGES", dividerX + 72, currentY + 4.5, { align: "center" });
 
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.setTextColor(59, 59, 59);
 
-  currentY += 7.6;
+  currentY += 7.8;
   form.rental_vehicle.rental_rates?.forEach(({ rate_unit, rate_cost, rate_note }) => {
     doc.text(rate_unit.toUpperCase(), dividerX + 2, currentY + 3.8);
     doc.text(`@`, dividerX + 18, currentY + 3.8);
@@ -845,9 +845,121 @@ export const generateRentalPDF = async (
     currentY += 5;
   });
 
-  // TODO: Other charges (VDW, PAI)
+  doc.setFillColor("#DBD7D2");
+  doc.rect(dividerX + 0.3, currentY + 0.1, 59.6, 5, "F");
+  doc.setFont("Cousine", "normal", 700);
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text("RENTAL CHARGES", dividerX + 2, currentY + 3.5);
+  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
 
-  // TODO: Totals
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(8);
+  doc.setTextColor(59, 59, 59);
+  currentY += 5;
+  if (form.vehicle_damage_waiver) {
+    doc.text("VDW", dividerX + 2, currentY + 3.8);
+    doc.buildTextField(
+      "VDW_TOTAL",
+      dividerX + 60,
+      currentY + 1.2,
+      25,
+      4,
+      "" // TODO: Compute vehicle damage waiver total based on rate_per_day * rental duration or rate_per_week * rental duration
+    );
+    doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+    currentY += 5;
+  }
+
+  if (form.personal_accident_insurance) {
+    doc.text("PAI", dividerX + 2, currentY + 3.8);
+    doc.text(`@`, dividerX + 18, currentY + 3.8);
+    doc.buildTextField(
+      "PAI_RATE_COST",
+      dividerX + 20,
+      currentY + 1.2,
+      15,
+      4,
+      formatNumber(form.personal_accident_insurance.rate_per_day)
+    );
+    doc.text("Per Day", dividerX + 40, currentY + 3.8);
+
+    doc.buildTextField(
+      "PAI_TOTAL",
+      dividerX + 60,
+      currentY + 1.2,
+      25,
+      4,
+      "" // TODO: Compute personal accident insurance total based on rate_per_day * rental duration or rate_per_week * rental duration
+    );
+    doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+    currentY += 5;
+  }
+
+  doc.setFillColor("#DBD7D2");
+  doc.rect(dividerX + 0.3, currentY + 0.1, 59.6, 5, "F");
+  doc.setFont("Cousine", "normal", 700);
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text("BALANCE DUE", dividerX + 2, currentY + 3.5);
+  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(8);
+  doc.setTextColor(59, 59, 59);
+  currentY += 5;
+
+  doc.text("Subtotal", dividerX + 2, currentY + 3.8);
+  doc.buildTextField(
+    "SUBTOTAL",
+    dividerX + 60,
+    currentY + 1.2,
+    25,
+    4,
+    "" // TODO: Compute subtotal based on all charges
+  );
+  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+  currentY += 5;
+
+  doc.text("Less Deposit", dividerX + 2, currentY + 3.8);
+  doc.buildTextField(
+    "DEPOSIT_CREDIT",
+    dividerX + 60,
+    currentY + 1.2,
+    25,
+    4,
+    "" // TODO: Compute deposit credit based on deposit amount
+  );
+  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+  currentY += 5;
+
+  doc.text("Sales Tax", dividerX + 2, currentY + 3.8);
+  doc.buildTextField(
+    "SALES_TAX",
+    dividerX + 60,
+    currentY + 1.2,
+    25,
+    4,
+    "" // TODO: Compute sales tax based on subtotal
+  );
+  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+  currentY += 5;
+
+  doc.setFont("Cousine", "normal", 700);
+  doc.text("Total Due", dividerX + 2, currentY + 3.8);
+  doc.setFont("Cousine", "normal", 400);
+  doc.buildTextField(
+    "TOTAL_DUE",
+    dividerX + 60,
+    currentY + 1.2,
+    25,
+    4,
+    "" // TODO: Compute total due based on subtotal + sales tax
+  );
+  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+
+  currentY += 5;
+  doc.line(dividerX + 60, chargesLineStartY, dividerX + 60, currentY); // Charges vertical divider
 
   // TODO: Warning / Disclosures
 
