@@ -1,13 +1,34 @@
 import dayjs, { type Dayjs } from "dayjs";
 
-export const formatDate = (value: Dayjs | undefined, template = "MM/DD/YYYY"): string => {
-  if (!value || !(value instanceof dayjs) || !value.isValid()) {
+/**
+ * A utility function to format a date value into a specified string format.
+ *
+ * @param value The date value to be formatted.
+ * @param template The string template to format the date into. Defaults to "MM/DD/YYYY".
+ * @returns The formatted date string, or an empty string if the input value is invalid.
+ */
+export const formatDate = (
+  value: string | Dayjs | Date | undefined,
+  template = "MM/DD/YYYY"
+): string => {
+  if (!value) {
     return "";
   }
 
-  return value.format(template);
+  const parsedDate = dayjs(value);
+  if (!parsedDate.isValid()) {
+    return "";
+  }
+
+  return parsedDate.format(template);
 };
 
+/**
+ * A utility function to format a number value into a string.
+ *
+ * @param value The number value to be formatted.
+ * @returns The formatted number as a string, or an empty string if the input value is invalid.
+ */
 export const formatNumber = (value: number | undefined): string => {
   if (typeof value !== "number" || isNaN(value)) {
     return "";

@@ -1,3 +1,5 @@
+import { FormSchema } from "@/schemas/form";
+
 /**
  * A constant array of fuel level options for the rental agreement form.
  */
@@ -23,6 +25,64 @@ export const PAYLOAD_MEASUREMENT_OPTIONS = [
   { label: "Pounds (LB)", value: "LB" },
   { label: "Kilograms (KG)", value: "KG" },
 ];
+
+/**
+ * A default form object that adheres to the FormSchema
+ */
+export const DEFAULT_FORM: FormSchema = {
+  agreement_number: "",
+  rentee: {
+    full_name: "",
+    address_street1: "",
+    address_city: "",
+    address_state: "",
+    address_zip: "",
+    verified: false,
+    driver_license_number: "",
+    driver_license_state: "",
+    driver_license_expiration: new Date(), // TODO: Needs to be empty by default
+    date_of_birth: new Date(),
+    cell_phone: "",
+    alternate_phone: "",
+    email: "",
+  },
+  rentee_employer: {
+    company: "",
+    position: "",
+    address_street1: "",
+    address_city: "",
+    address_state: "",
+    address_zip: "",
+  },
+  rentee_insurance: {
+    company: "",
+    policy_number: "",
+  },
+  additional_drivers: [],
+  vehicle_damage_waiver: undefined,
+  personal_accident_insurance: undefined,
+  rental_vehicle: {
+    identifier: "",
+    VIN: "",
+    license_plate: "",
+    year: new Date().getFullYear(),
+    make: "",
+    model: "",
+    color: "",
+  },
+  rental_agreement_info: {
+    odometer_in: 0,
+    date_in: new Date(),
+    odometer_out: 0,
+    date_out: new Date(),
+    max_distance: 0,
+    max_distance_measurement: "MI",
+    max_payload: 0,
+    max_payload_measurement: "LB",
+    fuel_level_in: "F",
+    fuel_level_out: "F",
+  },
+};
 
 export const INDEXED_DB_NAME = "rental-agreement-creator";
 export const INDEXED_DB_VERSION = 1;

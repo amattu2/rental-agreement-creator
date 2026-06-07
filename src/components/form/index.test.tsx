@@ -3,6 +3,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { RentalAgreementForm } from "./index";
 import type { FormSchema } from "@/schemas/form";
+import { DEFAULT_FORM } from "@/config/constants";
 
 vi.mock("@mui/x-date-pickers/DatePicker", () => ({
   DatePicker: ({ label }: { label: string }) => (
@@ -16,64 +17,9 @@ vi.mock("@mui/x-date-pickers/DateTimePicker", () => ({
   ),
 }));
 
-const defaultValues: FormSchema = {
-  agreement_number: "",
-  rentee: {
-    full_name: "",
-    address_street1: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-    verified: false,
-    driver_license_number: "",
-    driver_license_state: "",
-    driver_license_expiration: dayjs(null),
-    date_of_birth: dayjs(null),
-    cell_phone: "",
-    alternate_phone: "",
-    email: "",
-  },
-  rentee_employer: {
-    company: "",
-    position: "",
-    address_street1: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-  },
-  rentee_insurance: {
-    company: "",
-    policy_number: "",
-  },
-  additional_drivers: [],
-  vehicle_damage_waiver: undefined,
-  personal_accident_insurance: undefined,
-  rental_vehicle: {
-    identifier: "",
-    VIN: "",
-    license_plate: "",
-    year: 2026,
-    make: "",
-    model: "",
-    color: "",
-  },
-  rental_agreement_info: {
-    odometer_in: 0,
-    date_in: dayjs(null),
-    odometer_out: 0,
-    date_out: dayjs(null),
-    max_distance: 0,
-    max_distance_measurement: "MI",
-    max_payload: 0,
-    max_payload_measurement: "LB",
-    fuel_level_out: "E",
-    fuel_level_in: "E",
-  },
-};
-
 const renderForm = () => {
   const Wrapper = () => {
-    const methods = useForm<FormSchema>({ defaultValues });
+    const methods = useForm<FormSchema>({ defaultValues: DEFAULT_FORM });
 
     return (
       <FormProvider {...methods}>

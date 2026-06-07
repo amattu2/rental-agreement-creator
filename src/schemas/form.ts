@@ -4,7 +4,7 @@ import {
   MAX_ADDITIONAL_DRIVERS,
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import z from "zod";
 
 const RENTEE_SCHEMA = z
@@ -36,13 +36,9 @@ const RENTEE_SCHEMA = z
       .string()
       .min(1, "Driver's license state is required")
       .max(50, "Maximum of 50 characters allowed"),
-    driver_license_expiration: z
-      .custom<Dayjs>()
-      .refine((date) => date !== null && date.isValid(), "Driver's license expiration is required"),
+    driver_license_expiration: z.date().min(new Date(), "Driver's license cannot be expired"),
 
-    date_of_birth: z
-      .custom<Dayjs>()
-      .refine((date) => date !== null && date.isValid(), "Date of birth is required"),
+    date_of_birth: z.date().max(new Date(), "Date of birth must be in the past"),
     cell_phone: z
       .string()
       .min(1, "Cell phone number is required")
@@ -54,7 +50,7 @@ const RENTEE_SCHEMA = z
       .optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.driver_license_expiration && data.driver_license_expiration.isBefore(dayjs())) {
+    if (data.driver_license_expiration && dayjs(data.driver_license_expiration).isBefore(dayjs())) {
       ctx.addIssue({
         code: "custom",
         path: ["driver_license_expiration"],
@@ -62,7 +58,7 @@ const RENTEE_SCHEMA = z
       });
     }
 
-    if (data.date_of_birth && data.date_of_birth.isAfter(dayjs())) {
+    if (data.date_of_birth && dayjs(data.date_of_birth).isAfter(dayjs())) {
       ctx.addIssue({
         code: "custom",
         path: ["date_of_birth"],
@@ -90,16 +86,12 @@ const ADDITIONAL_DRIVER_SCHEMA = z.object({
     .string()
     .min(1, "Additional driver name is required")
     .max(50, "Maximum of 50 characters allowed"),
-  date_of_birth: z
-    .custom<Dayjs>()
-    .refine((date) => date !== null && date.isValid(), "Date of birth is required"),
+  date_of_birth: z.date().max(new Date(), "Date of birth must be in the past"),
   driver_license_number: z
     .string()
     .min(1, "Driver's license number is required")
     .max(50, "Maximum of 50 characters allowed"),
-  driver_license_expiration: z
-    .custom<Dayjs>()
-    .refine((date) => date !== null && date.isValid(), "Driver's license expiration is required"),
+  driver_license_expiration: z.date().min(new Date(), "Driver's license cannot be expired"),
 });
 
 const VEHICLE_DAMAGE_WAIVER_SCHEMA = z.object({
@@ -135,13 +127,9 @@ const RENTAL_VEHICLE_SCHEMA = z.object({
 const RENTAL_AGREEMENT_INFO_SCHEMA = z
   .object({
     odometer_in: z.number().int().min(1, "Odometer reading must be greater than 0"),
-    date_in: z
-      .custom<Dayjs>()
-      .refine((date) => date !== null && date.isValid(), "Date in is required"),
+    date_in: z.date(),
     odometer_out: z.number().int().min(1, "Odometer reading must be greater than 0"),
-    date_out: z
-      .custom<Dayjs>()
-      .refine((date) => date !== null && date.isValid(), "Date out is required"),
+    date_out: z.date(),
     fuel_level_out: z.enum(
       FUEL_LEVEL_OPTIONS,
       `Fuel level must be one of ${FUEL_LEVEL_OPTIONS.join(", ")}`
@@ -162,7 +150,7 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
     ),
   })
   .superRefine((data, ctx) => {
-    if (data.date_in && data.date_out && !data.date_in.isAfter(data.date_out)) {
+    if (!dayjs(data.date_in).isAfter(data.date_out)) {
       ctx.addIssue({
         code: "custom",
         path: ["date_in"],

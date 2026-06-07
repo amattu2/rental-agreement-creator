@@ -19,7 +19,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import dayjs from "dayjs";
 import { FormSchema } from "@/schemas/form";
 import { CheckboxInput } from "../CheckboxInput";
 import { DateInput } from "../DateInput";
@@ -361,9 +360,9 @@ export const RentalAgreementForm = () => {
             onClick={() =>
               appendAdditionalDriver({
                 full_name: "",
-                date_of_birth: dayjs(null),
+                date_of_birth: new Date(),
                 driver_license_number: "",
-                driver_license_expiration: dayjs(null),
+                driver_license_expiration: new Date(),
               })
             }
             variant="outlined"

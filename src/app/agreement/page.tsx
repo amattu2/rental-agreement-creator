@@ -5,69 +5,14 @@ import { IframeWrapper } from "@/components/iframe";
 import { createIndexedDbDatabaseApi } from "@/database";
 import { ENV_SCHEMA } from "@/schemas/env";
 import { FormSchema, FORM_SCHEMA } from "@/schemas/form";
+import { DEFAULT_FORM } from "@/config/constants";
 import { generateRentalPDF } from "@/utils/pdf";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Grid } from "@mui/material";
-import dayjs from "dayjs";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import z from "zod";
-
-const DefaultForm: FormSchema = {
-  agreement_number: "",
-  rentee: {
-    full_name: "",
-    address_street1: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-    verified: false,
-    driver_license_number: "",
-    driver_license_state: "",
-    driver_license_expiration: dayjs(null),
-    date_of_birth: dayjs(null),
-    cell_phone: "",
-    alternate_phone: "",
-    email: "",
-  },
-  rentee_employer: {
-    company: "",
-    position: "",
-    address_street1: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-  },
-  rentee_insurance: {
-    company: "",
-    policy_number: "",
-  },
-  additional_drivers: [],
-  vehicle_damage_waiver: undefined,
-  personal_accident_insurance: undefined,
-  rental_vehicle: {
-    identifier: "",
-    VIN: "",
-    license_plate: "",
-    year: new Date().getFullYear(),
-    make: "",
-    model: "",
-    color: "",
-  },
-  rental_agreement_info: {
-    odometer_in: 0,
-    date_in: dayjs(null),
-    odometer_out: 0,
-    date_out: dayjs(),
-    max_distance: 0,
-    max_distance_measurement: "MI",
-    max_payload: 0,
-    max_payload_measurement: "LB",
-    fuel_level_in: "F",
-    fuel_level_out: "F",
-  },
-};
 
 const Page = () => {
   const searchParams = useSearchParams();
@@ -121,7 +66,7 @@ const Page = () => {
           console.error("Failed to load agreement", error);
         });
     } else {
-      methods.reset(DefaultForm);
+      methods.reset(DEFAULT_FORM);
     }
   }, []);
 
