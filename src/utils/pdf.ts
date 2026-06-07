@@ -194,8 +194,8 @@ export const generateRentalPDF = async (
   let currentY = 36.5;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
-  doc.line(5, currentY, pageWidth - 5, currentY); // Horizontal divider
-  doc.line(125.5, currentY, 125.5, doc.internal.pageSize.getHeight() - 10); // Vertical divider
+  doc.line(5, currentY, pageWidth - 5, currentY);
+  doc.line(125.5, currentY, 125.5, doc.internal.pageSize.getHeight() - 5);
   currentY += 3; // 41.5
 
   // ---- COLUMN 1 ----
@@ -508,7 +508,6 @@ export const generateRentalPDF = async (
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
 
-  // Personal accident insurance
   currentY += 3.5;
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
@@ -557,8 +556,43 @@ export const generateRentalPDF = async (
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
   doc.line(5, currentY, 125.5, currentY);
+
+  // NOTE: This is a buffer section that can be adjusted as needed
+  currentY += 30;
+  doc.line(5, currentY, 125.5, currentY);
+
+  doc.setLineWidth(0.5);
+  doc.rect(10, currentY + 3, 110.5, 20);
+  doc.setFont("Archivo Black", "normal");
+  doc.setFontSize(11);
+  doc.text("ATTENTION LAW ENFORCEMENT", 65, currentY + 7, { align: "center" });
+  doc.setFontSize(7.8);
+  doc.text(
+    [
+      "IF THIS AUTO IS STOPPED FOR ANY REASON AND THE DRIVER IS NOT",
+      "AUTHORIZED ON THIS RENTAL AGREEMENT, CONSIDER THIS AUTO",
+      "STOLEN. PLEASE IMPOUND AUTO, TAKE NECESSARY ACTION",
+      "AGAINST THE DRIVER AND CALL OUR RENTAL OFFICE.",
+    ],
+    11.5,
+    currentY + 11,
+    { lineHeightFactor: 1.2 }
+  );
+  currentY += 26.5;
+  doc.setFont("Helvetica", "normal", 400);
+  doc.setFontSize(5);
+  doc.setTextColor(59, 59, 59);
+  doc.text(
+    "The Printer makes no warranty, express or implied, as to content or fitness for purpose of this form. Consult your own legal counsel.",
+    15,
+    currentY
+  );
+
+  doc.setCharSpace(0);
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(8);
 
   // ---- COLUMN 2 ----
 
