@@ -2,6 +2,7 @@
 
 import { RentalAgreementForm } from "@/components/form/index";
 import { IframeWrapper } from "@/components/iframe";
+import { createIndexedDbDatabaseApi } from "@/database";
 import { ENV_SCHEMA } from "@/schemas/env";
 import { FormSchema, FORM_SCHEMA } from "@/schemas/form";
 import { generateRentalPDF } from "@/utils/pdf";
@@ -69,6 +70,7 @@ const DefaultForm: FormSchema = {
 
 const Page = () => {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const databaseApi = createIndexedDbDatabaseApi();
 
   const methods = useForm<FormSchema>({
     resolver: zodResolver(FORM_SCHEMA),
@@ -83,6 +85,13 @@ const Page = () => {
       NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
       NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
     });
+
+    try {
+      await databaseApi.createAgreement(data);
+      await databaseApi.createVehicle(data.rental_vehicle);
+    } catch (error) {
+      console.error("Failed to add agreement to database", error);
+    }
 
     setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, data)));
   };

@@ -208,4 +208,5 @@ export const FORM_SCHEMA = z
   })
   .strict();
 
+export type VehicleSchema = z.infer<typeof RENTAL_VEHICLE_SCHEMA>;
 export type FormSchema = z.infer<typeof FORM_SCHEMA>;

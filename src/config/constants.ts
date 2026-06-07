@@ -23,3 +23,8 @@ export const PAYLOAD_MEASUREMENT_OPTIONS = [
   { label: "Pounds (LB)", value: "LB" },
   { label: "Kilograms (KG)", value: "KG" },
 ];
+
+export const INDEXED_DB_NAME = "rental-agreement-creator";
+export const INDEXED_DB_VERSION = 1;
+export const INDEXED_DB_AGREEMENT_STORE = "agreements";
+export const INDEXED_DB_VEHICLE_STORE = "vehicles";
