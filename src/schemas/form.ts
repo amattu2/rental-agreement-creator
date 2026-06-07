@@ -2,7 +2,9 @@ import {
   DISTANCE_MEASUREMENT_OPTIONS,
   FUEL_LEVEL_OPTIONS,
   MAX_ADDITIONAL_DRIVERS,
+  MAX_RENTAL_RATES,
   PAYLOAD_MEASUREMENT_OPTIONS,
+  RATE_UNIT_OPTIONS,
 } from "@/config/constants";
 import dayjs from "dayjs";
 import z from "zod";
@@ -104,6 +106,15 @@ const PERSONAL_ACCIDENT_INSURANCE_SCHEMA = z.object({
   rate_per_day: z.number().min(1, "Rate per day must be a positive number"),
 });
 
+const RENTAL_RATE_SCHEMA = z.object({
+  rate_unit: z.enum(
+    RATE_UNIT_OPTIONS.map((option) => option.value),
+    `Rate unit must be one of ${RATE_UNIT_OPTIONS.map((option) => option.value).join(", ")}`
+  ),
+  rate_cost: z.number().min(1, "Rate cost must be a positive number"),
+  rate_note: z.string().max(25).optional(),
+});
+
 const RENTAL_VEHICLE_SCHEMA = z.object({
   identifier: z
     .string()
@@ -122,6 +133,10 @@ const RENTAL_VEHICLE_SCHEMA = z.object({
   make: z.string().min(1, "Vehicle make is required").max(50, "Maximum of 50 characters allowed"),
   model: z.string().min(1, "Vehicle model is required").max(50, "Maximum of 50 characters allowed"),
   color: z.string().min(1, "Vehicle color is required").max(50, "Maximum of 50 characters allowed"),
+  rental_rates: z
+    .array(RENTAL_RATE_SCHEMA)
+    .max(MAX_RENTAL_RATES, `Maximum of ${MAX_RENTAL_RATES} rental rates allowed`)
+    .optional(), // TODO: Prevent duplicate units
 });
 
 const RENTAL_AGREEMENT_INFO_SCHEMA = z

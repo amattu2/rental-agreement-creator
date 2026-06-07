@@ -815,7 +815,35 @@ export const generateRentalPDF = async (
   doc.setFontSize(8);
   doc.setTextColor(59, 59, 59);
 
-  // TODO: Hourly, Daily, Weekly, Mileage rates
+  currentY += 7.6;
+  form.rental_vehicle.rental_rates?.forEach(({ rate_unit, rate_cost, rate_note }) => {
+    doc.text(rate_unit.toUpperCase(), dividerX + 2, currentY + 3.8);
+    doc.text(`@`, dividerX + 18, currentY + 3.8);
+    doc.buildTextField(
+      `${rate_unit.toUpperCase()}_RATE_COST`,
+      dividerX + 20,
+      currentY + 1.2,
+      15,
+      4,
+      formatNumber(rate_cost)
+    );
+
+    if (rate_note) {
+      doc.text(rate_note, dividerX + 40, currentY + 3.8);
+    }
+
+    doc.buildTextField(
+      `${rate_unit.toUpperCase()}_RATE_TOTAL`,
+      dividerX + 60,
+      currentY + 1.2,
+      25,
+      4,
+      "" // TODO: Calculate this field based on rate_cost * duration
+    );
+
+    doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+    currentY += 5;
+  });
 
   // TODO: Other charges (VDW, PAI)
 

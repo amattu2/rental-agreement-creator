@@ -35,6 +35,8 @@ import {
   FUEL_LEVEL_OPTIONS,
   DISTANCE_MEASUREMENT_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
+  MAX_RENTAL_RATES,
+  RATE_UNIT_OPTIONS,
 } from "@/config/constants";
 
 export const RentalAgreementForm = () => {
@@ -54,6 +56,15 @@ export const RentalAgreementForm = () => {
   } = useFieldArray({
     control,
     name: "additional_drivers",
+  });
+
+  const {
+    fields: rentalRateFields,
+    append: appendRentalRate,
+    remove: removeRentalRate,
+  } = useFieldArray({
+    control,
+    name: "rental_vehicle.rental_rates",
   });
 
   const vehicleDamageWaiver = watch("vehicle_damage_waiver");
@@ -196,6 +207,89 @@ export const RentalAgreementForm = () => {
                   </FieldCell>
                 </FieldRow>
               </Stack>
+            </Subsection>
+
+            <Subsection title="Rates">
+              <Stack spacing={2} mb={2}>
+                {rentalRateFields.map((field, index) => (
+                  <Box
+                    key={field.id}
+                    sx={{ border: 1, borderColor: "divider", borderRadius: 1.5, p: 2 }}
+                  >
+                    <Stack spacing={2}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: 2,
+                        }}
+                      >
+                        <Typography variant="subtitle2" fontWeight={600}>
+                          Rate {index + 1}
+                        </Typography>
+                        <IconButton
+                          color="error"
+                          size="small"
+                          onClick={() => removeRentalRate(index)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+
+                      <FieldRow>
+                        <FieldCell>
+                          <SelectInput
+                            name={`rental_vehicle.rental_rates.${index}.rate_unit`}
+                            label="Unit"
+                            options={RATE_UNIT_OPTIONS}
+                            onChange={(value) => {
+                              const note = RATE_UNIT_OPTIONS.find((o) => o.value === value)?.note;
+                              setValue(
+                                `rental_vehicle.rental_rates.${index}.rate_note`,
+                                note ?? "",
+                                { shouldDirty: true }
+                              );
+                            }}
+                          />
+                        </FieldCell>
+                        <FieldCell>
+                          <NumberInput
+                            name={`rental_vehicle.rental_rates.${index}.rate_cost`}
+                            label="Cost Per Unit"
+                          />
+                        </FieldCell>
+                      </FieldRow>
+
+                      <FieldRow>
+                        <FieldCell>
+                          <TextInput
+                            name={`rental_vehicle.rental_rates.${index}.rate_note`}
+                            label="Unit Note"
+                            slotProps={{ input: { readOnly: true } }}
+                            disabled
+                          />
+                        </FieldCell>
+                      </FieldRow>
+                    </Stack>
+                  </Box>
+                ))}
+              </Stack>
+
+              <Button
+                startIcon={<AddIcon />}
+                onClick={() =>
+                  appendRentalRate({
+                    rate_unit: "days",
+                    rate_cost: 0,
+                  })
+                }
+                variant="outlined"
+                size="small"
+                disabled={rentalRateFields.length >= MAX_RENTAL_RATES}
+              >
+                Add rate
+              </Button>
             </Subsection>
           </Stack>
         </Section>

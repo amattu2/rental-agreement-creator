@@ -11,6 +11,21 @@ export const FUEL_LEVEL_OPTIONS = ["E", "1/4", "1/2", "3/4", "F"];
 export const MAX_ADDITIONAL_DRIVERS = 2;
 
 /**
+ * A constant representing the maximum number of rental rates allowed in the rental agreement form.
+ */
+export const MAX_RENTAL_RATES = 4;
+
+/**
+ * Constant representing the rate unit options for rental rates.
+ */
+export const RATE_UNIT_OPTIONS = [
+  { label: "Hours", value: "hours", note: "Per Hour" },
+  { label: "Days", value: "days" },
+  { label: "Weeks", value: "weeks" },
+  { label: "Miles", value: "miles", note: "Per Mile" },
+];
+
+/**
  * Constant representing the distance measurement options for the rental agreement form.
  */
 export const DISTANCE_MEASUREMENT_OPTIONS = [
@@ -69,6 +84,7 @@ export const DEFAULT_FORM: FormSchema = {
     make: "",
     model: "",
     color: "",
+    rental_rates: [],
   },
   rental_agreement_info: {
     odometer_in: 0,
