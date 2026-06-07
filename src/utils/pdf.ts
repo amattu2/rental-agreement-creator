@@ -1,10 +1,12 @@
 import { FormSchema } from "@/schemas/form";
 import jsPDF, { AcroFormTextField, AcroFormComboBox } from "jspdf";
+import { PDFDocument } from "pdf-lib";
 import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
 import { EnvSchema } from "@/schemas/env";
 import { formatDate, formatNumber } from "./text";
 import {
+  AGREEMENT_TERMS_PDF_URL,
   DISTANCE_MEASUREMENT_OPTIONS,
   FUEL_LEVEL_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
@@ -35,6 +37,26 @@ jsPDF.API.buildTextField = function (
   field.height = height;
 
   this.addField(field);
+};
+
+jsPDF.API.appendDocument = async function (
+  this: jsPDF,
+  pdfBuffer: ArrayBuffer
+): Promise<PDFDocument> {
+  const sourceBytes = this.output("arraybuffer");
+  const [agreementPdf, appendedPdf] = await Promise.all([
+    PDFDocument.load(sourceBytes),
+    PDFDocument.load(pdfBuffer),
+  ]);
+
+  const mergedPdf = await PDFDocument.create();
+  const [agreementPage] = await mergedPdf.copyPages(agreementPdf, [0]);
+  const [appendedPage] = await mergedPdf.copyPages(appendedPdf, [0]);
+
+  mergedPdf.addPage(agreementPage);
+  mergedPdf.addPage(appendedPage);
+
+  return mergedPdf;
 };
 
 jsPDF.API.buildComboField = function (
@@ -136,15 +158,6 @@ export const generateRentalPDF = async (
     format: "letter",
     putOnlyUsedFonts: true,
   });
-
-  doc.setProperties({
-    title: `Rental Agreement - ${form.agreement_number}`,
-    subject: `Rental agreement form ${form.agreement_number}`,
-    author: NEXT_PUBLIC_COMPANY_NAME,
-    creator: NEXT_PUBLIC_APP_NAME,
-    keywords: `Automotive, Rental, Agreement, PDF, Form, ${NEXT_PUBLIC_APP_NAME}`,
-  });
-  doc.setLanguage("en-US");
 
   await Promise.allSettled(PDF_FONTS.map((font) => loadFont(doc, font)));
 
@@ -783,5 +796,34 @@ export const generateRentalPDF = async (
 
   // TODO: Signatures
 
-  return doc.output("blob");
+  try {
+    const termsResponse = await fetch(AGREEMENT_TERMS_PDF_URL);
+    if (!termsResponse.ok) {
+      throw new Error(`Failed to fetch ${AGREEMENT_TERMS_PDF_URL}: ${termsResponse.status}`);
+    }
+
+    const newDoc = await doc.appendDocument(await termsResponse.arrayBuffer());
+    newDoc.setTitle(`Rental Agreement - ${form.agreement_number}`);
+    newDoc.setSubject(`Rental agreement form ${form.agreement_number}`);
+    newDoc.setAuthor(NEXT_PUBLIC_COMPANY_NAME);
+    newDoc.setCreator(NEXT_PUBLIC_APP_NAME);
+    newDoc.setKeywords(["Automotive", "Rental", "Agreement", "PDF", "Form", NEXT_PUBLIC_APP_NAME]);
+    newDoc.setLanguage("en-US");
+
+    const blobBytes = Uint8Array.from(await newDoc.save());
+    return new Blob([blobBytes], { type: "application/pdf" });
+  } catch (error) {
+    console.error("Failed to append agreement terms PDF", error);
+
+    doc.setProperties({
+      title: `Rental Agreement - ${form.agreement_number}`,
+      subject: `Rental agreement form ${form.agreement_number}`,
+      author: NEXT_PUBLIC_COMPANY_NAME,
+      creator: NEXT_PUBLIC_APP_NAME,
+      keywords: `Automotive, Rental, Agreement, PDF, Form, ${NEXT_PUBLIC_APP_NAME}`,
+    });
+    doc.setLanguage("en-US");
+
+    return doc.output("blob");
+  }
 };

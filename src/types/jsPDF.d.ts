@@ -1,3 +1,5 @@
+import type { PDFDocument } from "pdf-lib";
+
 declare module "jspdf" {
   interface jsPDF {
     buildTextField(
@@ -19,6 +21,7 @@ declare module "jspdf" {
     ): void;
     drawField(label: string, x: number, y: number, w: number, value?: string): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
+    appendDocument(appendedDocument: ArrayBuffer): Promise<PDFDocument>;
   }
 
   interface jsPDFAPI {
@@ -41,5 +44,6 @@ declare module "jspdf" {
     ): void;
     drawField(label: string, x: number, y: number, w: number, value?: string): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
+    appendDocument(appendedDocument: ArrayBuffer): Promise<PDFDocument>;
   }
 }
