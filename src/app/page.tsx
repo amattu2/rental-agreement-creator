@@ -1,125 +1,148 @@
 "use client";
 
-import { RentalAgreementForm } from "@/components/form/index";
-import { IframeWrapper } from "@/components/iframe";
 import { createIndexedDbDatabaseApi } from "@/database";
-import { ENV_SCHEMA } from "@/schemas/env";
-import { FormSchema, FORM_SCHEMA } from "@/schemas/form";
-import { generateRentalPDF } from "@/utils/pdf";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Box, Grid } from "@mui/material";
-import dayjs from "dayjs";
+import {
+  Box,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
 import { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import z from "zod";
+import { useRouter } from "next/navigation";
 
-const DefaultForm: FormSchema = {
-  agreement_number: "",
-  rentee: {
-    full_name: "",
-    address_street1: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-    verified: false,
-    driver_license_number: "",
-    driver_license_state: "",
-    driver_license_expiration: dayjs(null),
-    date_of_birth: dayjs(null),
-    cell_phone: "",
-    alternate_phone: "",
-    email: "",
-  },
-  rentee_employer: {
-    company: "",
-    position: "",
-    address_street1: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-  },
-  rentee_insurance: {
-    company: "",
-    policy_number: "",
-  },
-  additional_drivers: [],
-  vehicle_damage_waiver: undefined,
-  personal_accident_insurance: undefined,
-  rental_vehicle: {
-    identifier: "",
-    VIN: "",
-    license_plate: "",
-    year: new Date().getFullYear(),
-    make: "",
-    model: "",
-    color: "",
-  },
-  rental_agreement_info: {
-    odometer_in: 0,
-    date_in: dayjs(null),
-    odometer_out: 0,
-    date_out: dayjs(),
-    max_distance: 0,
-    max_distance_measurement: "MI",
-    max_payload: 0,
-    max_payload_measurement: "LB",
-    fuel_level_in: "F",
-    fuel_level_out: "F",
-  },
-};
-
-const Page = () => {
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const databaseApi = createIndexedDbDatabaseApi();
-
-  const methods = useForm<FormSchema>({
-    resolver: zodResolver(FORM_SCHEMA),
-    defaultValues: DefaultForm,
-  });
-
-  const onSubmit = async (data: FormSchema) => {
-    const envData = z.parse(ENV_SCHEMA, {
-      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
-      NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
-      NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
-      NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
-      NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
-    });
-
-    try {
-      await databaseApi.createAgreement(data);
-      await databaseApi.createVehicle(data.rental_vehicle);
-    } catch (error) {
-      console.error("Failed to add agreement to database", error);
-    }
-
-    setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, data)));
-  };
+const AgreementListPage = () => {
+  const router = useRouter();
+  const [agreements, setAgreements] = useState<AgreementRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    return () => {
-      if (!objectUrl) {
-        return;
+    const loadAgreements = async () => {
+      try {
+        const databaseApi = createIndexedDbDatabaseApi();
+        const data = await databaseApi.getAllAgreements();
+        setAgreements(data);
+      } catch (error) {
+        console.error("Failed to load agreements", error);
+      } finally {
+        setIsLoading(false);
       }
-
-      URL.revokeObjectURL(objectUrl);
     };
-  }, [objectUrl]);
+
+    loadAgreements();
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatDatetime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const handleCreateNew = () => {
+    router.push("/agreement");
+  };
+
+  const handleRowClick = (uuid: string) => {
+    router.push(`/agreement?uuid=${uuid}`);
+  };
+
+  if (isLoading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography>Loading agreements...</Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Grid container>
-      <Grid size={{ lg: 6, xs: 12 }}>
-        <FormProvider {...methods}>
-          <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} sx={{ p: 3 }}>
-            <RentalAgreementForm />
-          </Box>
-        </FormProvider>
-      </Grid>
-      <Grid size={{ lg: 6, xs: 12 }}>
-        <IframeWrapper src={objectUrl} />
-      </Grid>
-    </Grid>
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" sx={{ mb: 1, fontWeight: 600 }}>
+          Rental Agreements
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          Manage and view all rental agreements. Click on any row to view or edit an agreement.
+        </Typography>
+        <Button variant="contained" color="primary" onClick={handleCreateNew}>
+          Create New Agreement
+        </Button>
+      </Box>
+
+      {agreements.length === 0 ? (
+        <Paper sx={{ p: 3, textAlign: "center" }}>
+          <Typography color="text.secondary">
+            No agreements found. Create your first agreement to get started.
+          </Typography>
+        </Paper>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 600 }}>Agreement No.</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Rentee</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Vehicle</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Pickup Date</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Return Date</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Updated</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {agreements.map((record) => {
+                const agreement = record.agreement;
+                const vehicle = agreement.rental_vehicle;
+                const vehicleDisplay = `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim();
+                const pickupDate = agreement.rental_agreement_info.date_out;
+                const returnDate = agreement.rental_agreement_info.date_in;
+
+                return (
+                  <TableRow
+                    key={record.uuid}
+                    onClick={() => handleRowClick(record.uuid)}
+                    sx={{
+                      cursor: "pointer",
+                    }}
+                  >
+                    <TableCell>{agreement.agreement_number || "—"}</TableCell>
+                    <TableCell>{agreement.rentee.full_name || "—"}</TableCell>
+                    <TableCell>{vehicleDisplay || "—"}</TableCell>
+                    <TableCell>
+                      {pickupDate?.isValid?.() ? formatDate(pickupDate.toISOString()) : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {returnDate?.isValid?.() ? formatDate(returnDate.toISOString()) : "—"}
+                    </TableCell>
+                    <TableCell>{formatDatetime(record.updatedAt)}</TableCell>
+                    <TableCell>{formatDatetime(record.createdAt)}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
   );
 };
 
-export default Page;
+export default AgreementListPage;

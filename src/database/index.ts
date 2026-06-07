@@ -148,6 +148,28 @@ const updateVehicle = async (uuid: string, input: VehicleData): Promise<VehicleR
   return record;
 };
 
+const getAgreement = async (uuid: string): Promise<AgreementRecord | undefined> => {
+  const db = await openDatabase();
+  const transaction = db.transaction(INDEXED_DB_AGREEMENT_STORE, "readonly");
+  const store = transaction.objectStore(INDEXED_DB_AGREEMENT_STORE);
+
+  const result = await requestToPromise<AgreementRecord | undefined>(store.get(uuid));
+  await transactionDone(transaction);
+
+  return result;
+};
+
+const getAllAgreements = async (): Promise<AgreementRecord[]> => {
+  const db = await openDatabase();
+  const transaction = db.transaction(INDEXED_DB_AGREEMENT_STORE, "readonly");
+  const store = transaction.objectStore(INDEXED_DB_AGREEMENT_STORE);
+
+  const result = await requestToPromise<AgreementRecord[]>(store.getAll());
+  await transactionDone(transaction);
+
+  return result;
+};
+
 export class IndexedDbDatabaseApi implements DatabaseApi {
   createAgreement(input: AgreementData): Promise<AgreementRecord> {
     return createAgreement(input);
@@ -155,6 +177,14 @@ export class IndexedDbDatabaseApi implements DatabaseApi {
 
   updateAgreement(uuid: string, input: AgreementData): Promise<AgreementRecord> {
     return updateAgreement(uuid, input);
+  }
+
+  getAgreement(uuid: string): Promise<AgreementRecord | undefined> {
+    return getAgreement(uuid);
+  }
+
+  getAllAgreements(): Promise<AgreementRecord[]> {
+    return getAllAgreements();
   }
 
   createVehicle(input: VehicleData): Promise<VehicleRecord> {

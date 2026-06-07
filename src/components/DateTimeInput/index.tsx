@@ -1,7 +1,7 @@
 import { Controller, Path, useFormContext } from "react-hook-form";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import type { Dayjs } from "dayjs";
 import type { FormSchema } from "@/schemas/form";
+import dayjs, { type Dayjs } from "dayjs";
 
 export const DateTimeInput = ({ name, label }: { name: Path<FormSchema>; label: string }) => {
   const { control } = useFormContext<FormSchema>();
@@ -12,7 +12,7 @@ export const DateTimeInput = ({ name, label }: { name: Path<FormSchema>; label: 
       control={control}
       render={({ field, fieldState: { error } }) => (
         <DateTimePicker
-          value={(field.value ?? null) as Dayjs | null}
+          value={dayjs((field.value as Dayjs) ?? null)}
           onChange={(date) => field.onChange(date)}
           label={label}
           slotProps={{
