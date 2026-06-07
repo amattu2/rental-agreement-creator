@@ -26,7 +26,7 @@ const Page = () => {
     resolver: zodResolver(FORM_SCHEMA),
   });
 
-  const onSubmit = async (data: FormSchema) => {
+  const renderPDF = async (data: FormSchema) => {
     const envData = z.parse(ENV_SCHEMA, {
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
       NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
@@ -35,6 +35,10 @@ const Page = () => {
       NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
     });
 
+    setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, data)));
+  };
+
+  const onSubmit = async (data: FormSchema) => {
     try {
       if (agreementUuid) {
         await databaseApi.updateAgreement(agreementUuid, data);
@@ -47,7 +51,7 @@ const Page = () => {
       console.error("Failed to add agreement to database", error);
     }
 
-    setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, data)));
+    renderPDF(data);
   };
 
   useEffect(() => {
@@ -67,6 +71,7 @@ const Page = () => {
         .then((record) => {
           if (record) {
             methods.reset(record.agreement);
+            renderPDF(record.agreement);
           }
         })
         .catch((error) => {
