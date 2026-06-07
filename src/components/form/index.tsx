@@ -1,7 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import AddIcon from "@mui/icons-material/Add";
@@ -26,7 +39,14 @@ import {
 } from "@/config/constants";
 
 export const RentalAgreementForm = () => {
-  const { control, reset, setValue, watch } = useFormContext<FormSchema>();
+  const {
+    control,
+    formState: { isDirty },
+    reset,
+    setValue,
+    watch,
+  } = useFormContext<FormSchema>();
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
   const {
     fields: additionalDriverFields,
@@ -41,6 +61,24 @@ export const RentalAgreementForm = () => {
   const hasVehicleDamageWaiver = vehicleDamageWaiver !== undefined;
   const personalAccidentInsurance = watch("personal_accident_insurance");
   const hasPersonalAccidentInsurance = personalAccidentInsurance !== undefined;
+
+  const handleResetClick = () => {
+    if (isDirty) {
+      setIsResetDialogOpen(true);
+      return;
+    }
+
+    reset();
+  };
+
+  const handleResetCancel = () => {
+    setIsResetDialogOpen(false);
+  };
+
+  const handleResetConfirm = () => {
+    reset();
+    setIsResetDialogOpen(false);
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -482,10 +520,25 @@ export const RentalAgreementForm = () => {
           <Button type="submit" variant="contained" fullWidth>
             Generate Agreement
           </Button>
-          <Button type="button" variant="text" color="error" fullWidth onClick={() => reset()}>
+          <Button type="button" variant="text" color="error" fullWidth onClick={handleResetClick}>
             Reset
           </Button>
         </Stack>
+
+        <Dialog open={isResetDialogOpen} onClose={handleResetCancel}>
+          <DialogTitle>Discard changes?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This action is irreversible. Are you sure you want to reset the form?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleResetCancel}>Cancel</Button>
+            <Button onClick={handleResetConfirm} color="error" autoFocus>
+              Reset
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </LocalizationProvider>
   );

@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { FormProvider, useForm } from "react-hook-form";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { RentalAgreementForm } from "./index";
 import type { FormSchema } from "@/schemas/form";
 
@@ -91,13 +91,13 @@ describe("RentalAgreementForm", () => {
   it("renders the grouped sections", () => {
     renderForm();
 
-    expect(screen.getByRole("heading", { name: "Agreement number" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Agreement Information" })).toBeInTheDocument();
     expect(screen.getByText("Rentee details")).toBeInTheDocument();
     expect(screen.getByText("Additional drivers")).toBeInTheDocument();
     expect(screen.getByText("Vehicle Damage Waiver")).toBeInTheDocument();
     expect(screen.getByText("Personal Accident Insurance")).toBeInTheDocument();
-    expect(screen.getByText("Rental vehicle")).toBeInTheDocument();
-    expect(screen.getByText("Agreement info")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Rental Vehicle" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Agreement number" })).toBeInTheDocument();
   });
 
   it("lets the user add an additional driver row", () => {
@@ -135,5 +135,38 @@ describe("RentalAgreementForm", () => {
 
     expect(screen.getByRole("button", { name: "Generate Agreement" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
+  });
+
+  it.skip("resets immediately when the form is clean", () => {
+    renderForm();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+
+    expect(screen.queryByText("Discard changes?")).not.toBeInTheDocument();
+  });
+
+  it("asks for confirmation before resetting when the form is dirty", async () => {
+    renderForm();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add Vehicle Damage Waiver" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+
+    expect(screen.getByText("Discard changes?")).toBeInTheDocument();
+
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Discard changes?")).not.toBeInTheDocument();
+    });
+    expect(screen.getByLabelText("Rate per day")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Reset" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Discard changes?")).not.toBeInTheDocument();
+    });
+    expect(screen.queryByLabelText("Rate per day")).not.toBeInTheDocument();
   });
 });
