@@ -38,10 +38,8 @@ const Page = () => {
     try {
       if (agreementUuid) {
         await databaseApi.updateAgreement(agreementUuid, data);
-        await databaseApi.updateVehicle(agreementUuid, data.rental_vehicle);
       } else {
         const agreement = await databaseApi.createAgreement(data);
-        await databaseApi.createVehicle(data.rental_vehicle);
 
         router.push(`/agreement?uuid=${agreement.uuid}`);
       }
