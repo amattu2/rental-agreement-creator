@@ -150,6 +150,7 @@ export const generateRentalPDF = async (
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const centerX = pageWidth / 2;
+  const dividerX = 125.5;
 
   // Company Heading
   doc.setFont("Carlito", "normal");
@@ -195,18 +196,18 @@ export const generateRentalPDF = async (
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
   doc.line(5, currentY, pageWidth - 5, currentY);
-  doc.line(125.5, currentY, 125.5, doc.internal.pageSize.getHeight() - 5);
-  currentY += 3; // 41.5
+  doc.line(dividerX, currentY, dividerX, doc.internal.pageSize.getHeight() - 5);
+  currentY += 3;
 
   // ---- COLUMN 1 ----
   doc.drawField("RENTEE NAME", 6, currentY, 119, form.rentee.full_name);
 
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
-  currentY += 5; // 46.5
+  currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
-  currentY += 3; // 49.5
+  currentY += 3;
   doc.drawField("HOME ADDRESS", 6, currentY, 95, form.rentee.address_street1);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
@@ -215,9 +216,9 @@ export const generateRentalPDF = async (
   doc.setDrawColor(0, 0, 0);
   doc.line(101.5, currentY - 3, 101.5, currentY + 5);
   doc.setDrawColor(59, 59, 59);
-  currentY += 5; // 54.5
+  currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
-  currentY += 3; // 57.5
+  currentY += 3;
   doc.drawField("CITY", 6, currentY, 47.4, form.rentee.address_city);
   doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state);
   doc.buildTextField("RENTEE_ZIP_CODE", 102, currentY, 22.6, 5, form.rentee.address_zip);
@@ -225,9 +226,9 @@ export const generateRentalPDF = async (
   doc.setFontSize(8);
   doc.text("ZIP CODE", 105.5, currentY);
 
-  currentY += 5; // 62.5
+  currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
-  currentY += 3; // 65.5
+  currentY += 3;
   doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4, form.rentee.driver_license_number);
   doc.drawField("STATE", 54.2, currentY, 47, form.rentee.driver_license_state);
   doc.buildTextField(
@@ -241,28 +242,28 @@ export const generateRentalPDF = async (
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.text("EXP. DATE", 105.5, currentY);
-  currentY += 5; // 70.5
+  currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
-  currentY += 3; // 73.5
+  currentY += 3;
   doc.drawField("DATE OF BIRTH", 6, currentY, 47.4, formatDate(form.rentee.date_of_birth));
   doc.drawField("CELL PHONE #", 54.2, currentY, 47, form.rentee.cell_phone);
   doc.drawField("ALT PHONE #", 102, currentY, 22.6, form.rentee.alternate_phone ?? "");
-  currentY += 5; // 78.5
+  currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
-  currentY += 3; // 81.5
+  currentY += 3;
   doc.drawField("EMAIL ADDRESS", 6, currentY, 119, form.rentee.email ?? "");
-  currentY += 5; // 86.5
-  doc.line(5, currentY, 125.5, currentY);
+  currentY += 5;
+  doc.line(5, currentY, dividerX, currentY);
 
-  currentY += 3; // 89.5
+  currentY += 3;
   doc.drawField("EMPLOYER", 6, currentY, 64, form.rentee_employer.company ?? "");
   doc.drawField("POSITION", 71, currentY, 54, form.rentee_employer.position ?? "");
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
-  currentY += 3; // 94.5
+  currentY += 3;
   doc.drawField("EMPLOYER'S ADDRESS", 6, currentY, 119, form.rentee_employer.address_street1 ?? "");
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
@@ -272,13 +273,13 @@ export const generateRentalPDF = async (
   doc.drawField("STATE", 54.2, currentY, 47, form.rentee_employer.address_state ?? "");
   doc.drawField("ZIP CODE", 102, currentY, 22.6, form.rentee_employer.address_zip ?? "");
   currentY += 5;
-  doc.line(5, currentY, pageWidth - 5, currentY);
+  doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3;
   doc.drawField("INSURANCE CO.", 6, currentY, 53, form.rentee_insurance.company ?? "");
   doc.drawField("POLICY #", 60, currentY, 54, form.rentee_insurance.policy_number ?? "");
   currentY += 5;
-  doc.line(5, currentY, 125.5, currentY);
+  doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3.5;
   doc.setFont("Cousine", "normal", 400);
@@ -426,7 +427,7 @@ export const generateRentalPDF = async (
   currentY += 9.5;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
-  doc.line(5, currentY, 125.5, currentY);
+  doc.line(5, currentY, dividerX, currentY);
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
 
@@ -437,6 +438,7 @@ export const generateRentalPDF = async (
   doc.setCharSpace(0);
   doc.text("VEHICLE DAMAGE WAIVER", 5, currentY);
   currentY += 5;
+  doc.setTextColor(59, 59, 59);
   doc.text("RATES:", 5, currentY);
   doc.buildTextField(
     "VDW_RATE_PER_DAY",
@@ -485,8 +487,12 @@ export const generateRentalPDF = async (
     formatNumber(form.vehicle_damage_waiver?.damage_liability_limit)
   );
   doc.line(75, currentY + 5.5, 101, currentY + 5.5);
+  doc.setFont("Cousine", "normal", 700);
+  doc.setTextColor(0, 0, 0);
   doc.text("VEHICLE DAMAGE WAIVER IS NOT INSURANCE", 60.25, currentY + 20, { align: "center" });
 
+  doc.setFont("Cousine", "normal", 400);
+  doc.setTextColor(59, 59, 59);
   doc.setDrawColor(0, 0, 0);
   doc.setFontSize(7);
   doc.rect(108.5, currentY - 10.5, 15, 8);
@@ -504,7 +510,7 @@ export const generateRentalPDF = async (
   currentY += 21.5;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
-  doc.line(5, currentY, 125.5, currentY);
+  doc.line(5, currentY, dividerX, currentY);
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
 
@@ -515,6 +521,7 @@ export const generateRentalPDF = async (
   doc.setCharSpace(0);
   doc.text("PERSONAL ACCIDENT INSURANCE", 5, currentY);
   currentY += 5;
+  doc.setTextColor(59, 59, 59);
   doc.setCharSpace(-0.2);
   doc.setLineHeightFactor(0.96);
   doc.text(
@@ -555,11 +562,11 @@ export const generateRentalPDF = async (
   currentY += 8;
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.4);
-  doc.line(5, currentY, 125.5, currentY);
+  doc.line(5, currentY, dividerX, currentY);
 
   // NOTE: This is a buffer section that can be adjusted as needed
   currentY += 34;
-  doc.line(5, currentY, 125.5, currentY);
+  doc.line(5, currentY, dividerX, currentY);
 
   doc.setLineWidth(0.5);
   doc.rect(10, currentY + 3, 110.5, 20);
@@ -605,7 +612,7 @@ export const generateRentalPDF = async (
   doc.drawField("LICENSE #", 184.8, currentY, 26, form.rental_vehicle.license_plate);
   currentY += 5;
   doc.setDrawColor(59, 59, 59);
-  doc.line(125.5, currentY, pageWidth - 5, currentY);
+  doc.line(dividerX, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
   doc.drawField("YEAR", 126.5, currentY, 15.5, formatNumber(form.rental_vehicle.year));
@@ -622,7 +629,7 @@ export const generateRentalPDF = async (
   );
   currentY += 5;
   doc.setDrawColor(59, 59, 59);
-  doc.line(125.5, currentY, pageWidth - 5, currentY);
+  doc.line(dividerX, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
   doc.setDrawColor(0, 0, 0);
@@ -746,6 +753,10 @@ export const generateRentalPDF = async (
     currentY + 9,
     { align: "center" }
   );
+
+  currentY += 12.7;
+  doc.setFillColor("#DBD7D2");
+  doc.rect(dividerX + 0.2, currentY, 85, 7.65, "F");
 
   return doc.output("blob");
 };
