@@ -106,7 +106,7 @@ jsPDF.API.drawField = function (
   this.setFontSize(8);
   this.setTextColor(59, 59, 59);
   this.text(label, x, y);
-  
+
   // Field Input
   const normalizedName = (fieldName ?? label)
     .toLowerCase()

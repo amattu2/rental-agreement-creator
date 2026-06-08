@@ -22,4 +22,6 @@ type DatabaseApi = {
   getAllAgreements(): Promise<AgreementRecord[]>;
   createVehicle(input: VehicleData): Promise<VehicleRecord>;
   updateVehicle(uuid: string, input: VehicleData): Promise<VehicleRecord>;
+  getVehicle(uuid: string): Promise<VehicleRecord | undefined>;
+  getAllVehicles(): Promise<VehicleRecord[]>;
 };

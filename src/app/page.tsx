@@ -1,6 +1,6 @@
 "use client";
 
-import { createIndexedDbDatabaseApi } from "@/database";
+import { useDatabaseApi } from "@/database/provider";
 import { Box, Button, Paper, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -8,13 +8,13 @@ import AgreementTable from "@/components/AgreementTable";
 
 const AgreementListPage = () => {
   const router = useRouter();
+  const databaseApi = useDatabaseApi();
   const [agreements, setAgreements] = useState<AgreementRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const loadAgreements = async () => {
       try {
-        const databaseApi = createIndexedDbDatabaseApi();
         const data = await databaseApi.getAllAgreements();
         setAgreements(data);
       } catch (error) {
@@ -25,7 +25,7 @@ const AgreementListPage = () => {
     };
 
     loadAgreements();
-  }, []);
+  }, [databaseApi]);
 
   const handleCreateNew = () => {
     router.push("/agreement");

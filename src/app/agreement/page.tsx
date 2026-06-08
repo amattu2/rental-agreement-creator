@@ -2,7 +2,7 @@
 
 import { RentalAgreementForm } from "@/components/form/index";
 import { IframeWrapper } from "@/components/iframe";
-import { createIndexedDbDatabaseApi } from "@/database";
+import { useDatabaseApi } from "@/database/provider";
 import { ENV_SCHEMA } from "@/schemas/env";
 import { FormSchema, FORM_SCHEMA } from "@/schemas/form";
 import { DEFAULT_FORM } from "@/config/constants";
@@ -17,9 +17,9 @@ import z from "zod";
 const Page = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const databaseApi = useDatabaseApi();
 
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const databaseApi = useMemo<DatabaseApi>(() => createIndexedDbDatabaseApi(), []);
   const agreementUuid = useMemo<string | null>(() => searchParams.get("uuid"), [searchParams]);
 
   const methods = useForm<FormSchema>({
