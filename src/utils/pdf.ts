@@ -106,10 +106,12 @@ jsPDF.API.drawField = function (
   this.setFontSize(8);
   this.setTextColor(59, 59, 59);
   this.text(label, x, y);
-
   // Field Input
-  this.buildTextField((fieldName ?? label).toLowerCase().replace(/\s+/g, "_"), x, y, w, 5, value);
-};
+  const normalizedName = (fieldName ?? label)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  this.buildTextField(normalizedName, x, y, w, 5, value);
 
 jsPDF.API.drawCompressedText = function (
   this: jsPDF,
