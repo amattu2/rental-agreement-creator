@@ -956,14 +956,84 @@ export const generateRentalPDF = async (
     4,
     "" // TODO: Compute total due based on subtotal + sales tax
   );
+
+  doc.setLineWidth(0.4);
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+  currentY += 5.3;
+  doc.line(dividerX + 60, chargesLineStartY, dividerX + 60, currentY); // Charges section vertical divider
+
+  // warning / disclosures section
+  doc.setFillColor("#DBD7D2");
+  doc.rect(dividerX + 0.3, currentY + 0.1, 85.4, 19, "F");
+  doc.setFont("Cousine", "normal", 700);
+  doc.setFontSize(8);
+  doc.setTextColor(0, 0, 0);
+  doc.text("WARNING:", dividerX + 2, currentY + 3.5);
+  doc.setFont("Cousine", "normal", 400);
+  doc.setCharSpace(-0.2);
+  doc.text(
+    [
+      "- Read carefully all conditions on the reverse side.",
+      "- Report all accidents immediately.",
+      "- You are responsible for all traffic violations.",
+      "- Only minimum liability insurance on an excess basis",
+      "  is provided as stated on the reverse side.",
+    ],
+    dividerX + 3,
+    currentY + 6.5
+  );
+  doc.setCharSpace(0);
+  doc.line(dividerX, currentY + 19, dividerX + 85.4, currentY + 19);
+
+  currentY += 19.4;
+  doc.setLineWidth(0.2);
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(8);
+  doc.setTextColor(59, 59, 59);
+  doc.setCharSpace(-0.2);
+  doc.text(
+    [
+      "RENTEE HAS READ BOTH SIDES OF THIS AGREEMENT AND AGREES",
+      "TO THE TERMS AND CONDITIONS THEREOF:",
+      "RENTEE AUTHORIZES RENTOR TO PROCESS A CREDIT CARD",
+      "VOUCHER, IF ANY, IN THE RENTOR'S NAME",
+      "RENTEE MAY BE PROSECUTED IF VEHICLE IS NOT RETURNED WHEN",
+      "DUE BACK.",
+    ],
+    dividerX + 2,
+    currentY + 3.5
+  );
+  doc.setCharSpace(0);
+
+  currentY += 18;
+  doc.setFont("Cousine", "normal", 700);
+  doc.setFontSize(6.5);
+  doc.text("THIS AGREEMENT SHOULD NOT EXCEED A 30 DAY PERIOD.", dividerX + 42.7, currentY + 3.8, {
+    align: "center",
+  });
 
   currentY += 5;
-  doc.line(dividerX + 60, chargesLineStartY, dividerX + 60, currentY); // Charges vertical divider
-
-  // TODO: Warning / Disclosures
-
-  // TODO: Signatures
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text("×", dividerX + 0.8, currentY + 7);
+  doc.buildTextField("RENTEE_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6);
+  doc.line(dividerX + 3.5, currentY + 6.5, dividerX + 85, currentY + 6.5);
+  doc.setFontSize(7);
+  doc.setTextColor(59, 59, 59);
+  doc.text("RENTEE SIGNATURE", dividerX + 3.5 + 81.5 / 2, currentY + 9.5, { align: "center" });
+  currentY += 10;
+  doc.setFont("Cousine", "normal", 400);
+  doc.setFontSize(10);
+  doc.setTextColor(0, 0, 0);
+  doc.text("×", dividerX + 0.8, currentY + 7);
+  doc.buildTextField("AUTHORIZED_CLERK_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6);
+  doc.line(dividerX + 3.5, currentY + 6.5, dividerX + 85, currentY + 6.5);
+  doc.setFontSize(7);
+  doc.setTextColor(59, 59, 59);
+  doc.text("AUTHORIZED RENTAL CLERK SIGNATURE", dividerX + 3.5 + 81.5 / 2, currentY + 9.5, {
+    align: "center",
+  });
 
   try {
     const termsResponse = await fetch(AGREEMENT_TERMS_PDF_URL);
