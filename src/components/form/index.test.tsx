@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import { FormProvider, useForm } from "react-hook-form";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { RentalAgreementForm } from "./index";
