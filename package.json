@@ -42,7 +42,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.2",
-    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/coverage-v8": "^4.1.8",
     "@vitest/expect": "^4.0.16",
     "eslint": "^9",
     "eslint-config-next": "^16.2.6",
@@ -51,6 +51,6 @@
     "prettier": "^3.7.4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.0.3",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.8"
   }
 }
