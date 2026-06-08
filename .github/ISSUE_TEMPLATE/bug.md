@@ -1,10 +1,9 @@
 ---
 name: Bug
 about: A new bug report
-title: ''
+title: ""
 labels: bug
-assignees: ''
-
+assignees: ""
 ---
 
 ### Description
