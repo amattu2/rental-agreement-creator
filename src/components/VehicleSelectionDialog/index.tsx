@@ -108,7 +108,7 @@ export const VehicleSelectionDialog = ({ open, onClose }: VehicleSelectionDialog
             <TableBody>
               {vehicles?.map(({ identifier, vehicle }) => (
                 <TableRow key={identifier}>
-                  <TableCell>{vehicle.identifier}</TableCell>
+                  <TableCell>{identifier}</TableCell>
                   <TableCell>{getVehicleDisplayName(vehicle)}</TableCell>
                   <TableCell>{vehicle.VIN}</TableCell>
                   <TableCell>{vehicle.license_plate}</TableCell>
