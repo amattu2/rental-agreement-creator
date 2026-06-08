@@ -106,8 +106,8 @@ export const VehicleSelectionDialog = ({ open, onClose }: VehicleSelectionDialog
               </TableRow>
             </TableHead>
             <TableBody>
-              {vehicles?.map(({ uuid, vehicle }) => (
-                <TableRow key={uuid}>
+              {vehicles?.map(({ identifier, vehicle }) => (
+                <TableRow key={identifier}>
                   <TableCell>{vehicle.identifier}</TableCell>
                   <TableCell>{getVehicleDisplayName(vehicle)}</TableCell>
                   <TableCell>{vehicle.VIN}</TableCell>

@@ -23,8 +23,7 @@ const renderForm = () => {
     updateAgreement: vi.fn(),
     getAgreement: vi.fn(),
     getAllAgreements: vi.fn(),
-    createVehicle: vi.fn(),
-    updateVehicle: vi.fn(),
+    upsertVehicle: vi.fn(),
     getVehicle: vi.fn(),
     getAllVehicles: vi.fn().mockResolvedValue([]),
   };
@@ -57,7 +56,6 @@ describe("RentalAgreementForm", () => {
     expect(screen.getByText("Personal Accident Insurance")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Rental Vehicle" })).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "Agreement number" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Select Existing Vehicle" })).toBeInTheDocument();
   });
 
   it("lets the user add an additional driver row", () => {

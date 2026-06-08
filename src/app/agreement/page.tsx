@@ -40,11 +40,12 @@ const Page = () => {
 
   const onSubmit = async (data: FormSchema) => {
     try {
+      await databaseApi.upsertVehicle(data.rental_vehicle);
+
       if (agreementUuid) {
         await databaseApi.updateAgreement(agreementUuid, data);
       } else {
         const agreement = await databaseApi.createAgreement(data);
-
         router.push(`/agreement?uuid=${agreement.uuid}`);
       }
     } catch (error) {

@@ -43,7 +43,7 @@ const openDatabase = (): Promise<IDBDatabase> => {
       }
 
       if (!db.objectStoreNames.contains(INDEXED_DB_VEHICLE_STORE)) {
-        db.createObjectStore(INDEXED_DB_VEHICLE_STORE, { keyPath: "uuid" });
+        db.createObjectStore(INDEXED_DB_VEHICLE_STORE, { keyPath: "identifier" });
       }
     };
 
@@ -101,46 +101,16 @@ const updateAgreement = async (uuid: string, input: AgreementData): Promise<Agre
   return record;
 };
 
-const createVehicle = async (input: VehicleData): Promise<VehicleRecord> => {
+const upsertVehicle = async (input: VehicleData): Promise<VehicleRecord> => {
   const db = await openDatabase();
   const transaction = db.transaction(INDEXED_DB_VEHICLE_STORE, "readwrite");
   const store = transaction.objectStore(INDEXED_DB_VEHICLE_STORE);
 
-  const identifier = uuidv4();
-  const existing = await requestToPromise(store.get(identifier));
-  if (existing) {
-    throw new Error(`Vehicle with identifier '${identifier}' already exists`);
-  }
-
+  const existing = await requestToPromise<VehicleRecord | undefined>(store.get(input.identifier));
   const now = new Date().toISOString();
-  const record: VehicleRecord = {
-    uuid: identifier,
-    vehicle: input,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  await requestToPromise(store.put(record));
-  await transactionDone(transaction);
-
-  return record;
-};
-
-const updateVehicle = async (uuid: string, input: VehicleData): Promise<VehicleRecord> => {
-  const db = await openDatabase();
-  const transaction = db.transaction(INDEXED_DB_VEHICLE_STORE, "readwrite");
-  const store = transaction.objectStore(INDEXED_DB_VEHICLE_STORE);
-
-  const existing = await requestToPromise<VehicleRecord | undefined>(store.get(uuid));
-  if (!existing) {
-    throw new Error(`Vehicle with identifier '${uuid}' was not found`);
-  }
-
-  const record: VehicleRecord = {
-    ...existing,
-    vehicle: input,
-    updatedAt: new Date().toISOString(),
-  };
+  const record: VehicleRecord = existing
+    ? { ...existing, vehicle: input, updatedAt: now }
+    : { identifier: input.identifier, vehicle: input, createdAt: now, updatedAt: now };
 
   await requestToPromise(store.put(record));
   await transactionDone(transaction);
@@ -170,12 +140,12 @@ const getAllAgreements = async (): Promise<AgreementRecord[]> => {
   return result;
 };
 
-const getVehicle = async (uuid: string): Promise<VehicleRecord | undefined> => {
+const getVehicle = async (identifier: string): Promise<VehicleRecord | undefined> => {
   const db = await openDatabase();
   const transaction = db.transaction(INDEXED_DB_VEHICLE_STORE, "readonly");
   const store = transaction.objectStore(INDEXED_DB_VEHICLE_STORE);
 
-  const result = await requestToPromise<VehicleRecord | undefined>(store.get(uuid));
+  const result = await requestToPromise<VehicleRecord | undefined>(store.get(identifier));
   await transactionDone(transaction);
 
   return result;
@@ -209,16 +179,12 @@ export class IndexedDbDatabaseApi implements DatabaseApi {
     return getAllAgreements();
   }
 
-  createVehicle(input: VehicleData): Promise<VehicleRecord> {
-    return createVehicle(input);
+  upsertVehicle(input: VehicleData): Promise<VehicleRecord> {
+    return upsertVehicle(input);
   }
 
-  updateVehicle(uuid: string, input: VehicleData): Promise<VehicleRecord> {
-    return updateVehicle(uuid, input);
-  }
-
-  getVehicle(uuid: string): Promise<VehicleRecord | undefined> {
-    return getVehicle(uuid);
+  getVehicle(identifier: string): Promise<VehicleRecord | undefined> {
+    return getVehicle(identifier);
   }
 
   getAllVehicles(): Promise<VehicleRecord[]> {

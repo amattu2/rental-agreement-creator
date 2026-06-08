@@ -6,7 +6,7 @@ import { VehicleSelectionDialog } from "./index";
 import { DatabaseApiContext } from "@/database/provider";
 
 const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord => ({
-  uuid: "vehicle-1",
+  identifier: "STK-1",
   createdAt: "2026-06-08T10:00:00.000Z",
   updatedAt: "2026-06-08T10:00:00.000Z",
   vehicle: {
@@ -27,8 +27,7 @@ const createDatabaseApi = (overrides?: Partial<DatabaseApi>): DatabaseApi => ({
   updateAgreement: vi.fn(),
   getAgreement: vi.fn(),
   getAllAgreements: vi.fn(),
-  createVehicle: vi.fn(),
-  updateVehicle: vi.fn(),
+  upsertVehicle: vi.fn(),
   getVehicle: vi.fn(),
   getAllVehicles: vi.fn().mockResolvedValue([]),
   ...overrides,
@@ -75,7 +74,7 @@ describe("VehicleSelectionDialog", () => {
     const databaseApi = createDatabaseApi({
       getAllVehicles: vi.fn().mockResolvedValue([
         createVehicleRecord({
-          uuid: "vehicle-2",
+          identifier: "STK-2",
           vehicle: {
             identifier: "STK-2",
             VIN: "1FTBW2CM5MKA00002",
