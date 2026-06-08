@@ -15,7 +15,7 @@ export const NumberInput = ({ name, label }: { name: Path<FormSchema>; label: st
           value={field.value ?? ""}
           onChange={(event) => {
             const nextValue = event.target.value === "" ? undefined : Number(event.target.value);
-            field.onChange(Number.isNaN(nextValue) ? 0 : nextValue);
+            field.onChange(Number.isNaN(nextValue) ? undefined : nextValue);
           }}
           label={label}
           type="number"
