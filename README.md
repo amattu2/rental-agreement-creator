@@ -1,11 +1,57 @@
 # Introduction
 
-TBD
+[![Vitest](https://github.com/amattu2/rental-agreement-creator/actions/workflows/test.yml/badge.svg)](https://github.com/amattu2/rental-agreement-creator/actions/workflows/test.yml)
+[![TypeScript](https://github.com/amattu2/rental-agreement-creator/actions/workflows/typescript.yml/badge.svg)](https://github.com/amattu2/rental-agreement-creator/actions/workflows/typescript.yml)
+[![ESLint](https://github.com/amattu2/rental-agreement-creator/actions/workflows/lint.yml/badge.svg)](https://github.com/amattu2/rental-agreement-creator/actions/workflows/lint.yml)
+
+Rental Agreement Creator is a lightweight agreement drafting tool built with Next.js, Material UI, and jsPDF.
+It helps rental businesses prepare standardized agreements quickly while keeping a live PDF preview in sync
+with form inputs.
+
+Natively supports the following features:
+
+- Create and edit automotive rental agreements from a structured form
+- Live PDF generation and in-app preview while filling agreement details
+- Client-side persistence with IndexedDB for previously created agreements
+- Reopen and update existing agreements using URL-based record identifiers
+- Configurable company branding via environment variables
 
 # Getting Started
 
-TBD
+Clone the repository locally, for example:
+
+```bash
+git clone github.com/amattu2/rental-agreement-creator.git
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create your local environment file and adjust company/app values as needed:
+
+```bash
+cp .env.example .env
+```
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+Open <http://localhost:3000> to view the app.
+
+# Tech Stack
+
+- Next.js (App Router) + React + TypeScript
+- Material UI (MUI)
+- React Hook Form + Zod validation
+- jsPDF + pdf-lib for PDF generation and document building
+- Vitest + Testing Library
 
 # Previews
 
-TBD
+TODO
