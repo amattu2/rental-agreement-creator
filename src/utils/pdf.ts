@@ -609,7 +609,7 @@ export const generatePDF = async (
   doc.setLineHeightFactor(0.96);
   doc.text(
     [
-      "BY INITIALING, RENTEE ACCEPTS OR DECLINES VEHICLE DAMAGE WAIVER AT THE",
+      "BY INITIALING, RENTEE ACCEPTS OR DECLINES VEHICLE DAMAGE WAIVER (VDW) AT THE",
       "RATES LISTED ABOVE. BY DECLINING THE WAIVER, RENTEE ACCEPTS FULL RESPONSIBILITY",
       "FOR ALL LOSS/DAMAGE TO THE RENTED VEHICLE UP TO                    PER OCCURRENCE,",
       "REGARDLESS OF CAUSE. WAIVER DOES NOT COVER LOSS OR DAMAGE RESULTING FROM ANY",
@@ -618,7 +618,7 @@ export const generatePDF = async (
       "CAUSED BY VEHICLE OCCUPANTS INCLUDING ANIMALS.",
     ],
     5,
-    currentY
+    currentY + 0.5
   );
   doc.setLineHeightFactor(1);
   doc.setCharSpace(0);
