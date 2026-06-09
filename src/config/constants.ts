@@ -1,4 +1,5 @@
 import { FormSchema } from "@/schemas/form";
+import { AGREEMENT_TERMS } from "./terms";
 
 /**
  * A constant array of fuel level options for the rental agreement form.
@@ -46,6 +47,7 @@ export const PAYLOAD_MEASUREMENT_OPTIONS = [
  */
 export const DEFAULT_FORM: FormSchema = {
   agreement_number: "",
+  agreement_terms: AGREEMENT_TERMS,
   rentee: {
     full_name: "",
     address_street1: "",

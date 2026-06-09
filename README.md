@@ -49,7 +49,7 @@ Open <http://localhost:3000> to view the app.
 - Next.js (App Router) + React + TypeScript
 - Material UI (MUI)
 - React Hook Form + Zod validation
-- jsPDF + pdf-lib for PDF generation and document building
+- jsPDF
 - Vitest + Testing Library
 
 # Previews

@@ -186,12 +186,36 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
     // TODO: Expand these rules. e.g. odometer_in does not exceed odometer_out by more than max_distance
   });
 
+export const AGREEMENT_TERMS_SCHEMA = z.object({
+  version: z.number().int().min(1, "Agreement terms version must be a positive integer"),
+  effective_date: z.date(),
+  conditions: z
+    .object({
+      title: z.string().max(50, "Maximum of 50 characters allowed"),
+      description: z.string(),
+      sub_conditions: z.array(z.string()),
+      list_format: z.enum(["numerical", "alphabetical"]).optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (data.sub_conditions.length > 0 && !data.list_format) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["list_format"],
+          message: "List format is required when sub-conditions are provided",
+        });
+      }
+    })
+
+    .array(),
+});
+
 export const FORM_SCHEMA = z
   .object({
     agreement_number: z
       .string()
       .min(1, "Agreement number is required")
       .max(50, "Maximum of 50 characters allowed"),
+    agreement_terms: AGREEMENT_TERMS_SCHEMA,
     rentee: RENTEE_SCHEMA,
     rentee_employer: RENTEE_EMPLOYER_SCHEMA,
     rentee_insurance: RENTEE_INSURANCE_SCHEMA,
@@ -212,3 +236,4 @@ export const FORM_SCHEMA = z
 
 export type VehicleSchema = z.infer<typeof RENTAL_VEHICLE_SCHEMA>;
 export type FormSchema = z.infer<typeof FORM_SCHEMA>;
+export type AgreementTermsSchema = z.infer<typeof AGREEMENT_TERMS_SCHEMA>;

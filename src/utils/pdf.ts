@@ -1,16 +1,24 @@
-import { FormSchema } from "@/schemas/form";
+import { AgreementTermsSchema, FormSchema } from "@/schemas/form";
 import jsPDF, { AcroFormTextField, AcroFormComboBox } from "jspdf";
-import { PDFDocument } from "pdf-lib";
 import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
 import { EnvSchema } from "@/schemas/env";
 import { formatCurrency, formatDate, coerceNumber, formatNumber } from "./text";
 import {
-  AGREEMENT_TERMS_PDF_URL,
+  createTermsLayoutFlow,
+  drawTermsListItem,
+  getSubConditionPrefix,
+  sanitizeTermsText,
+} from "./pdfTerms";
+import {
   DISTANCE_MEASUREMENT_OPTIONS,
   FUEL_LEVEL_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
+
+jsPDF.API.getLineHeightMm = function (this: jsPDF): number {
+  return (this.getFontSize() * this.getLineHeightFactor()) / this.internal.scaleFactor;
+};
 
 jsPDF.API.buildTextField = function (
   this: jsPDF,
@@ -37,26 +45,6 @@ jsPDF.API.buildTextField = function (
   field.height = height;
 
   this.addField(field);
-};
-
-jsPDF.API.appendDocument = async function (
-  this: jsPDF,
-  pdfBuffer: ArrayBuffer
-): Promise<PDFDocument> {
-  const sourceBytes = this.output("arraybuffer");
-  const [agreementPdf, appendedPdf] = await Promise.all([
-    PDFDocument.load(sourceBytes),
-    PDFDocument.load(pdfBuffer),
-  ]);
-
-  const mergedPdf = await PDFDocument.create();
-  const [agreementPage] = await mergedPdf.copyPages(agreementPdf, [0]);
-  const [appendedPage] = await mergedPdf.copyPages(appendedPdf, [0]);
-
-  mergedPdf.addPage(agreementPage);
-  mergedPdf.addPage(appendedPage);
-
-  return mergedPdf;
 };
 
 jsPDF.API.buildComboField = function (
@@ -142,6 +130,72 @@ jsPDF.API.drawCompressedText = function (
   });
 };
 
+jsPDF.API.drawAgreementTerms = function (this: jsPDF, terms: AgreementTermsSchema): void {
+  this.addPage();
+
+  const bottomMargin = 10;
+  const contentStartY = 28;
+  const leftMargin = 10;
+  const rightMargin = 10;
+  const columnGap = 4;
+  const subConditionIndent = 6.5;
+
+  const pageWidth = this.internal.pageSize.getWidth();
+  const pageHeight = this.internal.pageSize.getHeight();
+  const centerX = pageWidth / 2;
+  const columnWidth = (pageWidth - leftMargin - rightMargin - columnGap) / 2;
+  const contentBottomY = pageHeight - bottomMargin;
+  const flow = createTermsLayoutFlow(this, {
+    contentStartY,
+    contentBottomY,
+    leftMargin,
+    columnGap,
+    columnWidth,
+  });
+
+  this.setTextColor(0, 0, 0);
+  this.setFont("Archivo Black", "normal");
+  this.setFontSize(16);
+  this.text("RENTAL AGREEMENT", centerX, 14, { align: "center" });
+  this.setFont("Helvetica", "normal");
+  this.setFontSize(10);
+  this.setTextColor(59, 59, 59);
+  this.text(
+    "Rentor hereby rents to the Rentee identified on page 1, the vehicle described, subject to all the terms and provisions of the Agreement.",
+    centerX,
+    19,
+    { align: "center", maxWidth: 130, lineHeightFactor: 1.2 }
+  );
+
+  this.setFont("Helvetica", "normal");
+  this.setFontSize(7.7);
+  this.setTextColor(0, 0, 0);
+  this.setLineHeightFactor(1.2);
+
+  terms?.conditions?.forEach((condition, index) => {
+    if (index > 0) {
+      flow.ensureSpace(1);
+      flow.setCurrentY(flow.getCurrentY() + flow.getLineHeight() * 0.2);
+    }
+
+    drawTermsListItem(this, flow, {
+      prefix: `${index + 1}.   ${condition.title}:`,
+      content: sanitizeTermsText(condition.description),
+      indent: 0,
+      prefixGap: 1,
+    });
+
+    condition.sub_conditions.forEach((subCondition, subIndex) => {
+      drawTermsListItem(this, flow, {
+        prefix: getSubConditionPrefix(subIndex, condition.list_format),
+        content: sanitizeTermsText(subCondition),
+        indent: subConditionIndent,
+        prefixGap: 2,
+      });
+    });
+  });
+};
+
 /**
  * A utility function to generate a rental agreement PDF from the provided form data.
  *
@@ -169,6 +223,15 @@ export const generateRentalPDF = async (
   const pageWidth = doc.internal.pageSize.getWidth();
   const centerX = pageWidth / 2;
   const dividerX = 125.5;
+
+  doc.setProperties({
+    title: `Rental Agreement - ${form.agreement_number}`,
+    subject: `Rental agreement form ${form.agreement_number}`,
+    author: NEXT_PUBLIC_COMPANY_NAME,
+    creator: NEXT_PUBLIC_APP_NAME,
+    keywords: `Automotive, Rental, Agreement, PDF, Form, ${NEXT_PUBLIC_APP_NAME}`,
+  });
+  doc.setLanguage("en-US");
 
   // Company Heading
   doc.setFont("Carlito", "normal");
@@ -1039,34 +1102,28 @@ export const generateRentalPDF = async (
     align: "center",
   });
 
-  try {
-    const termsResponse = await fetch(AGREEMENT_TERMS_PDF_URL);
-    if (!termsResponse.ok) {
-      throw new Error(`Failed to fetch ${AGREEMENT_TERMS_PDF_URL}: ${termsResponse.status}`);
+  doc.drawAgreementTerms(form.agreement_terms);
+
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const totalPages = doc.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page += 1) {
+    doc.setPage(page);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Page ${page} of ${totalPages}`, pageWidth - 8, pageHeight - 4, { align: "right" });
+
+    if (page > 1) {
+      doc.text(
+        `Terms v${form.agreement_terms.version} | Effective ${formatDate(
+          form.agreement_terms.effective_date,
+          "MMM D, YYYY"
+        )}`,
+        8,
+        pageHeight - 4
+      );
     }
-
-    const newDoc = await doc.appendDocument(await termsResponse.arrayBuffer());
-    newDoc.setTitle(`Rental Agreement - ${form.agreement_number}`);
-    newDoc.setSubject(`Rental agreement form ${form.agreement_number}`);
-    newDoc.setAuthor(NEXT_PUBLIC_COMPANY_NAME);
-    newDoc.setCreator(NEXT_PUBLIC_APP_NAME);
-    newDoc.setKeywords(["Automotive", "Rental", "Agreement", "PDF", "Form", NEXT_PUBLIC_APP_NAME]);
-    newDoc.setLanguage("en-US");
-
-    const blobBytes = Uint8Array.from(await newDoc.save());
-    return new Blob([blobBytes], { type: "application/pdf" });
-  } catch (error) {
-    console.error("Failed to append agreement terms PDF", error);
-
-    doc.setProperties({
-      title: `Rental Agreement - ${form.agreement_number}`,
-      subject: `Rental agreement form ${form.agreement_number}`,
-      author: NEXT_PUBLIC_COMPANY_NAME,
-      creator: NEXT_PUBLIC_APP_NAME,
-      keywords: `Automotive, Rental, Agreement, PDF, Form, ${NEXT_PUBLIC_APP_NAME}`,
-    });
-    doc.setLanguage("en-US");
-
-    return doc.output("blob");
   }
+
+  return doc.output("blob");
 };
