@@ -1,4 +1,36 @@
-import { formatCurrency } from "./text";
+import { coerceNumber, formatCurrency, formatNumber } from "./text";
+
+describe("coerceNumber", () => {
+  it("returns the number as a plain string", () => {
+    expect(coerceNumber(1234.5)).toBe("1234.5");
+  });
+
+  it("returns an empty string when value is undefined", () => {
+    expect(coerceNumber(undefined)).toBe("");
+  });
+
+  it("returns an empty string when value is NaN", () => {
+    expect(coerceNumber(Number.NaN)).toBe("");
+  });
+});
+
+describe("formatNumber", () => {
+  it("formats a number with grouping by default", () => {
+    expect(formatNumber(1234.5)).toBe("1,235");
+  });
+
+  it("formats a number with two decimal places when requested", () => {
+    expect(formatNumber(1234.5, true)).toBe("1,234.50");
+  });
+
+  it("returns an empty string when value is undefined", () => {
+    expect(formatNumber(undefined)).toBe("");
+  });
+
+  it("returns an empty string when value is NaN", () => {
+    expect(formatNumber(Number.NaN)).toBe("");
+  });
+});
 
 describe("formatCurrency", () => {
   it("formats a positive number as USD by default", () => {
