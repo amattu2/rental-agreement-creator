@@ -24,15 +24,57 @@ export const formatDate = (
 };
 
 /**
- * A utility function to format a number value into a string.
+ * A utility function to coerce a number-like value into a string.
  *
  * @param value The number value to be formatted.
  * @returns The formatted number as a string, or an empty string if the input value is invalid.
  */
-export const formatNumber = (value: number | undefined): string => {
+export const coerceNumber = (value: number | undefined): string => {
   if (typeof value !== "number" || isNaN(value)) {
     return "";
   }
 
   return String(value);
+};
+
+/**
+ * A utility function to format a number value into a string.
+ *
+ * @param value The number value to be formatted.
+ * @param withDecimal Whether to include decimal places in the formatted string. Defaults to false.
+ * @returns The formatted number as a string, or an empty string if the input value is invalid.
+ */
+export const formatNumber = (value: number | undefined, withDecimal = false): string => {
+  if (typeof value !== "number" || isNaN(value)) {
+    return "";
+  }
+
+  const formatter = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: withDecimal ? 2 : 0,
+    maximumFractionDigits: withDecimal ? 2 : 0,
+  });
+
+  return formatter.format(value);
+};
+
+/**
+ * A utility function to format a number value into a currency string.
+ *
+ * @param value The number value to be formatted as currency.
+ * @param currency The currency code to format the value in. Defaults to "USD".
+ * @returns The formatted currency string, or a default formatted zero value if the input value is invalid.
+ */
+export const formatCurrency = (value: number | undefined, currency = "USD"): string => {
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (typeof value !== "number" || isNaN(value)) {
+    return formatter.format(0);
+  }
+
+  return formatter.format(value);
 };

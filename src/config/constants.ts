@@ -98,6 +98,7 @@ export const DEFAULT_FORM: FormSchema = {
     fuel_level_in: "F",
     fuel_level_out: "F",
   },
+  currency: "USD",
 };
 
 export const INDEXED_DB_NAME = "rental-agreement-creator";

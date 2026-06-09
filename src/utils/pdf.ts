@@ -4,7 +4,7 @@ import { PDFDocument } from "pdf-lib";
 import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
 import { EnvSchema } from "@/schemas/env";
-import { formatDate, formatNumber } from "./text";
+import { formatCurrency, formatDate, coerceNumber, formatNumber } from "./text";
 import {
   AGREEMENT_TERMS_PDF_URL,
   DISTANCE_MEASUREMENT_OPTIONS,
@@ -492,7 +492,7 @@ export const generateRentalPDF = async (
     currentY - 3,
     15,
     4,
-    formatNumber(form.vehicle_damage_waiver?.rate_per_day)
+    formatCurrency(form.vehicle_damage_waiver?.rate_per_day, form.currency)
   );
   doc.line(16, currentY + 1, 31, currentY + 1);
   doc.text("PER DAY", 32, currentY);
@@ -502,7 +502,7 @@ export const generateRentalPDF = async (
     currentY - 3,
     15,
     4,
-    formatNumber(form.vehicle_damage_waiver?.rate_per_week)
+    formatCurrency(form.vehicle_damage_waiver?.rate_per_week, form.currency)
   );
   doc.line(45, currentY + 1, 60, currentY + 1);
   doc.text("PER WEEK", 61, currentY);
@@ -530,7 +530,7 @@ export const generateRentalPDF = async (
     currentY + 2.5,
     26,
     3.8,
-    formatNumber(form.vehicle_damage_waiver?.damage_liability_limit)
+    formatCurrency(form.vehicle_damage_waiver?.damage_liability_limit, form.currency)
   );
   doc.line(75, currentY + 5.5, 101, currentY + 5.5);
   doc.setFont("Cousine", "normal", 700);
@@ -587,7 +587,7 @@ export const generateRentalPDF = async (
     currentY + 3,
     26,
     3.8,
-    formatNumber(form.personal_accident_insurance?.rate_per_day)
+    formatCurrency(form.personal_accident_insurance?.rate_per_day, form.currency)
   );
   doc.line(25.5, currentY + 6, 51.5, currentY + 6);
   doc.setDrawColor(0, 0, 0);
@@ -661,7 +661,7 @@ export const generateRentalPDF = async (
   doc.line(dividerX, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("YEAR", 126.5, currentY, 15.5, formatNumber(form.rental_vehicle.year));
+  doc.drawField("YEAR", 126.5, currentY, 15.5, coerceNumber(form.rental_vehicle.year));
   doc.setDrawColor(0, 0, 0);
   doc.line(142.5, currentY - 3, 142.5, currentY + 5);
   doc.drawField("MAKE", 143, currentY, 33.2, form.rental_vehicle.make);
@@ -691,7 +691,7 @@ export const generateRentalPDF = async (
     currentY - 2.6,
     14.5,
     7.5,
-    formatNumber(form.rental_agreement_info.odometer_in)
+    formatNumber(form.rental_agreement_info.odometer_in, false)
   );
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
@@ -725,7 +725,7 @@ export const generateRentalPDF = async (
     currentY - 2.6,
     14.5,
     7.5,
-    formatNumber(form.rental_agreement_info.odometer_out)
+    formatNumber(form.rental_agreement_info.odometer_out, false)
   );
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
@@ -751,7 +751,7 @@ export const generateRentalPDF = async (
     126.5,
     currentY,
     32,
-    formatNumber(form.rental_agreement_info.max_distance)
+    formatNumber(form.rental_agreement_info.max_distance, true)
   );
   doc.buildComboField(
     "MAX_DISTANCE_MEASUREMENT",
@@ -769,7 +769,7 @@ export const generateRentalPDF = async (
     172,
     currentY,
     28,
-    formatNumber(form.rental_agreement_info.max_payload)
+    formatNumber(form.rental_agreement_info.max_payload, true)
   );
   doc.buildComboField(
     "MAX_PAYLOAD_MEASUREMENT",
@@ -829,7 +829,7 @@ export const generateRentalPDF = async (
       currentY + 1.2,
       15,
       4,
-      formatNumber(rate_cost)
+      formatCurrency(rate_cost, form.currency)
     );
 
     if (rate_note) {
@@ -884,7 +884,7 @@ export const generateRentalPDF = async (
       currentY + 1.2,
       15,
       4,
-      formatNumber(form.personal_accident_insurance.rate_per_day)
+      formatCurrency(form.personal_accident_insurance.rate_per_day, form.currency)
     );
     doc.text("Per Day", dividerX + 40, currentY + 3.8);
 

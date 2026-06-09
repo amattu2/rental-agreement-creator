@@ -276,6 +276,7 @@ export const RentalAgreementForm = () => {
                           <NumberInput
                             name={`rental_vehicle.rental_rates.${index}.rate_cost`}
                             label="Cost Per Unit"
+                            slotProps={{ htmlInput: { step: 0.01, min: 0 } }}
                           />
                         </FieldCell>
                       </FieldRow>
@@ -523,15 +524,24 @@ export const RentalAgreementForm = () => {
 
                 <FieldRow>
                   <FieldCell>
-                    <NumberInput name="vehicle_damage_waiver.rate_per_day" label="Rate per day" />
+                    <NumberInput
+                      name="vehicle_damage_waiver.rate_per_day"
+                      label="Rate per day"
+                      slotProps={{ htmlInput: { step: 0.01, min: 0 } }}
+                    />
                   </FieldCell>
                   <FieldCell>
-                    <NumberInput name="vehicle_damage_waiver.rate_per_week" label="Rate per week" />
+                    <NumberInput
+                      name="vehicle_damage_waiver.rate_per_week"
+                      label="Rate per week"
+                      slotProps={{ htmlInput: { step: 0.01, min: 0 } }}
+                    />
                   </FieldCell>
                   <FieldCell>
                     <NumberInput
                       name="vehicle_damage_waiver.damage_liability_limit"
                       label="Damage liability limit"
+                      slotProps={{ htmlInput: { step: 0.01, min: 0 } }}
                     />
                   </FieldCell>
                 </FieldRow>
@@ -600,6 +610,7 @@ export const RentalAgreementForm = () => {
                     <NumberInput
                       name="personal_accident_insurance.rate_per_day"
                       label="Rate per day"
+                      slotProps={{ htmlInput: { step: 0.01, min: 0 } }}
                     />
                   </FieldCell>
                 </FieldRow>
