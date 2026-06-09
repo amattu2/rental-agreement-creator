@@ -15,7 +15,6 @@ import {
   FUEL_LEVEL_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
-import { AGREEMENT_TERMS } from "@/config/terms";
 
 jsPDF.API.getLineHeightMm = function (this: jsPDF): number {
   return (this.getFontSize() * this.getLineHeightFactor()) / this.internal.scaleFactor;
@@ -173,7 +172,7 @@ jsPDF.API.drawAgreementTerms = function (this: jsPDF, terms: AgreementTermsSchem
   this.setTextColor(0, 0, 0);
   this.setLineHeightFactor(1.2);
 
-  terms.conditions.forEach((condition, index) => {
+  terms?.conditions?.forEach((condition, index) => {
     if (index > 0) {
       flow.ensureSpace(1);
       flow.setCurrentY(flow.getCurrentY() + flow.getLineHeight() * 0.2);
@@ -1103,7 +1102,7 @@ export const generateRentalPDF = async (
     align: "center",
   });
 
-  doc.drawAgreementTerms(AGREEMENT_TERMS);
+  doc.drawAgreementTerms(form.agreement_terms);
 
   return doc.output("blob");
 };
