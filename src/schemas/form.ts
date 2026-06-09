@@ -204,10 +204,8 @@ export const FORM_SCHEMA = z
       .optional(),
     vehicle_damage_waiver: VEHICLE_DAMAGE_WAIVER_SCHEMA.optional(),
     personal_accident_insurance: PERSONAL_ACCIDENT_INSURANCE_SCHEMA.optional(),
-
     rental_vehicle: RENTAL_VEHICLE_SCHEMA,
     rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,
-    // TODO: Remaining fields from column 2 (e.g., rental rates, signatures)
   })
   .strict();
 

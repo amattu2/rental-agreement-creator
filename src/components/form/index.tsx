@@ -30,6 +30,7 @@ import { Section } from "../Section";
 import { SelectInput } from "../SelectInput";
 import { Subsection } from "../Subsection";
 import { TextInput } from "../TextInput";
+import { VehicleSelectionDialog } from "../VehicleSelectionDialog";
 import {
   MAX_ADDITIONAL_DRIVERS,
   FUEL_LEVEL_OPTIONS,
@@ -47,7 +48,8 @@ export const RentalAgreementForm = () => {
     setValue,
     watch,
   } = useFormContext<FormSchema>();
-  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState<boolean>(false);
+  const [vehicleSelectionOpen, setVehicleSelectionOpen] = useState<boolean>(false);
 
   const {
     fields: additionalDriverFields,
@@ -146,7 +148,24 @@ export const RentalAgreementForm = () => {
           <Stack spacing={3}>
             <Subsection title="Vehicle Information">
               <Stack spacing={2}>
-                <TextInput name="rental_vehicle.identifier" label="Vehicle identifier (Stock #)" />
+                <TextInput
+                  name="rental_vehicle.identifier"
+                  label="Vehicle identifier (Stock #)"
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <Button
+                          type="button"
+                          size="small"
+                          variant="text"
+                          onClick={() => setVehicleSelectionOpen(true)}
+                        >
+                          Select
+                        </Button>
+                      ),
+                    },
+                  }}
+                />
 
                 <TextInput name="rental_vehicle.VIN" label="VIN" />
 
@@ -632,6 +651,11 @@ export const RentalAgreementForm = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        <VehicleSelectionDialog
+          open={vehicleSelectionOpen}
+          onClose={() => setVehicleSelectionOpen(false)}
+        />
       </Box>
     </LocalizationProvider>
   );

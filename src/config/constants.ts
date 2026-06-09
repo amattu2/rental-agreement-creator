@@ -101,7 +101,7 @@ export const DEFAULT_FORM: FormSchema = {
 };
 
 export const INDEXED_DB_NAME = "rental-agreement-creator";
-export const INDEXED_DB_VERSION = 1;
+export const INDEXED_DB_VERSION = 2;
 export const INDEXED_DB_AGREEMENT_STORE = "agreements";
 export const INDEXED_DB_VEHICLE_STORE = "vehicles";
 export const AGREEMENT_TERMS_PDF_URL = "/AgreementTerms.pdf";

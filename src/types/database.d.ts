@@ -9,7 +9,7 @@ type AgreementRecord = {
 };
 
 type VehicleRecord = {
-  uuid: string;
+  identifier: string;
   vehicle: VehicleData;
   createdAt: string;
   updatedAt: string;
@@ -20,6 +20,7 @@ type DatabaseApi = {
   updateAgreement(uuid: string, input: AgreementData): Promise<AgreementRecord>;
   getAgreement(uuid: string): Promise<AgreementRecord | undefined>;
   getAllAgreements(): Promise<AgreementRecord[]>;
-  createVehicle(input: VehicleData): Promise<VehicleRecord>;
-  updateVehicle(uuid: string, input: VehicleData): Promise<VehicleRecord>;
+  upsertVehicle(input: VehicleData): Promise<VehicleRecord>;
+  getVehicle(identifier: string): Promise<VehicleRecord | undefined>;
+  getAllVehicles(): Promise<VehicleRecord[]>;
 };

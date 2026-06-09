@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { RentalAgreementForm } from "./index";
 import type { FormSchema } from "@/schemas/form";
 import { DEFAULT_FORM } from "@/config/constants";
+import { DatabaseApiContext } from "@/database/provider";
 
 vi.mock("@mui/x-date-pickers/DatePicker", () => ({
   DatePicker: ({ label }: { label: string }) => (
@@ -17,15 +18,27 @@ vi.mock("@mui/x-date-pickers/DateTimePicker", () => ({
 }));
 
 const renderForm = () => {
+  const databaseApi: DatabaseApi = {
+    createAgreement: vi.fn(),
+    updateAgreement: vi.fn(),
+    getAgreement: vi.fn(),
+    getAllAgreements: vi.fn(),
+    upsertVehicle: vi.fn(),
+    getVehicle: vi.fn(),
+    getAllVehicles: vi.fn().mockResolvedValue([]),
+  };
+
   const Wrapper = () => {
     const methods = useForm<FormSchema>({ defaultValues: DEFAULT_FORM });
 
     return (
-      <FormProvider {...methods}>
-        <form>
-          <RentalAgreementForm />
-        </form>
-      </FormProvider>
+      <DatabaseApiContext.Provider value={databaseApi}>
+        <FormProvider {...methods}>
+          <form>
+            <RentalAgreementForm />
+          </form>
+        </FormProvider>
+      </DatabaseApiContext.Provider>
     );
   };
 
