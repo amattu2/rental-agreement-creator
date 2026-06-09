@@ -1,8 +1,15 @@
 import { Controller, Path, useFormContext } from "react-hook-form";
-import { TextField } from "@mui/material";
+import { TextField, TextFieldProps } from "@mui/material";
 import type { FormSchema } from "@/schemas/form";
 
-export const NumberInput = ({ name, label }: { name: Path<FormSchema>; label: string }) => {
+export const NumberInput = ({
+  name,
+  label,
+  ...rest
+}: {
+  name: Path<FormSchema>;
+  label: string;
+} & TextFieldProps) => {
   const { control } = useFormContext<FormSchema>();
 
   return (
@@ -24,6 +31,7 @@ export const NumberInput = ({ name, label }: { name: Path<FormSchema>; label: st
           size="small"
           error={!!error}
           helperText={error?.message}
+          {...rest}
         />
       )}
     />

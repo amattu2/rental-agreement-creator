@@ -36,3 +36,25 @@ export const formatNumber = (value: number | undefined): string => {
 
   return String(value);
 };
+
+/**
+ * A utility function to format a number value into a currency string.
+ * 
+ * @param value The number value to be formatted as currency.
+ * @param currency The currency code to format the value in. Defaults to "USD".
+ * @returns The formatted currency string, or a default formatted zero value if the input value is invalid.
+ */
+export const formatCurrency = (value: number | undefined, currency = "USD"): string => {
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (typeof value !== "number" || isNaN(value)) {
+    return formatter.format(0);
+  }
+
+  return formatter.format(value);
+};

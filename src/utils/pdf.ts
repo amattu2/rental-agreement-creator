@@ -4,7 +4,7 @@ import { PDFDocument } from "pdf-lib";
 import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
 import { EnvSchema } from "@/schemas/env";
-import { formatDate, formatNumber } from "./text";
+import { formatCurrency, formatDate, formatNumber } from "./text";
 import {
   AGREEMENT_TERMS_PDF_URL,
   DISTANCE_MEASUREMENT_OPTIONS,
@@ -492,7 +492,7 @@ export const generateRentalPDF = async (
     currentY - 3,
     15,
     4,
-    formatNumber(form.vehicle_damage_waiver?.rate_per_day)
+    formatCurrency(form.vehicle_damage_waiver?.rate_per_day, form.currency)
   );
   doc.line(16, currentY + 1, 31, currentY + 1);
   doc.text("PER DAY", 32, currentY);
@@ -502,7 +502,7 @@ export const generateRentalPDF = async (
     currentY - 3,
     15,
     4,
-    formatNumber(form.vehicle_damage_waiver?.rate_per_week)
+    formatCurrency(form.vehicle_damage_waiver?.rate_per_week, form.currency)
   );
   doc.line(45, currentY + 1, 60, currentY + 1);
   doc.text("PER WEEK", 61, currentY);
@@ -530,7 +530,7 @@ export const generateRentalPDF = async (
     currentY + 2.5,
     26,
     3.8,
-    formatNumber(form.vehicle_damage_waiver?.damage_liability_limit)
+    formatCurrency(form.vehicle_damage_waiver?.damage_liability_limit, form.currency)
   );
   doc.line(75, currentY + 5.5, 101, currentY + 5.5);
   doc.setFont("Cousine", "normal", 700);
@@ -587,7 +587,7 @@ export const generateRentalPDF = async (
     currentY + 3,
     26,
     3.8,
-    formatNumber(form.personal_accident_insurance?.rate_per_day)
+    formatCurrency(form.personal_accident_insurance?.rate_per_day, form.currency)
   );
   doc.line(25.5, currentY + 6, 51.5, currentY + 6);
   doc.setDrawColor(0, 0, 0);
@@ -829,7 +829,7 @@ export const generateRentalPDF = async (
       currentY + 1.2,
       15,
       4,
-      formatNumber(rate_cost)
+      formatCurrency(rate_cost, form.currency)
     );
 
     if (rate_note) {
@@ -884,7 +884,7 @@ export const generateRentalPDF = async (
       currentY + 1.2,
       15,
       4,
-      formatNumber(form.personal_accident_insurance.rate_per_day)
+      formatCurrency(form.personal_accident_insurance.rate_per_day, form.currency)
     );
     doc.text("Per Day", dividerX + 40, currentY + 3.8);
 

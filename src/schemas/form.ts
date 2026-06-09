@@ -206,6 +206,7 @@ export const FORM_SCHEMA = z
     personal_accident_insurance: PERSONAL_ACCIDENT_INSURANCE_SCHEMA.optional(),
     rental_vehicle: RENTAL_VEHICLE_SCHEMA,
     rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,
+    currency: z.enum(["USD"]).default("USD"),
   })
   .strict();
 
