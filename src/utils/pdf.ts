@@ -1104,5 +1104,26 @@ export const generateRentalPDF = async (
 
   doc.drawAgreementTerms(form.agreement_terms);
 
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const totalPages = doc.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page += 1) {
+    doc.setPage(page);
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Page ${page} of ${totalPages}`, pageWidth - 8, pageHeight - 4, { align: "right" });
+
+    if (page > 1) {
+      doc.text(
+        `Terms v${form.agreement_terms.version} | Effective ${formatDate(
+          form.agreement_terms.effective_date,
+          "MMM D, YYYY"
+        )}`,
+        8,
+        pageHeight - 4
+      );
+    }
+  }
+
   return doc.output("blob");
 };
