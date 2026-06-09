@@ -1,7 +1,7 @@
-import type { PDFDocument } from "pdf-lib";
-
+import type { AgreementTermsSchema } from "@/schemas/form";
 declare module "jspdf" {
   interface jsPDF {
+    getLineHeightMm(): number;
     buildTextField(
       name: string,
       x: number,
@@ -28,10 +28,11 @@ declare module "jspdf" {
       fieldName?: string
     ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
-    appendDocument(appendedDocument: ArrayBuffer): Promise<PDFDocument>;
+    drawAgreementTerms(terms: AgreementTermsSchema): void;
   }
 
   interface jsPDFAPI {
+    getLineHeightMm(): number;
     buildTextField(
       name: string,
       x: number,
@@ -58,6 +59,6 @@ declare module "jspdf" {
       fieldName?: string
     ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
-    appendDocument(appendedDocument: ArrayBuffer): Promise<PDFDocument>;
+    drawAgreementTerms(terms: AgreementTermsSchema): void;
   }
 }
