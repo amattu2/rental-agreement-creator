@@ -1113,7 +1113,7 @@ export const generateRentalPDF = async (
     doc.setTextColor(100, 100, 100);
     doc.text(`Page ${page} of ${totalPages}`, pageWidth - 8, pageHeight - 4, { align: "right" });
 
-    if (page > 1) {
+    if (page > 1 && form.agreement_terms) {
       doc.text(
         `Terms v${form.agreement_terms.version} | Effective ${formatDate(
           form.agreement_terms.effective_date,

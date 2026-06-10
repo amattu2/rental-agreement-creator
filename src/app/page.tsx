@@ -31,10 +31,6 @@ const AgreementListPage = () => {
     router.push("/agreement");
   };
 
-  const handleRowClick = (uuid: string) => {
-    router.push(`/agreement?uuid=${uuid}`);
-  };
-
   if (isLoading) {
     return (
       <Box sx={{ p: 3 }}>
@@ -64,7 +60,7 @@ const AgreementListPage = () => {
           </Typography>
         </Paper>
       ) : (
-        <AgreementTable agreements={agreements} onRowClick={handleRowClick} />
+        <AgreementTable agreements={agreements} />
       )}
     </Box>
   );

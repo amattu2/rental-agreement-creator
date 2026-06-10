@@ -11,24 +11,36 @@ import {
   TableBody,
   IconButton,
   Tooltip,
-  Typography,
-  styled,
+  Menu,
+  MenuItem,
 } from "@mui/material";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import { memo, useCallback } from "react";
-
-const StyledAgreementButton = styled(Typography)({
-  cursor: "pointer",
-  textDecoration: "underline",
-});
+import MoreVertIcon from "@mui/icons-material/MoreVert";
+import { memo, useCallback, useState, MouseEvent } from "react";
+import Link from "next/link";
 
 export type AgreementTableProps = {
   agreements: AgreementRecord[];
-  onRowClick: (uuid: string) => void;
 };
 
-const AgreementTable = ({ agreements, onRowClick }: AgreementTableProps) => {
-  const handleViewPdf = useCallback(async (agreement: AgreementRecord["agreement"]) => {
+const AgreementTable = ({ agreements }: AgreementTableProps) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [activeAgreement, setActiveAgreement] = useState<AgreementRecord["agreement"] | null>(null);
+
+  const handleOpenMenu = (
+    event: MouseEvent<HTMLButtonElement>,
+    agreement: AgreementRecord["agreement"]
+  ) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+    setActiveAgreement(agreement);
+  };
+
+  const handleCloseMenu = useCallback(() => {
+    setAnchorEl(null);
+    setActiveAgreement(null);
+  }, []);
+
+  const handleViewPdf = useCallback(async () => {
     const envData = ENV_SCHEMA.parse({
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
       NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
@@ -37,13 +49,19 @@ const AgreementTable = ({ agreements, onRowClick }: AgreementTableProps) => {
       NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
     });
 
-    const pdfUrl = URL.createObjectURL(await generateRentalPDF(envData, agreement));
+    if (!activeAgreement) {
+      return;
+    }
+
+    const pdfUrl = URL.createObjectURL(await generateRentalPDF(envData, activeAgreement));
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
 
     setTimeout(() => {
       URL.revokeObjectURL(pdfUrl);
     }, 10_000);
-  }, []);
+
+    handleCloseMenu();
+  }, [activeAgreement, handleCloseMenu]);
 
   return (
     <TableContainer component={Paper}>
@@ -57,7 +75,7 @@ const AgreementTable = ({ agreements, onRowClick }: AgreementTableProps) => {
             <TableCell sx={{ fontWeight: 600 }}>Return Date</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Updated</TableCell>
             <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-            <TableCell sx={{ fontWeight: 600, width: 72 }}>View</TableCell>
+            <TableCell sx={{ width: 72 }} />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -69,9 +87,7 @@ const AgreementTable = ({ agreements, onRowClick }: AgreementTableProps) => {
               <TableRow key={uuid}>
                 <TableCell>
                   <Tooltip title={`Edit agreement ${agreement_number}`}>
-                    <StyledAgreementButton variant="button" onClick={() => onRowClick(uuid)}>
-                      {agreement_number}
-                    </StyledAgreementButton>
+                    <Link href={`/agreement?uuid=${uuid}`}>{agreement_number}</Link>
                   </Tooltip>
                 </TableCell>
                 <TableCell>{rentee.full_name}</TableCell>
@@ -85,24 +101,29 @@ const AgreementTable = ({ agreements, onRowClick }: AgreementTableProps) => {
                 <TableCell>{formatDate(updatedAt, "MM/DD/YYYY h:mma")}</TableCell>
                 <TableCell>{formatDate(createdAt, "MM/DD/YYYY h:mma")}</TableCell>
                 <TableCell align="center">
-                  <Tooltip title={`View PDF for agreement ${agreement_number}`}>
-                    <IconButton
-                      size="small"
-                      aria-label={`View PDF for agreement ${agreement_number}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewPdf(agreement);
-                      }}
-                    >
-                      <VisibilityIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton
+                    size="small"
+                    aria-label={`Actions for agreement ${agreement_number}`}
+                    onClick={(event) => handleOpenMenu(event, agreement)}
+                  >
+                    <MoreVertIcon fontSize="small" />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             );
           })}
         </TableBody>
       </Table>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleCloseMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem onClick={handleViewPdf}>View PDF</MenuItem>
+      </Menu>
     </TableContainer>
   );
 };
