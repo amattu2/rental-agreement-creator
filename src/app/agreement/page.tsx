@@ -44,14 +44,15 @@ const Page = () => {
     try {
       await databaseApi.upsertVehicle(data.rental_vehicle);
 
+      let record: AgreementRecord;
       if (agreementUuid) {
-        const record = await databaseApi.updateAgreement(agreementUuid, data);
-        renderPDF(record);
+        record = await databaseApi.updateAgreement(agreementUuid, data);
       } else {
-        const agreement = await databaseApi.createAgreement(data);
-        router.push(`/agreement?uuid=${agreement.uuid}`);
-        renderPDF(agreement);
+        record = await databaseApi.createAgreement(data);
+        router.push(`/agreement?uuid=${record.uuid}`);
       }
+
+      await renderPDF(record);
     } catch (error) {
       console.error("Failed to add agreement to database", error);
     }
