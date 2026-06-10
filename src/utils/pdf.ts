@@ -300,13 +300,12 @@ export const generatePDF = async (
   roField.defaultValue = form.agreement_number;
   roField.fontName = "Helvetica";
   roField.fontStyle = "normal";
-  roField.fontSize = 10;
-  roField.maxFontSize = 10;
+  roField.maxFontSize = 15;
   roField.textAlign = "left";
   roField.x = pageWidth - 49;
-  roField.y = 28;
+  roField.y = 31.5;
   roField.width = 44;
-  roField.height = 8;
+  roField.height = 5;
   doc.addField(roField);
 
   let currentY = 36.5;
