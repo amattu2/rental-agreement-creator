@@ -448,7 +448,7 @@ export const generatePDF = async (
   doc.rect(99.5, currentY - 1.6, 24, 42);
   doc.setFont("Archivo Black", "normal");
   doc.setFontSize(10);
-  doc.text("FUEL", 111.5, currentY + 2, { align: "center" });
+  doc.text("FUEL", 111.5, currentY + 2.7, { align: "center" });
   doc.setFontSize(8);
   doc.text("OUT", 105, currentY + 7, { align: "center" });
   doc.text("IN", 118, currentY + 7, { align: "center" });
