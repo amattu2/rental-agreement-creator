@@ -1142,12 +1142,13 @@ export const generatePDF = async (
 
   const pageHeight = doc.internal.pageSize.getHeight();
   const totalPages = doc.getNumberOfPages();
+  const bottomHeight = pageHeight - 5.2;
   for (let page = 1; page <= totalPages; page += 1) {
     doc.setPage(page);
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Page ${page} of ${totalPages}`, pageWidth - 8, pageHeight - 4, { align: "right" });
+    doc.text(`Page ${page} of ${totalPages}`, pageWidth - 8, bottomHeight, { align: "right" });
 
     if (page > 1 && form.agreement_terms) {
       doc.text(
@@ -1156,7 +1157,7 @@ export const generatePDF = async (
           "MMM D, YYYY"
         )}`,
         8,
-        pageHeight - 4
+        bottomHeight
       );
     }
   }
