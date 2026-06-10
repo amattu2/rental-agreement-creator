@@ -1142,7 +1142,7 @@ export const generatePDF = async (
 
   const pageHeight = doc.internal.pageSize.getHeight();
   const totalPages = doc.getNumberOfPages();
-  const bottomHeight = pageHeight - 5.2;
+  const bottomHeight = pageHeight - 5.4;
   for (let page = 1; page <= totalPages; page += 1) {
     doc.setPage(page);
     doc.setFont("Helvetica", "normal");
