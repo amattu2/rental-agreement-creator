@@ -6,7 +6,6 @@ import { useDatabaseApi } from "@/database/provider";
 import { ENV_SCHEMA } from "@/schemas/env";
 import { FormSchema, FORM_SCHEMA } from "@/schemas/form";
 import { DEFAULT_FORM } from "@/config/constants";
-import { generateRentalPDF } from "@/utils/pdf";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Grid } from "@mui/material";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -27,6 +26,8 @@ const Page = () => {
   });
 
   const renderPDF = async (record: AgreementRecord) => {
+    const { generateRentalPDF } = await import("@/utils/pdf");
+
     const envData = z.parse(ENV_SCHEMA, {
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
       NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,

@@ -1,5 +1,4 @@
 import { formatDate } from "@/utils/text";
-import { generateRentalPDF } from "@/utils/pdf";
 import { ENV_SCHEMA } from "@/schemas/env";
 import {
   TableContainer,
@@ -50,6 +49,8 @@ const AgreementTable = ({ agreements }: AgreementTableProps) => {
     if (!activeAgreement) {
       return;
     }
+
+    const { generateRentalPDF } = await import("@/utils/pdf");
 
     const pdfUrl = URL.createObjectURL(await generateRentalPDF(envData, activeAgreement));
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
