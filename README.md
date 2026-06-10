@@ -14,6 +14,7 @@ Natively supports the following features:
 - Live PDF generation and in-app preview while filling agreement details
 - Client-side persistence with IndexedDB for previously created agreements
 - Reopen and update existing agreements using URL-based record identifiers
+- QR Code generation for agreement verification or quick access to online records
 - Configurable company branding via environment variables
 
 Upcoming features:
@@ -21,7 +22,6 @@ Upcoming features:
 - [ ] Automatic tax and total cost calculation
 - [ ] Vehicle management
 - [ ] Preexisting customer selection and management
-- [ ] Barcode/QR code generation for agreement identification
 
 # Getting Started
 

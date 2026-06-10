@@ -23,6 +23,16 @@ export const ENV_SCHEMA = z.object({
     .max(100, "Maximum of 100 characters allowed")
     .optional()
     .default(""),
+  NEXT_PUBLIC_DEPLOYMENT_URL: z
+    .union([
+      z
+        .url()
+        .max(1_000, "Maximum of 1000 characters allowed")
+        .refine((url) => !url.endsWith("/"), "Deployment URL should not end with a slash"),
+      z.literal(""),
+    ])
+    .optional()
+    .default(""),
 });
 
 export type EnvSchema = z.infer<typeof ENV_SCHEMA>;

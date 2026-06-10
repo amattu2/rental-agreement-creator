@@ -1,4 +1,4 @@
-import { AgreementTermsSchema, FormSchema } from "@/schemas/form";
+import { AgreementTermsSchema } from "@/schemas/form";
 import jsPDF, { AcroFormTextField, AcroFormComboBox } from "jspdf";
 import { loadFont } from "./fonts";
 import { PDF_FONTS } from "@/config/fonts";
@@ -15,6 +15,7 @@ import {
   FUEL_LEVEL_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
+import QRCode from "qrcode";
 
 jsPDF.API.getLineHeightMm = function (this: jsPDF): number {
   return (this.getFontSize() * this.getLineHeightFactor()) / this.internal.scaleFactor;
@@ -161,7 +162,7 @@ jsPDF.API.drawAgreementTerms = function (this: jsPDF, terms: AgreementTermsSchem
   this.setFontSize(10);
   this.setTextColor(59, 59, 59);
   this.text(
-    "Rentor hereby rents to the Rentee identified on page 1, the vehicle described, subject to all the terms and provisions of the Agreement.",
+    "Rentor hereby rents to the Rentee identified on Page 1, the vehicle described, subject to all the terms and provisions of the Agreement.",
     centerX,
     19,
     { align: "center", maxWidth: 130, lineHeightFactor: 1.2 }
@@ -196,21 +197,53 @@ jsPDF.API.drawAgreementTerms = function (this: jsPDF, terms: AgreementTermsSchem
   });
 };
 
+jsPDF.API.drawQRCode = async function (
+  this: jsPDF,
+  agreementUuid: string,
+  deploymentUrl: string
+): Promise<void> {
+  if (!agreementUuid || !deploymentUrl) {
+    return;
+  }
+
+  const currentPage = this.getCurrentPageInfo().pageNumber;
+  try {
+    this.setPage(1);
+
+    const pageWidth = this.internal.pageSize.getWidth();
+    const qrImage = await QRCode.toDataURL(`${deploymentUrl}/agreement?uuid=${agreementUuid}`, {
+      errorCorrectionLevel: "H",
+      type: "image/png",
+    });
+
+    this.addImage(qrImage, "PNG", pageWidth - 23.5, 3.5, 20, 20, "QR_CODE");
+  } catch (error) {
+    console.error("Failed to generate QR code:", error);
+  } finally {
+    this.setPage(currentPage);
+  }
+};
+
 /**
  * A utility function to generate a rental agreement PDF from the provided form data.
  *
- * @param data - The form data used to generate the rental agreement PDF
+ * @param env - The environment variables used for PDF generation
+ * @param record - The agreement record used to generate the rental agreement PDF
  * @returns A Blob representing the generated PDF
  */
 export const generateRentalPDF = async (
-  {
+  env: EnvSchema,
+  record: AgreementRecord
+): Promise<Readonly<Blob>> => {
+  const {
     NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_COMPANY_NAME,
     NEXT_PUBLIC_ADDRESS_LINE1,
     NEXT_PUBLIC_ADDRESS_LINE2,
-  }: EnvSchema,
-  form: FormSchema
-): Promise<Readonly<Blob>> => {
+    NEXT_PUBLIC_DEPLOYMENT_URL,
+  } = env;
+  const { uuid, agreement: form } = record;
+
   const doc = new jsPDF({
     orientation: "p",
     unit: "mm",
@@ -252,6 +285,9 @@ export const generateRentalPDF = async (
   doc.text("RENTAL AGREEMENT", centerX, 28.5, { align: "center" });
   doc.setFontSize(11);
   doc.text("NO DRIVER UNDER THE AGE OF 21", centerX, 33, { align: "center" });
+
+  // Agreement QR Code
+  await doc.drawQRCode(uuid, NEXT_PUBLIC_DEPLOYMENT_URL);
 
   // Rental Agreement Number
   doc.setFont("Cousine", "normal", 700);

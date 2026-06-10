@@ -26,16 +26,17 @@ const Page = () => {
     resolver: zodResolver(FORM_SCHEMA),
   });
 
-  const renderPDF = async (data: FormSchema) => {
+  const renderPDF = async (record: AgreementRecord) => {
     const envData = z.parse(ENV_SCHEMA, {
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
       NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
       NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
       NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
       NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
+      NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
     });
 
-    setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, data)));
+    setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, record)));
   };
 
   const onSubmit = async (data: FormSchema) => {
@@ -43,16 +44,16 @@ const Page = () => {
       await databaseApi.upsertVehicle(data.rental_vehicle);
 
       if (agreementUuid) {
-        await databaseApi.updateAgreement(agreementUuid, data);
+        const record = await databaseApi.updateAgreement(agreementUuid, data);
+        renderPDF(record);
       } else {
         const agreement = await databaseApi.createAgreement(data);
         router.push(`/agreement?uuid=${agreement.uuid}`);
+        renderPDF(agreement);
       }
     } catch (error) {
       console.error("Failed to add agreement to database", error);
     }
-
-    renderPDF(data);
   };
 
   useEffect(() => {
@@ -72,7 +73,7 @@ const Page = () => {
         .then((record) => {
           if (record) {
             methods.reset(record.agreement);
-            renderPDF(record.agreement);
+            renderPDF(record);
           }
         })
         .catch((error) => {

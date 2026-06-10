@@ -1,4 +1,5 @@
 import type { AgreementTermsSchema } from "@/schemas/form";
+
 declare module "jspdf" {
   interface jsPDF {
     getLineHeightMm(): number;
@@ -29,6 +30,7 @@ declare module "jspdf" {
     ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     drawAgreementTerms(terms: AgreementTermsSchema): void;
+    drawQRCode(agreementUuid: string, deploymentUrl: string): Promise<void>;
   }
 
   interface jsPDFAPI {
@@ -60,5 +62,6 @@ declare module "jspdf" {
     ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     drawAgreementTerms(terms: AgreementTermsSchema): void;
+    drawQRCode(agreementUuid: string, deploymentUrl: string): Promise<void>;
   }
 }
