@@ -43,7 +43,7 @@ import {
 export const RentalAgreementForm = () => {
   const {
     control,
-    formState: { isDirty },
+    formState: { isDirty, isSubmitting },
     reset,
     setValue,
     watch,
@@ -640,7 +640,7 @@ export const RentalAgreementForm = () => {
         <Divider sx={{ my: 3 }} />
 
         <Stack spacing={1}>
-          <Button type="submit" variant="contained" fullWidth>
+          <Button type="submit" variant="contained" loading={isSubmitting} fullWidth>
             Generate Agreement
           </Button>
           <Button type="button" variant="text" color="error" fullWidth onClick={handleResetClick}>

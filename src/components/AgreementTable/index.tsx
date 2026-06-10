@@ -1,5 +1,4 @@
 import { formatDate } from "@/utils/text";
-import { generateRentalPDF } from "@/utils/pdf";
 import { ENV_SCHEMA } from "@/schemas/env";
 import {
   TableContainer,
@@ -24,12 +23,9 @@ export type AgreementTableProps = {
 
 const AgreementTable = ({ agreements }: AgreementTableProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [activeAgreement, setActiveAgreement] = useState<AgreementRecord["agreement"] | null>(null);
+  const [activeAgreement, setActiveAgreement] = useState<AgreementRecord | null>(null);
 
-  const handleOpenMenu = (
-    event: MouseEvent<HTMLButtonElement>,
-    agreement: AgreementRecord["agreement"]
-  ) => {
+  const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>, agreement: AgreementRecord) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setActiveAgreement(agreement);
@@ -47,11 +43,14 @@ const AgreementTable = ({ agreements }: AgreementTableProps) => {
       NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
       NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
       NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
+      NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
     });
 
     if (!activeAgreement) {
       return;
     }
+
+    const { generateRentalPDF } = await import("@/utils/pdf");
 
     const pdfUrl = URL.createObjectURL(await generateRentalPDF(envData, activeAgreement));
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
@@ -79,9 +78,10 @@ const AgreementTable = ({ agreements }: AgreementTableProps) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {agreements.map(({ uuid, agreement, updatedAt, createdAt }) => {
-            const { agreement_number, rentee, rental_agreement_info } = agreement;
-            const { year, make, model } = agreement.rental_vehicle;
+          {agreements.map((record: AgreementRecord) => {
+            const { uuid, agreement, updatedAt, createdAt } = record;
+            const { agreement_number, rentee, rental_agreement_info, rental_vehicle } = agreement;
+            const { year, make, model } = rental_vehicle;
 
             return (
               <TableRow key={uuid}>
@@ -104,7 +104,7 @@ const AgreementTable = ({ agreements }: AgreementTableProps) => {
                   <IconButton
                     size="small"
                     aria-label={`Actions for agreement ${agreement_number}`}
-                    onClick={(event) => handleOpenMenu(event, agreement)}
+                    onClick={(event) => handleOpenMenu(event, record)}
                   >
                     <MoreVertIcon fontSize="small" />
                   </IconButton>
