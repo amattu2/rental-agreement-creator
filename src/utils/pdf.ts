@@ -272,7 +272,7 @@ export const generatePDF = async (
   doc.text(
     [NEXT_PUBLIC_COMPANY_NAME, NEXT_PUBLIC_ADDRESS_LINE1, NEXT_PUBLIC_ADDRESS_LINE2],
     centerX,
-    7.5,
+    8.2,
     {
       align: "center",
       lineHeightFactor: 1.2,
