@@ -40,16 +40,17 @@ const AgreementListPage = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 4 }}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" sx={{ mb: 1, fontWeight: 600 }}>
           Rental Agreements
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Manage and view all rental agreements. Click on any row to view or edit an agreement.
+          View and manage rental agreements. Click on an agreement to view details or create a new
+          one to get started.
         </Typography>
         <Button variant="contained" color="primary" onClick={handleCreateNew}>
-          Create New Agreement
+          Create Agreement
         </Button>
       </Box>
 
