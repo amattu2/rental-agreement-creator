@@ -16,6 +16,13 @@ Natively supports the following features:
 - Reopen and update existing agreements using URL-based record identifiers
 - Configurable company branding via environment variables
 
+Upcoming features:
+
+- [ ] Automatic tax and total cost calculation
+- [ ] Vehicle management
+- [ ] Preexisting customer selection and management
+- [ ] Barcode/QR code generation for agreement identification
+
 # Getting Started
 
 Clone the repository locally, for example:
