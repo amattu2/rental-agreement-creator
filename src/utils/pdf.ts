@@ -231,7 +231,7 @@ jsPDF.API.drawQRCode = async function (
  * @param record - The agreement record used to generate the rental agreement PDF
  * @returns A Blob representing the generated PDF
  */
-export const generateRentalPDF = async (
+export const generatePDF = async (
   env: EnvSchema,
   record: AgreementRecord
 ): Promise<Readonly<Blob>> => {
