@@ -231,7 +231,7 @@ jsPDF.API.drawQRCode = async function (
  * @param record - The agreement record used to generate the rental agreement PDF
  * @returns A Blob representing the generated PDF
  */
-export const generateRentalPDF = async (
+export const generatePDF = async (
   env: EnvSchema,
   record: AgreementRecord
 ): Promise<Readonly<Blob>> => {
@@ -272,7 +272,7 @@ export const generateRentalPDF = async (
   doc.text(
     [NEXT_PUBLIC_COMPANY_NAME, NEXT_PUBLIC_ADDRESS_LINE1, NEXT_PUBLIC_ADDRESS_LINE2],
     centerX,
-    7.5,
+    8.2,
     {
       align: "center",
       lineHeightFactor: 1.2,
@@ -300,13 +300,12 @@ export const generateRentalPDF = async (
   roField.defaultValue = form.agreement_number;
   roField.fontName = "Helvetica";
   roField.fontStyle = "normal";
-  roField.fontSize = 10;
-  roField.maxFontSize = 10;
+  roField.maxFontSize = 15;
   roField.textAlign = "left";
   roField.x = pageWidth - 49;
-  roField.y = 28;
+  roField.y = 31.5;
   roField.width = 44;
-  roField.height = 8;
+  roField.height = 5;
   doc.addField(roField);
 
   let currentY = 36.5;
@@ -449,7 +448,7 @@ export const generateRentalPDF = async (
   doc.rect(99.5, currentY - 1.6, 24, 42);
   doc.setFont("Archivo Black", "normal");
   doc.setFontSize(10);
-  doc.text("FUEL", 111.5, currentY + 2, { align: "center" });
+  doc.text("FUEL", 111.5, currentY + 2.7, { align: "center" });
   doc.setFontSize(8);
   doc.text("OUT", 105, currentY + 7, { align: "center" });
   doc.text("IN", 118, currentY + 7, { align: "center" });
@@ -902,7 +901,7 @@ export const generateRentalPDF = async (
   doc.setCharSpace(0);
 
   currentY += 12.7;
-  const chargesLineStartY = currentY;
+  const chargesLineStartY = currentY - 0.2;
   doc.setFillColor("#DBD7D2");
   doc.rect(dividerX + 0.3, currentY, 84.8, 7.65, "F");
   doc.setFont("Cousine", "normal", 700);
@@ -1063,6 +1062,7 @@ export const generateRentalPDF = async (
   doc.setLineWidth(0.4);
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5.3;
+  doc.setLineWidth(0.2);
   doc.line(dividerX + 60, chargesLineStartY, dividerX + 60, currentY); // Charges section vertical divider
 
   // warning / disclosures section
@@ -1097,11 +1097,11 @@ export const generateRentalPDF = async (
   doc.text(
     [
       "RENTEE HAS READ BOTH SIDES OF THIS AGREEMENT AND AGREES",
-      "TO THE TERMS AND CONDITIONS THEREOF:",
+      "TO THE TERMS AND CONDITIONS THEREOF.",
       "RENTEE AUTHORIZES RENTOR TO PROCESS A CREDIT CARD",
       "VOUCHER, IF ANY, IN THE RENTOR'S NAME.",
-      "RENTEE MAY BE PROSECUTED IF VEHICLE IS NOT RETURNED WHEN",
-      "DUE BACK.",
+      "RENTEE MAY BE PROSECUTED IF VEHICLE IS NOT RETURNED",
+      "WHEN DUE BACK.",
     ],
     dividerX + 2,
     currentY + 3.5
@@ -1142,12 +1142,13 @@ export const generateRentalPDF = async (
 
   const pageHeight = doc.internal.pageSize.getHeight();
   const totalPages = doc.getNumberOfPages();
+  const bottomHeight = pageHeight - 5.4;
   for (let page = 1; page <= totalPages; page += 1) {
     doc.setPage(page);
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Page ${page} of ${totalPages}`, pageWidth - 8, pageHeight - 4, { align: "right" });
+    doc.text(`Page ${page} of ${totalPages}`, pageWidth - 8, bottomHeight, { align: "right" });
 
     if (page > 1 && form.agreement_terms) {
       doc.text(
@@ -1156,7 +1157,7 @@ export const generateRentalPDF = async (
           "MMM D, YYYY"
         )}`,
         8,
-        pageHeight - 4
+        bottomHeight
       );
     }
   }

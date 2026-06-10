@@ -26,7 +26,7 @@ const Page = () => {
   });
 
   const renderPDF = async (record: AgreementRecord) => {
-    const { generateRentalPDF } = await import("@/utils/pdf");
+    const { generatePDF } = await import("@/utils/pdf");
 
     const envData = z.parse(ENV_SCHEMA, {
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
@@ -37,7 +37,7 @@ const Page = () => {
       NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
     });
 
-    setObjectUrl(URL.createObjectURL(await generateRentalPDF(envData, record)));
+    setObjectUrl(URL.createObjectURL(await generatePDF(envData, record)));
   };
 
   const onSubmit = async (data: FormSchema) => {

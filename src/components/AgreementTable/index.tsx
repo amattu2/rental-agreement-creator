@@ -50,9 +50,9 @@ const AgreementTable = ({ agreements }: AgreementTableProps) => {
       return;
     }
 
-    const { generateRentalPDF } = await import("@/utils/pdf");
+    const { generatePDF } = await import("@/utils/pdf");
 
-    const pdfUrl = URL.createObjectURL(await generateRentalPDF(envData, activeAgreement));
+    const pdfUrl = URL.createObjectURL(await generatePDF(envData, activeAgreement));
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
 
     setTimeout(() => {
