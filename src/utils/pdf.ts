@@ -901,7 +901,7 @@ export const generatePDF = async (
   doc.setCharSpace(0);
 
   currentY += 12.7;
-  const chargesLineStartY = currentY;
+  const chargesLineStartY = currentY - 0.2;
   doc.setFillColor("#DBD7D2");
   doc.rect(dividerX + 0.3, currentY, 84.8, 7.65, "F");
   doc.setFont("Cousine", "normal", 700);
@@ -1062,6 +1062,7 @@ export const generatePDF = async (
   doc.setLineWidth(0.4);
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5.3;
+  doc.setLineWidth(0.2);
   doc.line(dividerX + 60, chargesLineStartY, dividerX + 60, currentY); // Charges section vertical divider
 
   // warning / disclosures section
