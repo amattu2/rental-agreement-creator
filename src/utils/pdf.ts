@@ -625,12 +625,12 @@ export const generatePDF = async (
   doc.buildTextField(
     "VDW_DAMAGE_LIABILITY_LIMIT",
     75,
-    currentY + 2.5,
+    currentY + 3,
     26,
     3.8,
     formatCurrency(form.vehicle_damage_waiver?.damage_liability_limit, form.currency)
   );
-  doc.line(75, currentY + 5.5, 101, currentY + 5.5);
+  doc.line(75, currentY + 6, 101, currentY + 6);
   doc.setFont("Cousine", "normal", 700);
   doc.setTextColor(0, 0, 0);
   doc.text("VEHICLE DAMAGE WAIVER IS NOT INSURANCE", 60.25, currentY + 20, { align: "center" });
@@ -984,7 +984,7 @@ export const generatePDF = async (
       4,
       formatCurrency(form.personal_accident_insurance.rate_per_day, form.currency)
     );
-    doc.text("Per Day", dividerX + 40, currentY + 3.8);
+    doc.text("PER DAY", dividerX + 40, currentY + 3.8);
 
     doc.buildTextField(
       "PAI_TOTAL",
@@ -1065,13 +1065,12 @@ export const generatePDF = async (
   doc.setLineWidth(0.2);
   doc.line(dividerX + 60, chargesLineStartY, dividerX + 60, currentY); // Charges section vertical divider
 
-  // warning / disclosures section
   doc.setFillColor("#DBD7D2");
   doc.rect(dividerX + 0.3, currentY + 0.1, 85.4, 19, "F");
   doc.setFont("Cousine", "normal", 700);
   doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);
-  doc.text("WARNING:", dividerX + 2, currentY + 3.5);
+  doc.text("WARNING:", dividerX + 2, currentY + 3);
   doc.setFont("Cousine", "normal", 400);
   doc.setCharSpace(-0.2);
   doc.text(
