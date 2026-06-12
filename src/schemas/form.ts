@@ -183,7 +183,13 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
         message: "Odometer at return must be greater than or equal to odometer at pickup",
       });
     }
-    // TODO: Expand these rules. e.g. odometer_in does not exceed odometer_out by more than max_distance
+    if (data.odometer_in > data.odometer_out + data.max_distance) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["odometer_in"],
+        message: "Odometer in should cannot exceed odometer out plus maximum distance",
+      });
+    }
   });
 
 export const AGREEMENT_TERMS_SCHEMA = z.object({
