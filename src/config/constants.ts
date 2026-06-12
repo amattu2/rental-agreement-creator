@@ -20,10 +20,10 @@ export const MAX_RENTAL_RATES = 4;
  * Constant representing the rate unit options for rental rates.
  */
 export const RATE_UNIT_OPTIONS = [
-  { label: "Hours", value: "hours", note: "Per Hour" },
+  { label: "Hours", value: "hours", note: "PER HOUR" },
   { label: "Days", value: "days" },
   { label: "Weeks", value: "weeks" },
-  { label: "Miles", value: "miles", note: "Per Mile" },
+  { label: "Miles", value: "miles", note: "PER MILE" },
 ];
 
 /**

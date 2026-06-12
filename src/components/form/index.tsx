@@ -228,7 +228,7 @@ export const RentalAgreementForm = () => {
               </Stack>
             </Subsection>
 
-            <Subsection title="Rates">
+            <Subsection title="Rental Rates">
               <Stack spacing={2} mb={2}>
                 {rentalRateFields.map((field, index) => (
                   <Box
@@ -245,7 +245,7 @@ export const RentalAgreementForm = () => {
                         }}
                       >
                         <Typography variant="subtitle2" fontWeight={600}>
-                          Rate {index + 1}
+                          Rate #{index + 1}
                         </Typography>
                         <IconButton
                           color="error"
