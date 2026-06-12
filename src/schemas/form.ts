@@ -187,7 +187,7 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
       ctx.addIssue({
         code: "custom",
         path: ["odometer_in"],
-        message: "Odometer in should cannot exceed odometer out plus maximum distance",
+        message: "Odometer at return cannot exceed odometer at pickup plus maximum distance",
       });
     }
   });
