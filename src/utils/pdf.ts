@@ -232,7 +232,11 @@ jsPDF.API.drawSignatureImage = function (
   width: number,
   height: number
 ): boolean {
-  if (!signatureDataUrl || typeof signatureDataUrl !== "string" || !signatureDataUrl.startsWith("data:image/png")) {
+  if (
+    !signatureDataUrl ||
+    typeof signatureDataUrl !== "string" ||
+    !signatureDataUrl.startsWith("data:image/png")
+  ) {
     return false;
   }
 
