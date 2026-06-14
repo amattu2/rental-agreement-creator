@@ -31,6 +31,13 @@ declare module "jspdf" {
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     drawAgreementTerms(terms: AgreementTermsSchema): void;
     drawQRCode(agreementUuid: string, deploymentUrl: string): Promise<void>;
+    drawSignatureImage(
+      signatureDataUrl: string | undefined,
+      x: number,
+      y: number,
+      width: number,
+      height: number
+    ): boolean;
   }
 
   interface jsPDFAPI {
@@ -63,5 +70,12 @@ declare module "jspdf" {
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     drawAgreementTerms(terms: AgreementTermsSchema): void;
     drawQRCode(agreementUuid: string, deploymentUrl: string): Promise<void>;
+    drawSignatureImage(
+      signatureDataUrl: string | undefined,
+      x: number,
+      y: number,
+      width: number,
+      height: number
+    ): boolean;
   }
 }

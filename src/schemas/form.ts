@@ -237,6 +237,7 @@ export const FORM_SCHEMA = z
     rental_vehicle: RENTAL_VEHICLE_SCHEMA,
     rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,
     currency: z.literal("USD"),
+    clerk_signature: z.union([z.literal(""), z.string().startsWith("data:image/png")]).optional(),
   })
   .strict();
 
