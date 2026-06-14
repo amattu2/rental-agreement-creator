@@ -224,6 +224,32 @@ jsPDF.API.drawQRCode = async function (
   }
 };
 
+jsPDF.API.drawSignatureImage = function (
+  this: jsPDF,
+  signatureDataUrl: string | undefined,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): boolean {
+  if (
+    !signatureDataUrl ||
+    typeof signatureDataUrl !== "string" ||
+    !signatureDataUrl.startsWith("data:image/png")
+  ) {
+    return false;
+  }
+
+  try {
+    this.addImage(signatureDataUrl, "PNG", x, y, width, height, undefined, "MEDIUM");
+    return true;
+  } catch (error) {
+    console.error("Failed to render signature image:", error);
+  }
+
+  return false;
+};
+
 /**
  * A utility function to generate a rental agreement PDF from the provided form data.
  *
@@ -1129,7 +1155,10 @@ export const generatePDF = async (
   doc.setFontSize(10);
   doc.setTextColor(0, 0, 0);
   doc.text("×", dividerX + 0.8, currentY + 7);
-  doc.buildTextField("AUTHORIZED_CLERK_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6);
+  if (!doc.drawSignatureImage(form.clerk_signature, dividerX + 3.7, currentY + 0.3, 81.1, 5.8)) {
+    // Create a text field if the signature image could not be drawn
+    doc.buildTextField("AUTHORIZED_CLERK_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6);
+  }
   doc.line(dividerX + 3.5, currentY + 6.5, dividerX + 85, currentY + 6.5);
   doc.setFontSize(7);
   doc.setTextColor(59, 59, 59);

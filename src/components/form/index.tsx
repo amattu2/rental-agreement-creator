@@ -28,6 +28,7 @@ import { FieldRow } from "../FieldRow";
 import { NumberInput } from "../NumberInput";
 import { Section } from "../Section";
 import { SelectInput } from "../SelectInput";
+import { SignatureInput } from "../SignatureInput";
 import { Subsection } from "../Subsection";
 import { TextInput } from "../TextInput";
 import { VehicleSelectionDialog } from "../VehicleSelectionDialog";
@@ -635,6 +636,15 @@ export const RentalAgreementForm = () => {
           >
             Add Personal Accident Insurance
           </Button>
+        </Section>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Section
+          title="Signatures"
+          description="Optionally capture digital signatures for this agreement."
+        >
+          <SignatureInput name="clerk_signature" label="Authorized Rental Clerk Signature" />
         </Section>
 
         <Divider sx={{ my: 3 }} />
