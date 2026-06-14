@@ -181,7 +181,7 @@ export const SignatureInput = ({ name, label, helperText }: SignatureInputProps)
         {label}
       </Typography>
       <StyledContainer>
-        <StyledCanvas ref={canvasRef} width={960} height={240} />
+        <StyledCanvas ref={canvasRef} width={960} height={240} aria-label={label} />
       </StyledContainer>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="caption" color={error ? "error.main" : "text.secondary"}>
