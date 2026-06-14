@@ -53,6 +53,7 @@ const Page = () => {
       }
 
       await renderPDF(record);
+      methods.reset(record.agreement);
     } catch (error) {
       console.error("Failed to add agreement to database", error);
     }
