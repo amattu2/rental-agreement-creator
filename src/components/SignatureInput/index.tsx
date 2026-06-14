@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { Path, useController, useFormContext } from "react-hook-form";
 import { Box, Button, Stack, styled, Typography } from "@mui/material";
 import type { FormSchema } from "@/schemas/form";
+import { isCanvasBlank } from "@/utils/canvas";
 
 const StyledContainer = styled(Box)(({ theme }) => ({
   border: "1px solid",
@@ -86,7 +87,8 @@ export const SignatureInput = ({ name, label, helperText }: SignatureInputProps)
 
   const saveValue = useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas) {
+    if (!canvas || isCanvasBlank(canvas)) {
+      field.onChange("");
       return;
     }
 
