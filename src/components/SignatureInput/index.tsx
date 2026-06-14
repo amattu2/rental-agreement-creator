@@ -168,12 +168,14 @@ export const SignatureInput = ({ name, label, helperText }: SignatureInputProps)
     canvas.addEventListener("pointermove", draw);
     canvas.addEventListener("pointerup", stopDrawing);
     canvas.addEventListener("pointerleave", stopDrawing);
+    canvas.addEventListener("pointercancel", stopDrawing);
 
     return () => {
       canvas.removeEventListener("pointerdown", startDrawing);
       canvas.removeEventListener("pointermove", draw);
       canvas.removeEventListener("pointerup", stopDrawing);
       canvas.removeEventListener("pointerleave", stopDrawing);
+      canvas.removeEventListener("pointercancel", stopDrawing);
     };
   }, [draw, startDrawing, stopDrawing]);
 
