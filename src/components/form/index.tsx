@@ -653,16 +653,24 @@ export const RentalAgreementForm = () => {
           <Button type="submit" variant="contained" loading={isSubmitting} fullWidth>
             Generate Agreement
           </Button>
-          <Button type="button" variant="text" color="error" fullWidth onClick={handleResetClick}>
+          <Button
+            type="button"
+            variant="text"
+            color="error"
+            onClick={handleResetClick}
+            disabled={!isDirty}
+            fullWidth
+          >
             Reset
           </Button>
         </Stack>
 
         <Dialog open={isResetDialogOpen} onClose={handleResetCancel}>
-          <DialogTitle>Discard changes?</DialogTitle>
+          <DialogTitle>Discard Changes?</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              This action is irreversible. Are you sure you want to reset the form?
+              This action will reset the form to the previously saved state. Are you sure you want
+              to proceed?
             </DialogContentText>
           </DialogContent>
           <DialogActions>

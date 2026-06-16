@@ -214,7 +214,7 @@ jsPDF.API.drawQRCode = async function (
     const qrImage = await QRCode.toDataURL(`${deploymentUrl}/agreement?uuid=${agreementUuid}`, {
       errorCorrectionLevel: "H",
       type: "image/png",
-      margin: 0
+      margin: 0,
     });
 
     this.addImage(qrImage, "PNG", pageWidth - 26.5, 7, 20, 20, "QR_CODE");
