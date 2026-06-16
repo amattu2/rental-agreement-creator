@@ -75,14 +75,7 @@ export const RentalAgreementForm = () => {
   const personalAccidentInsurance = watch("personal_accident_insurance");
   const hasPersonalAccidentInsurance = personalAccidentInsurance !== undefined;
 
-  const handleResetClick = () => {
-    if (isDirty) {
-      setIsResetDialogOpen(true);
-      return;
-    }
-
-    reset();
-  };
+  const handleResetClick = () => setIsResetDialogOpen(true);
 
   const handleResetCancel = () => {
     setIsResetDialogOpen(false);
