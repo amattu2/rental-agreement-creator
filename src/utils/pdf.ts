@@ -214,9 +214,10 @@ jsPDF.API.drawQRCode = async function (
     const qrImage = await QRCode.toDataURL(`${deploymentUrl}/agreement?uuid=${agreementUuid}`, {
       errorCorrectionLevel: "H",
       type: "image/png",
+      margin: 0,
     });
 
-    this.addImage(qrImage, "PNG", pageWidth - 23.5, 3.5, 20, 20, "QR_CODE");
+    this.addImage(qrImage, "PNG", pageWidth - 26.5, 7, 20, 20, "QR_CODE");
   } catch (error) {
     console.error("Failed to generate QR code:", error);
   } finally {
@@ -1170,7 +1171,7 @@ export const generatePDF = async (
 
   const pageHeight = doc.internal.pageSize.getHeight();
   const totalPages = doc.getNumberOfPages();
-  const bottomHeight = pageHeight - 5.4;
+  const bottomHeight = pageHeight - 6;
   for (let page = 1; page <= totalPages; page += 1) {
     doc.setPage(page);
     doc.setFont("Helvetica", "normal");

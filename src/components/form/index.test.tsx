@@ -100,7 +100,7 @@ describe("RentalAgreementForm", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
 
-    expect(screen.queryByText("Discard changes?")).not.toBeInTheDocument();
+    expect(screen.queryByText("Discard Changes?")).not.toBeInTheDocument();
   });
 
   it("asks for confirmation before resetting when the form is dirty", async () => {
@@ -110,12 +110,12 @@ describe("RentalAgreementForm", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reset" }));
 
-    expect(screen.getByText("Discard changes?")).toBeInTheDocument();
+    expect(screen.getByText("Discard Changes?")).toBeInTheDocument();
 
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
 
     await waitFor(() => {
-      expect(screen.queryByText("Discard changes?")).not.toBeInTheDocument();
+      expect(screen.queryByText("Discard Changes?")).not.toBeInTheDocument();
     });
     expect(screen.getByLabelText("Rate per day")).toBeInTheDocument();
 
@@ -123,7 +123,7 @@ describe("RentalAgreementForm", () => {
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Reset" }));
 
     await waitFor(() => {
-      expect(screen.queryByText("Discard changes?")).not.toBeInTheDocument();
+      expect(screen.queryByText("Discard Changes?")).not.toBeInTheDocument();
     });
     expect(screen.queryByLabelText("Rate per day")).not.toBeInTheDocument();
   });
