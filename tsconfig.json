@@ -25,6 +25,8 @@
   },
   "include": [
     "next-env.d.ts",
+    "cloudflare-env.d.ts",
+    "worker-configuration.d.ts",
     "src/types/*.d.ts",
     "**/*.ts",
     "**/*.tsx",

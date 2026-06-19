@@ -1,7 +1,21 @@
 {
-  "name": "rental-agreement-creator",
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "rentals-test",
+  "main": ".open-next/worker.js",
   "compatibility_date": "2026-02-16",
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "directory": "./out",
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
   },
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+    },
+  },
+  "vars": {
+    "EMAIL_FROM": ""
+  },
+  "send_email": [{ "name": "EMAIL" }],
 }

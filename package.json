@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "test": "vitest",
     "test:ci": "vitest --reporter verbose --coverage --maxWorkers=2 --maxConcurrency=2",
@@ -12,9 +12,15 @@
     "lint:ci": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf .next node_modules out tsconfig.tsbuildinfo next-env.d.ts"
+    "clean": "rimraf .next .wrangler node_modules out tsconfig.tsbuildinfo next-env.d.ts",
+    "wrangler:dev": "wrangler dev",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --keep-vars",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "wrangler-typegen": "wrangler types"
   },
   "dependencies": {
+    "@cloudflare/vite-plugin": "^1.42.0",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -23,6 +29,7 @@
     "@mui/material": "^7.3.6",
     "@mui/material-nextjs": "^7.3.6",
     "@mui/x-date-pickers": "^8.23.0",
+    "@opennextjs/cloudflare": "^1.19.11",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "jspdf": "^4.2.1",
@@ -54,6 +61,7 @@
     "rimraf": "^6.1.3",
     "typescript": "^5",
     "vite-tsconfig-paths": "^6.0.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "wrangler": "^4.102.0"
   }
 }
