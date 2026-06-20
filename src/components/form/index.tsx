@@ -87,14 +87,16 @@ export const RentalAgreementForm = () => {
 
     return (
       <Tooltip title="Calculate odometer at return">
-        <StyledIconButton
-          type="button"
-          size="small"
-          disabled={newDistance === 0 || newDistance === odometerIn}
-          onClick={() => setValue("rental_agreement_info.odometer_in", newDistance)}
-        >
-          <CalculateIcon />
-        </StyledIconButton>
+        <span>
+          <StyledIconButton
+            type="button"
+            size="small"
+            disabled={newDistance === 0 || newDistance === odometerIn}
+            onClick={() => setValue("rental_agreement_info.odometer_in", newDistance)}
+          >
+            <CalculateIcon />
+          </StyledIconButton>
+        </span>
       </Tooltip>
     );
   }, [odometerOut, maxDistance, odometerIn, setValue]);
