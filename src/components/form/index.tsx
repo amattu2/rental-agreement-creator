@@ -92,7 +92,13 @@ export const RentalAgreementForm = () => {
             type="button"
             size="small"
             disabled={newDistance === 0 || newDistance === odometerIn}
-            onClick={() => setValue("rental_agreement_info.odometer_in", newDistance)}
+            onClick={() =>
+              setValue("rental_agreement_info.odometer_in", newDistance, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              })
+            }
           >
             <CalculateIcon />
           </StyledIconButton>
