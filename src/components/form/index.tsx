@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import {
   Box,
@@ -13,12 +13,16 @@ import {
   Divider,
   IconButton,
   Stack,
+  styled,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CalculateIcon from "@mui/icons-material/Calculate";
+import SearchIcon from "@mui/icons-material/Search";
 import { FormSchema } from "@/schemas/form";
 import { CheckboxInput } from "../CheckboxInput";
 import { DateInput } from "../DateInput";
@@ -40,6 +44,10 @@ import {
   MAX_RENTAL_RATES,
   RATE_UNIT_OPTIONS,
 } from "@/config/constants";
+
+const StyledIconButton = styled(IconButton)({
+  marginRight: "-5px",
+});
 
 export const RentalAgreementForm = () => {
   const {
@@ -69,6 +77,45 @@ export const RentalAgreementForm = () => {
     control,
     name: "rental_vehicle.rental_rates",
   });
+
+  const odometerOut = watch("rental_agreement_info.odometer_out");
+  const maxDistance = watch("rental_agreement_info.max_distance");
+  const odometerIn = watch("rental_agreement_info.odometer_in");
+
+  const CalculateAdornment = useMemo<React.ReactElement>(() => {
+    const newDistance = (odometerOut ?? 0) + (maxDistance ?? 0);
+
+    return (
+      <Tooltip title="Calculate odometer at return">
+        <span>
+          <StyledIconButton
+            type="button"
+            size="small"
+            disabled={newDistance === 0 || newDistance === odometerIn}
+            onClick={() =>
+              setValue("rental_agreement_info.odometer_in", newDistance, {
+                shouldDirty: true,
+                shouldTouch: true,
+                shouldValidate: true,
+              })
+            }
+          >
+            <CalculateIcon />
+          </StyledIconButton>
+        </span>
+      </Tooltip>
+    );
+  }, [odometerOut, maxDistance, odometerIn, setValue]);
+
+  const VehicleSelectAdornment = useMemo<React.ReactElement>(() => {
+    return (
+      <Tooltip title="Select an existing vehicle">
+        <StyledIconButton type="button" size="small" onClick={() => setVehicleSelectionOpen(true)}>
+          <SearchIcon />
+        </StyledIconButton>
+      </Tooltip>
+    );
+  }, [setVehicleSelectionOpen]);
 
   const vehicleDamageWaiver = watch("vehicle_damage_waiver");
   const hasVehicleDamageWaiver = vehicleDamageWaiver !== undefined;
@@ -147,16 +194,7 @@ export const RentalAgreementForm = () => {
                   label="Vehicle identifier (Stock #)"
                   slotProps={{
                     input: {
-                      endAdornment: (
-                        <Button
-                          type="button"
-                          size="small"
-                          variant="text"
-                          onClick={() => setVehicleSelectionOpen(true)}
-                        >
-                          Select
-                        </Button>
-                      ),
+                      endAdornment: VehicleSelectAdornment,
                     },
                   }}
                 />
@@ -199,6 +237,11 @@ export const RentalAgreementForm = () => {
                     <NumberInput
                       name="rental_agreement_info.odometer_in"
                       label="Odometer at return"
+                      slotProps={{
+                        input: {
+                          endAdornment: CalculateAdornment,
+                        },
+                      }}
                     />
                   </FieldCell>
                 </FieldRow>
