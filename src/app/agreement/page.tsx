@@ -23,6 +23,7 @@ const Page = () => {
 
   const methods = useForm<FormSchema>({
     resolver: zodResolver(FORM_SCHEMA),
+    defaultValues: DEFAULT_FORM,
   });
 
   const renderPDF = async (record: AgreementRecord) => {
