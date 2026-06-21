@@ -115,29 +115,52 @@ const RENTAL_RATE_SCHEMA = z.object({
   rate_note: z.string().max(25).optional(),
 });
 
-const RENTAL_VEHICLE_SCHEMA = z.object({
-  identifier: z
-    .string()
-    .min(1, "Vehicle identifier is required")
-    .max(50, "Maximum of 50 characters allowed"),
-  VIN: z.string().min(1, "Vehicle VIN is required").max(17, "Maximum of 17 characters allowed"),
-  license_plate: z
-    .string()
-    .min(1, "Vehicle license plate is required")
-    .max(15, "Maximum of 15 characters allowed"),
-  year: z
-    .number()
-    .int()
-    .min(1900, "Vehicle year must be a valid year")
-    .max(new Date().getFullYear() + 1, "Vehicle year cannot be in the future"),
-  make: z.string().min(1, "Vehicle make is required").max(50, "Maximum of 50 characters allowed"),
-  model: z.string().min(1, "Vehicle model is required").max(50, "Maximum of 50 characters allowed"),
-  color: z.string().min(1, "Vehicle color is required").max(50, "Maximum of 50 characters allowed"),
-  rental_rates: z
-    .array(RENTAL_RATE_SCHEMA)
-    .max(MAX_RENTAL_RATES, `Maximum of ${MAX_RENTAL_RATES} rental rates allowed`)
-    .optional(), // TODO: Prevent duplicate units
-});
+const RENTAL_VEHICLE_SCHEMA = z
+  .object({
+    identifier: z
+      .string()
+      .min(1, "Vehicle identifier is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    VIN: z.string().min(1, "Vehicle VIN is required").max(17, "Maximum of 17 characters allowed"),
+    license_plate: z
+      .string()
+      .min(1, "Vehicle license plate is required")
+      .max(15, "Maximum of 15 characters allowed"),
+    year: z
+      .number()
+      .int()
+      .min(1900, "Vehicle year must be a valid year")
+      .max(new Date().getFullYear() + 1, "Vehicle year cannot be in the future"),
+    make: z.string().min(1, "Vehicle make is required").max(50, "Maximum of 50 characters allowed"),
+    model: z
+      .string()
+      .min(1, "Vehicle model is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    color: z
+      .string()
+      .min(1, "Vehicle color is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    rental_rates: z
+      .array(RENTAL_RATE_SCHEMA)
+      .max(MAX_RENTAL_RATES, `Maximum of ${MAX_RENTAL_RATES} rental rates allowed`)
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.rental_rates) {
+      const uniqueRates = new Set<string>();
+      data.rental_rates.forEach(({ rate_unit }, index) => {
+        if (uniqueRates.has(rate_unit)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["rental_rates", index, "rate_unit"],
+            message: "Duplicate rate units are not allowed",
+          });
+        } else {
+          uniqueRates.add(rate_unit);
+        }
+      });
+    }
+  });
 
 const RENTAL_AGREEMENT_INFO_SCHEMA = z
   .object({
