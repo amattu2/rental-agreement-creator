@@ -48,10 +48,8 @@ const SelectedVehicleSnapshot = () => {
 
 const renderDialog = ({
   databaseApi,
-  initiallyOpen = true,
 }: {
   databaseApi: DatabaseApi;
-  initiallyOpen?: boolean;
 }) => {
   const Wrapper = () => {
     const methods = useForm<FormSchema>({ defaultValues: DEFAULT_FORM });
@@ -59,7 +57,7 @@ const renderDialog = ({
     return (
       <DatabaseApiContext.Provider value={databaseApi}>
         <FormProvider {...methods}>
-          <VehicleSelectionDialog open={initiallyOpen} onClose={vi.fn()} />
+          <VehicleSelectionDialog onClose={vi.fn()} />
           <SelectedVehicleSnapshot />
         </FormProvider>
       </DatabaseApiContext.Provider>

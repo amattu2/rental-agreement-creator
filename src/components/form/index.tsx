@@ -746,10 +746,9 @@ export const RentalAgreementForm = () => {
           </DialogActions>
         </Dialog>
 
-        <VehicleSelectionDialog
-          open={vehicleSelectionOpen}
-          onClose={() => setVehicleSelectionOpen(false)}
-        />
+        {vehicleSelectionOpen && (
+          <VehicleSelectionDialog onClose={() => setVehicleSelectionOpen(false)} />
+        )}
 
         {isChargeDialogOpen && (
           <ChargeConfirmationDialog
