@@ -12,6 +12,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import z from "zod";
+import { BillingStateProvider } from "@/components/BillingContext";
 
 const Page = () => {
   const router = useRouter();
@@ -93,9 +94,11 @@ const Page = () => {
     <Grid container>
       <Grid size={{ lg: 6, xs: 12 }}>
         <FormProvider {...methods}>
-          <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} sx={{ p: 3 }}>
-            <RentalAgreementForm />
-          </Box>
+          <BillingStateProvider>
+            <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} sx={{ p: 3 }}>
+              <RentalAgreementForm />
+            </Box>
+          </BillingStateProvider>
         </FormProvider>
       </Grid>
       <Grid size={{ lg: 6, xs: 12 }}>

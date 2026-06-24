@@ -11,11 +11,13 @@ import {
   sanitizeTermsText,
 } from "./pdfTerms";
 import {
+  CATEGORY_NAMES,
   DISTANCE_MEASUREMENT_OPTIONS,
   FUEL_LEVEL_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
 import QRCode from "qrcode";
+import { groupByCategory } from "./billing";
 
 jsPDF.API.getLineHeightMm = function (this: jsPDF): number {
   return (this.getFontSize() * this.getLineHeightFactor()) / this.internal.scaleFactor;
@@ -944,86 +946,49 @@ export const generatePDF = async (
   doc.setFontSize(8);
   doc.setTextColor(59, 59, 59);
 
-  currentY += 7.8;
-  form.rental_vehicle.rental_rates?.forEach(({ rate_unit, rate_cost, rate_note }) => {
-    doc.text(rate_unit.toUpperCase(), dividerX + 2, currentY + 3.8);
-    doc.text(`@`, dividerX + 18, currentY + 3.8);
-    doc.buildTextField(
-      `${rate_unit.toUpperCase()}_RATE_COST`,
-      dividerX + 20,
-      currentY + 1.2,
-      15,
-      4,
-      formatCurrency(rate_cost, form.currency)
-    );
-
-    if (rate_note) {
-      doc.text(rate_note, dividerX + 40, currentY + 3.8);
-    }
-
-    doc.buildTextField(
-      `${rate_unit.toUpperCase()}_RATE_TOTAL`,
-      dividerX + 60,
-      currentY + 1.2,
-      25,
-      4,
-      "" // TODO: Calculate this field based on rate_cost * duration
-    );
-
+  currentY += 7.9;
+  const categorizedItems = groupByCategory(form?.agreement_charges?.line_items);
+  Object.entries(categorizedItems).forEach(([category, items]) => {
+    doc.setFillColor("#DBD7D2");
+    doc.rect(dividerX + 0.3, currentY + 0.1, 59.6, 5, "F");
+    doc.setFont("Cousine", "normal", 700);
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    doc.text(CATEGORY_NAMES[category]?.toUpperCase() ?? category, dividerX + 2, currentY + 3.5);
     doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+
+    doc.setFont("Cousine", "normal", 400);
+    doc.setFontSize(8);
+    doc.setTextColor(59, 59, 59);
     currentY += 5;
+    items.forEach(({ label, rate, note, total }, index) => {
+      doc.text(label, dividerX + 2, currentY + 3.8);
+      doc.text(`@`, dividerX + 18, currentY + 3.8);
+      doc.buildTextField(
+        `${category}_${index}_RATE`,
+        dividerX + 20,
+        currentY + 1.2,
+        15,
+        4,
+        formatCurrency(rate, form.currency)
+      );
+
+      if (note) {
+        doc.text(note, dividerX + 40, currentY + 3.8);
+      }
+
+      doc.buildTextField(
+        `${category}_${index}_TOTAL`,
+        dividerX + 60,
+        currentY + 1.2,
+        25,
+        4,
+        formatCurrency(total, form.currency)
+      );
+      doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+      currentY += 5;
+    });
   });
-
-  doc.setFillColor("#DBD7D2");
-  doc.rect(dividerX + 0.3, currentY + 0.1, 59.6, 5, "F");
-  doc.setFont("Cousine", "normal", 700);
-  doc.setFontSize(8);
-  doc.setTextColor(0, 0, 0);
-  doc.text("RENTAL CHARGES", dividerX + 2, currentY + 3.5);
-  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
-
-  doc.setFont("Cousine", "normal", 400);
-  doc.setFontSize(8);
-  doc.setTextColor(59, 59, 59);
-  currentY += 5;
-  if (form.vehicle_damage_waiver) {
-    doc.text("VDW", dividerX + 2, currentY + 3.8);
-    doc.buildTextField(
-      "VDW_TOTAL",
-      dividerX + 60,
-      currentY + 1.2,
-      25,
-      4,
-      "" // TODO: Compute vehicle damage waiver total based on rate_per_day * rental duration or rate_per_week * rental duration
-    );
-    doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
-    currentY += 5;
-  }
-
-  if (form.personal_accident_insurance) {
-    doc.text("PAI", dividerX + 2, currentY + 3.8);
-    doc.text(`@`, dividerX + 18, currentY + 3.8);
-    doc.buildTextField(
-      "PAI_RATE_COST",
-      dividerX + 20,
-      currentY + 1.2,
-      15,
-      4,
-      formatCurrency(form.personal_accident_insurance.rate_per_day, form.currency)
-    );
-    doc.text("PER DAY", dividerX + 40, currentY + 3.8);
-
-    doc.buildTextField(
-      "PAI_TOTAL",
-      dividerX + 60,
-      currentY + 1.2,
-      25,
-      4,
-      "" // TODO: Compute personal accident insurance total based on rate_per_day * rental duration or rate_per_week * rental duration
-    );
-    doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
-    currentY += 5;
-  }
 
   doc.setFillColor("#DBD7D2");
   doc.rect(dividerX + 0.3, currentY + 0.1, 59.6, 5, "F");
@@ -1045,7 +1010,7 @@ export const generatePDF = async (
     currentY + 1.2,
     25,
     4,
-    "" // TODO: Compute subtotal based on all charges
+    formatCurrency(form.agreement_charges?.subtotal, form.currency)
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
@@ -1057,7 +1022,7 @@ export const generatePDF = async (
     currentY + 1.2,
     25,
     4,
-    "" // TODO: Compute deposit credit based on deposit amount
+    formatCurrency(form.agreement_charges?.deposit_amount * -1, form.currency)
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
@@ -1069,7 +1034,7 @@ export const generatePDF = async (
     currentY + 1.2,
     25,
     4,
-    "" // TODO: Compute sales tax based on subtotal
+    formatCurrency(form.agreement_charges?.sales_tax_amount, form.currency)
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
@@ -1083,7 +1048,7 @@ export const generatePDF = async (
     currentY + 1.2,
     25,
     4,
-    "" // TODO: Compute total due based on subtotal + sales tax
+    formatCurrency(form.agreement_charges?.total_due, form.currency)
   );
 
   doc.setLineWidth(0.4);
