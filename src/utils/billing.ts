@@ -131,7 +131,7 @@ export const buildAgreementCharges = (
 
   const subtotal = roundCurrency(line_items.reduce((sum, item) => sum + item.total, 0));
   const sales_tax_rate = coerceQuantity(
-    overrides.salesTaxRate ?? form.agreement_charges.sales_tax_rate
+    overrides.salesTaxRate ?? form.agreement_charges?.sales_tax_rate ?? 0
   );
   const deposit_amount = coerceQuantity(
     overrides.depositAmount ?? form.agreement_charges.deposit_amount
