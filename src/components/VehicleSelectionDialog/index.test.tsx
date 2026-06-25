@@ -46,11 +46,7 @@ const SelectedVehicleSnapshot = () => {
   );
 };
 
-const renderDialog = ({
-  databaseApi,
-}: {
-  databaseApi: DatabaseApi;
-}) => {
+const renderDialog = ({ databaseApi }: { databaseApi: DatabaseApi }) => {
   const Wrapper = () => {
     const methods = useForm<FormSchema>({ defaultValues: DEFAULT_FORM });
 
