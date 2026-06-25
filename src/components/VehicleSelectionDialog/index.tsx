@@ -22,7 +22,6 @@ import { useDatabaseApi } from "@/database/provider";
 import type { FormSchema, VehicleSchema } from "@/schemas/form";
 
 type VehicleSelectionDialogProps = {
-  open: boolean;
   onClose: () => void;
 };
 
@@ -30,31 +29,13 @@ const getVehicleDisplayName = (vehicle: VehicleSchema) => {
   return `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim();
 };
 
-export const VehicleSelectionDialog = ({ open, onClose }: VehicleSelectionDialogProps) => {
+export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps) => {
   const databaseApi = useDatabaseApi();
   const { setValue } = useFormContext<FormSchema>();
 
   const [vehicles, setVehicles] = useState<VehicleRecord[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isLoading = vehicles === null && errorMessage === null;
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    databaseApi
-      .getAllVehicles()
-      .then((records) => {
-        setVehicles(records.sort((a, b) => b.vehicle.year - a.vehicle.year));
-        setErrorMessage(null);
-      })
-      .catch((error) => {
-        console.error("Failed to load vehicles", error);
-        setErrorMessage("Unable to load vehicle list.");
-        setVehicles([]);
-      });
-  }, [databaseApi, open]);
 
   const handleSelectVehicle = (vehicle: VehicleSchema) => {
     setValue(
@@ -73,8 +54,22 @@ export const VehicleSelectionDialog = ({ open, onClose }: VehicleSelectionDialog
     onClose();
   };
 
+  useEffect(() => {
+    databaseApi
+      .getAllVehicles()
+      .then((records) => {
+        setVehicles(records.sort((a, b) => b.vehicle.year - a.vehicle.year));
+        setErrorMessage(null);
+      })
+      .catch((error) => {
+        console.error("Failed to load vehicles", error);
+        setErrorMessage("Unable to load vehicle list.");
+        setVehicles([]);
+      });
+  }, [databaseApi]);
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog onClose={onClose} maxWidth="md" open fullWidth>
       <DialogTitle>Select Vehicle</DialogTitle>
       <DialogContent>
         {isLoading && (

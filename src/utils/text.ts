@@ -68,6 +68,7 @@ export const formatCurrency = (value: number | undefined, currency = "USD"): str
   const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
+    currencySign: "accounting",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

@@ -24,6 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CalculateIcon from "@mui/icons-material/Calculate";
 import SearchIcon from "@mui/icons-material/Search";
 import { FormSchema } from "@/schemas/form";
+import { ChargeConfirmationDialog } from "../ChargeConfirmationDialog";
 import { CheckboxInput } from "../CheckboxInput";
 import { DateInput } from "../DateInput";
 import { DateTimeInput } from "../DateTimeInput";
@@ -44,6 +45,7 @@ import {
   MAX_RENTAL_RATES,
   RATE_UNIT_OPTIONS,
 } from "@/config/constants";
+import { useBillingState } from "../BillingContext";
 
 const StyledIconButton = styled(IconButton)({
   marginRight: "-5px",
@@ -57,8 +59,11 @@ export const RentalAgreementForm = () => {
     setValue,
     watch,
   } = useFormContext<FormSchema>();
+  const { status: billingStatus, description: billingDescription } = useBillingState();
+
   const [isResetDialogOpen, setIsResetDialogOpen] = useState<boolean>(false);
   const [vehicleSelectionOpen, setVehicleSelectionOpen] = useState<boolean>(false);
+  const [isChargeDialogOpen, setIsChargeDialogOpen] = useState<boolean>(false);
 
   const {
     fields: additionalDriverFields,
@@ -686,9 +691,33 @@ export const RentalAgreementForm = () => {
         <Divider sx={{ my: 3 }} />
 
         <Stack spacing={1}>
-          <Button type="submit" variant="contained" loading={isSubmitting} fullWidth>
+          <Button
+            type="submit"
+            variant="contained"
+            loading={isSubmitting}
+            disabled={isSubmitting || billingStatus !== "confirmed"}
+            fullWidth
+          >
             Generate Agreement
           </Button>
+          <Button
+            type="button"
+            variant="outlined"
+            fullWidth
+            onClick={() => setIsChargeDialogOpen(true)}
+            disabled={isSubmitting}
+          >
+            Edit Charges
+          </Button>
+          {billingStatus !== "confirmed" && (
+            <Typography
+              variant="caption"
+              color={billingStatus === "stale" ? "warning.main" : "text.secondary"}
+              textAlign="center"
+            >
+              {billingDescription}
+            </Typography>
+          )}
           <Button
             type="button"
             variant="text"
@@ -717,10 +746,16 @@ export const RentalAgreementForm = () => {
           </DialogActions>
         </Dialog>
 
-        <VehicleSelectionDialog
-          open={vehicleSelectionOpen}
-          onClose={() => setVehicleSelectionOpen(false)}
-        />
+        {vehicleSelectionOpen && (
+          <VehicleSelectionDialog onClose={() => setVehicleSelectionOpen(false)} />
+        )}
+
+        {isChargeDialogOpen && (
+          <ChargeConfirmationDialog
+            onClose={() => setIsChargeDialogOpen(false)}
+            onConfirm={() => setIsChargeDialogOpen(false)}
+          />
+        )}
       </Box>
     </LocalizationProvider>
   );

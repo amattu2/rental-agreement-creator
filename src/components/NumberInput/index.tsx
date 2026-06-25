@@ -21,12 +21,18 @@ export const NumberInput = ({
           {...field}
           value={field.value ?? ""}
           onChange={(event) => {
-            const nextValue = event.target.value === "" ? undefined : Number(event.target.value);
-            field.onChange(Number.isNaN(nextValue) ? undefined : nextValue);
+            field.onChange(event.target.value === "" ? "" : Number(event.target.value));
           }}
           label={label}
           type="number"
-          slotProps={{ htmlInput: { step: 1, min: 0 } }}
+          slotProps={{
+            ...rest.slotProps,
+            htmlInput: {
+              step: 1,
+              min: 0,
+              ...(rest.slotProps?.htmlInput ?? {}),
+            },
+          }}
           fullWidth
           size="small"
           error={!!error}

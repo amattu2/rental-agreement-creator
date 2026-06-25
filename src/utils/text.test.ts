@@ -38,7 +38,7 @@ describe("formatCurrency", () => {
   });
 
   it("formats negative numbers", () => {
-    expect(formatCurrency(-98.1)).toBe("-$98.10");
+    expect(formatCurrency(-98.1)).toBe("($98.10)");
   });
 
   it("returns formatted zero when value is undefined", () => {

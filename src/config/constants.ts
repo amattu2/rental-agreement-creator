@@ -17,13 +17,21 @@ export const MAX_ADDITIONAL_DRIVERS = 2;
 export const MAX_RENTAL_RATES = 4;
 
 /**
+ * A user-friendly mapping of internal category identifiers to readable names.
+ */
+export const CATEGORY_NAMES: Record<string, string> = {
+  rental_rates: "Rental Rates",
+  vehicle_protection: "Vehicle Protection",
+};
+
+/**
  * Constant representing the rate unit options for rental rates.
  */
 export const RATE_UNIT_OPTIONS = [
   { label: "Hours", value: "hours", note: "PER HOUR" },
   { label: "Days", value: "days" },
   { label: "Weeks", value: "weeks" },
-  { label: "Miles", value: "miles", note: "PER MILE" },
+  { label: "Distance", value: "distance", note: "PER MILE" }, // TODO: Use specific distance measurement
 ];
 
 /**
@@ -99,6 +107,15 @@ export const DEFAULT_FORM: FormSchema = {
     max_payload_measurement: "LB",
     fuel_level_in: "F",
     fuel_level_out: "F",
+  },
+  agreement_charges: {
+    line_items: [],
+    sales_tax_rate: 0,
+    deposit_amount: 0,
+    subtotal: 0,
+    sales_tax_amount: 0,
+    total_due: 0,
+    source_signature: "",
   },
   currency: "USD",
   clerk_signature: "",

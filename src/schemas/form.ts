@@ -6,6 +6,7 @@ import {
   PAYLOAD_MEASUREMENT_OPTIONS,
   RATE_UNIT_OPTIONS,
 } from "@/config/constants";
+import { computeBillingSignature } from "@/utils/billing";
 import dayjs from "dayjs";
 import z from "zod";
 
@@ -111,33 +112,56 @@ const RENTAL_RATE_SCHEMA = z.object({
     RATE_UNIT_OPTIONS.map((option) => option.value),
     `Rate unit must be one of ${RATE_UNIT_OPTIONS.map((option) => option.value).join(", ")}`
   ),
-  rate_cost: z.number().min(1, "Rate cost must be a positive number"),
+  rate_cost: z.number().min(0.01, "Rate cost must be a positive number"),
   rate_note: z.string().max(25).optional(),
 });
 
-const RENTAL_VEHICLE_SCHEMA = z.object({
-  identifier: z
-    .string()
-    .min(1, "Vehicle identifier is required")
-    .max(50, "Maximum of 50 characters allowed"),
-  VIN: z.string().min(1, "Vehicle VIN is required").max(17, "Maximum of 17 characters allowed"),
-  license_plate: z
-    .string()
-    .min(1, "Vehicle license plate is required")
-    .max(15, "Maximum of 15 characters allowed"),
-  year: z
-    .number()
-    .int()
-    .min(1900, "Vehicle year must be a valid year")
-    .max(new Date().getFullYear() + 1, "Vehicle year cannot be in the future"),
-  make: z.string().min(1, "Vehicle make is required").max(50, "Maximum of 50 characters allowed"),
-  model: z.string().min(1, "Vehicle model is required").max(50, "Maximum of 50 characters allowed"),
-  color: z.string().min(1, "Vehicle color is required").max(50, "Maximum of 50 characters allowed"),
-  rental_rates: z
-    .array(RENTAL_RATE_SCHEMA)
-    .max(MAX_RENTAL_RATES, `Maximum of ${MAX_RENTAL_RATES} rental rates allowed`)
-    .optional(), // TODO: Prevent duplicate units
-});
+const RENTAL_VEHICLE_SCHEMA = z
+  .object({
+    identifier: z
+      .string()
+      .min(1, "Vehicle identifier is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    VIN: z.string().min(1, "Vehicle VIN is required").max(17, "Maximum of 17 characters allowed"),
+    license_plate: z
+      .string()
+      .min(1, "Vehicle license plate is required")
+      .max(15, "Maximum of 15 characters allowed"),
+    year: z
+      .number()
+      .int()
+      .min(1900, "Vehicle year must be a valid year")
+      .max(new Date().getFullYear() + 1, "Vehicle year cannot be in the future"),
+    make: z.string().min(1, "Vehicle make is required").max(50, "Maximum of 50 characters allowed"),
+    model: z
+      .string()
+      .min(1, "Vehicle model is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    color: z
+      .string()
+      .min(1, "Vehicle color is required")
+      .max(50, "Maximum of 50 characters allowed"),
+    rental_rates: z
+      .array(RENTAL_RATE_SCHEMA)
+      .max(MAX_RENTAL_RATES, `Maximum of ${MAX_RENTAL_RATES} rental rates allowed`)
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.rental_rates) {
+      const uniqueRates = new Set<string>();
+      data.rental_rates.forEach(({ rate_unit }, index) => {
+        if (uniqueRates.has(rate_unit)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["rental_rates", index, "rate_unit"],
+            message: "Duplicate rate units are not allowed",
+          });
+        } else {
+          uniqueRates.add(rate_unit);
+        }
+      });
+    }
+  });
 
 const RENTAL_AGREEMENT_INFO_SCHEMA = z
   .object({
@@ -211,8 +235,28 @@ export const AGREEMENT_TERMS_SCHEMA = z.object({
         });
       }
     })
-
     .array(),
+});
+
+const AGREEMENT_CHARGE_ITEM = z.object({
+  code: z.string().min(1, "Code is required"),
+  label: z.string().min(1, "Label is required"),
+  category: z.enum(["rental_rates", "vehicle_protection"]),
+  rate: z.number().min(0, "Rate must be a non-negative number"),
+  quantity: z.number().min(0, "Quantity must be a non-negative number"),
+  total: z.number().min(0, "Total must be a non-negative number"),
+  note: z.string().optional(),
+});
+
+export const AGREEMENT_CHARGES_SCHEMA = z.object({
+  line_items: z.array(AGREEMENT_CHARGE_ITEM),
+  sales_tax_rate: z.number().min(0, "Sales tax rate must be a non-negative number"),
+  deposit_amount: z.number().min(0, "Deposit amount must be a non-negative number"),
+  subtotal: z.number().min(0, "Subtotal must be a non-negative number"),
+  sales_tax_amount: z.number().min(0, "Sales tax amount must be a non-negative number"),
+  total_due: z.number(),
+  source_signature: z.string(),
+  calculated_at: z.date().optional(),
 });
 
 export const FORM_SCHEMA = z
@@ -236,11 +280,26 @@ export const FORM_SCHEMA = z
     personal_accident_insurance: PERSONAL_ACCIDENT_INSURANCE_SCHEMA.optional(),
     rental_vehicle: RENTAL_VEHICLE_SCHEMA,
     rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,
+    agreement_charges: AGREEMENT_CHARGES_SCHEMA,
     currency: z.literal("USD"),
     clerk_signature: z.union([z.literal(""), z.string().startsWith("data:image/png")]).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      !data.agreement_charges.source_signature ||
+      data.agreement_charges.source_signature !== computeBillingSignature(data)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["agreement_charges"],
+        message: "Charges must be confirmed before the agreement can be saved.",
+      });
+    }
   })
   .strict();
 
 export type VehicleSchema = z.infer<typeof RENTAL_VEHICLE_SCHEMA>;
 export type FormSchema = z.infer<typeof FORM_SCHEMA>;
 export type AgreementTermsSchema = z.infer<typeof AGREEMENT_TERMS_SCHEMA>;
+export type AgreementChargeItemSchema = z.infer<typeof AGREEMENT_CHARGE_ITEM>;
+export type AgreementChargesSchema = z.infer<typeof AGREEMENT_CHARGES_SCHEMA>;

@@ -4,6 +4,7 @@ import { RentalAgreementForm } from "./index";
 import type { FormSchema } from "@/schemas/form";
 import { DEFAULT_FORM } from "@/config/constants";
 import { DatabaseApiContext } from "@/database/provider";
+import { BillingStateCtx } from "../BillingContext";
 
 vi.mock("@mui/x-date-pickers/DatePicker", () => ({
   DatePicker: ({ label }: { label: string }) => (
@@ -34,9 +35,11 @@ const renderForm = () => {
     return (
       <DatabaseApiContext.Provider value={databaseApi}>
         <FormProvider {...methods}>
-          <form>
-            <RentalAgreementForm />
-          </form>
+          <BillingStateCtx.Provider value={{ status: "confirmed", description: "" }}>
+            <form>
+              <RentalAgreementForm />
+            </form>
+          </BillingStateCtx.Provider>
         </FormProvider>
       </DatabaseApiContext.Provider>
     );
