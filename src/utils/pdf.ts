@@ -1022,7 +1022,7 @@ export const generatePDF = async (
     currentY + 1.2,
     25,
     4,
-    formatCurrency(form.agreement_charges?.deposit_amount * -1, form.currency)
+    formatCurrency(-form.agreement_charges?.deposit_amount, form.currency)
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
