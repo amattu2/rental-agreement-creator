@@ -134,7 +134,7 @@ export const buildAgreementCharges = (
     overrides.salesTaxRate ?? form.agreement_charges?.sales_tax_rate ?? 0
   );
   const deposit_amount = coerceQuantity(
-    overrides.depositAmount ?? form.agreement_charges.deposit_amount
+    overrides.depositAmount ?? form.agreement_charges?.deposit_amount ?? 0
   );
   const sales_tax_amount = roundCurrency(subtotal * (sales_tax_rate / 100));
   const total_due = roundCurrency(subtotal + sales_tax_amount - deposit_amount);
