@@ -12,7 +12,11 @@ export const CheckboxInput = ({ name, label }: { name: Path<FormSchema>; label: 
       render={({ field }) => (
         <FormControlLabel
           control={
-            <Checkbox checked={!!field.value} onChange={(_, checked) => field.onChange(checked)} />
+            <Checkbox
+              checked={!!field.value}
+              onChange={(_, checked) => field.onChange(checked)}
+              disabled={field.disabled}
+            />
           }
           label={label}
         />
