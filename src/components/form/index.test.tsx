@@ -125,6 +125,7 @@ describe("RentalAgreementForm", () => {
       getVehicle: vi.fn(),
       getAllVehicles: vi.fn().mockResolvedValue([
         createVehicleRecord({
+          identifier: "STK-2",
           vehicle: {
             identifier: "STK-2",
             VIN: "1FTBW2CM5MKA00002",
