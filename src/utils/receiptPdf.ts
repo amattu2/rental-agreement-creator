@@ -162,24 +162,38 @@ export const generateReceiptPDF = async (
   doc.setFontSize(7);
   doc.setFont("Helvetica", "normal");
   doc.text("Subtotal:", margin, currentY);
-  doc.text(formatCurrency(charges.subtotal), pageWidth - margin, currentY, { align: "right" });
+  doc.text(formatCurrency(charges.subtotal, agreement.currency), pageWidth - margin, currentY, {
+    align: "right",
+  });
   currentY += 3;
 
   doc.text(`Tax (${formatNumber(charges.sales_tax_rate)}%):`, margin, currentY);
-  doc.text(formatCurrency(charges.sales_tax_amount), pageWidth - margin, currentY, {
-    align: "right",
-  });
+  doc.text(
+    formatCurrency(charges.sales_tax_amount, agreement.currency),
+    pageWidth - margin,
+    currentY,
+    {
+      align: "right",
+    }
+  );
   currentY += 3;
 
   doc.text("Deposit:", margin, currentY);
-  doc.text(formatCurrency(-charges.deposit_amount), pageWidth - margin, currentY, {
-    align: "right",
-  });
+  doc.text(
+    formatCurrency(-charges.deposit_amount, agreement.currency),
+    pageWidth - margin,
+    currentY,
+    {
+      align: "right",
+    }
+  );
   currentY += 3;
 
   doc.setFont("Helvetica", "bold");
   doc.text("Total Due:", margin, currentY);
-  doc.text(formatCurrency(charges.total_due), pageWidth - margin, currentY, { align: "right" });
+  doc.text(formatCurrency(charges.total_due, agreement.currency), pageWidth - margin, currentY, {
+    align: "right",
+  });
 
   doc.setFontSize(6);
   doc.setFont("Helvetica", "normal");
