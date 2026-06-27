@@ -68,4 +68,3 @@ Open <http://localhost:3000> to view the app.
 <img width="791" height="1024" alt="agreement-pdf" src="https://github.com/user-attachments/assets/29db67c2-d892-4bb4-8596-2ded92f4bd41" />
 
 <img width="687" height="1024" alt="agreement-receipt-pdf" src="https://github.com/user-attachments/assets/3166f126-6a15-4674-9852-786df48b14bf" />
-
