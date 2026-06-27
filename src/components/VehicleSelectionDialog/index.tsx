@@ -42,7 +42,7 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
       "rental_vehicle",
       {
         ...vehicle,
-        rental_rates: [],
+        rental_rates: vehicle.rental_rates ?? [],
       },
       {
         shouldDirty: true,

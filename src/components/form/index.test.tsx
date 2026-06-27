@@ -192,9 +192,7 @@ describe("RentalAgreementForm", () => {
           ...DEFAULT_FORM,
           rental_vehicle: {
             ...DEFAULT_FORM.rental_vehicle,
-            rental_rates: [
-              { rate_unit: "days", rate_cost: 50, rate_note: "PER DAY" },
-            ],
+            rental_rates: [{ rate_unit: "days", rate_cost: 50, rate_note: "PER DAY" }],
           },
         },
       });
