@@ -5,6 +5,7 @@ import {
   INDEXED_DB_VEHICLE_STORE,
   INDEXED_DB_VERSION,
 } from "@/config/constants";
+import { FinalizationSchema } from "@/schemas/finalization";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -69,6 +70,7 @@ const createAgreement = async (input: AgreementData): Promise<AgreementRecord> =
   const record: AgreementRecord = {
     uuid: identifier,
     agreement: input,
+    status: "active",
     createdAt: now,
     updatedAt: now,
   };
@@ -92,6 +94,7 @@ const updateAgreement = async (uuid: string, input: AgreementData): Promise<Agre
   const record: AgreementRecord = {
     ...existing,
     agreement: input,
+    status: "active",
     updatedAt: new Date().toISOString(),
   };
 
@@ -162,6 +165,32 @@ const getAllVehicles = async (): Promise<VehicleRecord[]> => {
   return result;
 };
 
+const finalizeAgreement = async (
+  uuid: string,
+  finalizationDetails: FinalizationSchema
+): Promise<AgreementRecord> => {
+  const db = await openDatabase();
+  const transaction = db.transaction(INDEXED_DB_AGREEMENT_STORE, "readwrite");
+  const store = transaction.objectStore(INDEXED_DB_AGREEMENT_STORE);
+
+  const existing = await requestToPromise<AgreementRecord | undefined>(store.get(uuid));
+  if (!existing) {
+    throw new Error(`Agreement with identifier '${uuid}' was not found`);
+  }
+
+  const record: AgreementRecord = {
+    ...existing,
+    status: "archived",
+    finalization: finalizationDetails,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await requestToPromise(store.put(record));
+  await transactionDone(transaction);
+
+  return record;
+};
+
 export class IndexedDbDatabaseApi implements DatabaseApi {
   createAgreement(input: AgreementData): Promise<AgreementRecord> {
     return createAgreement(input);
@@ -177,6 +206,13 @@ export class IndexedDbDatabaseApi implements DatabaseApi {
 
   getAllAgreements(): Promise<AgreementRecord[]> {
     return getAllAgreements();
+  }
+
+  finalizeAgreement(
+    uuid: string,
+    finalizationDetails: FinalizationSchema
+  ): Promise<AgreementRecord> {
+    return finalizeAgreement(uuid, finalizationDetails);
   }
 
   upsertVehicle(input: VehicleData): Promise<VehicleRecord> {

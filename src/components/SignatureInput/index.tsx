@@ -164,6 +164,10 @@ export const SignatureInput = ({ name, label, helperText }: SignatureInputProps)
       return;
     }
 
+    if (field.disabled) {
+      return;
+    }
+
     canvas.addEventListener("pointerdown", startDrawing);
     canvas.addEventListener("pointermove", draw);
     canvas.addEventListener("pointerup", stopDrawing);
@@ -177,7 +181,7 @@ export const SignatureInput = ({ name, label, helperText }: SignatureInputProps)
       canvas.removeEventListener("pointerleave", stopDrawing);
       canvas.removeEventListener("pointercancel", stopDrawing);
     };
-  }, [draw, startDrawing, stopDrawing]);
+  }, [field.disabled, draw, startDrawing, stopDrawing]);
 
   return (
     <Stack spacing={1}>
@@ -198,6 +202,7 @@ export const SignatureInput = ({ name, label, helperText }: SignatureInputProps)
             clearCanvas();
             field.onChange("");
           }}
+          disabled={field.disabled}
         >
           Clear
         </Button>

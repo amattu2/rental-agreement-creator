@@ -10,9 +10,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Grid } from "@mui/material";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 import z from "zod";
 import { BillingStateProvider } from "@/components/BillingContext";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 const Page = () => {
   const router = useRouter();
@@ -20,15 +22,17 @@ const Page = () => {
   const databaseApi = useDatabaseApi();
 
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [isArchived, setIsArchived] = useState<boolean>(false);
   const agreementUuid = useMemo<string | null>(() => searchParams.get("uuid"), [searchParams]);
 
   const methods = useForm<FormSchema>({
     resolver: zodResolver(FORM_SCHEMA),
     defaultValues: DEFAULT_FORM,
+    disabled: isArchived,
   });
 
   const renderPDF = async (record: AgreementRecord) => {
-    const { generatePDF } = await import("@/utils/pdf");
+    const { generateAgreement } = await import("@/pdfs/agreement");
 
     const envData = z.parse(ENV_SCHEMA, {
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
@@ -39,10 +43,10 @@ const Page = () => {
       NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
     });
 
-    setObjectUrl(URL.createObjectURL(await generatePDF(envData, record)));
+    setObjectUrl(URL.createObjectURL(await generateAgreement(envData, record)));
   };
 
-  const onSubmit = async (data: FormSchema) => {
+  const onSubmit: SubmitHandler<FormSchema> = async (data: FormSchema) => {
     try {
       await databaseApi.upsertVehicle(data.rental_vehicle);
 
@@ -77,6 +81,7 @@ const Page = () => {
         .getAgreement(agreementUuid)
         .then((record) => {
           if (record) {
+            setIsArchived(record.status === "archived");
             methods.reset(record.agreement);
             renderPDF(record);
           }
@@ -86,6 +91,7 @@ const Page = () => {
         });
     } else {
       methods.reset(DEFAULT_FORM);
+      setIsArchived(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -93,13 +99,15 @@ const Page = () => {
   return (
     <Grid container>
       <Grid size={{ lg: 6, xs: 12 }}>
-        <FormProvider {...methods}>
-          <BillingStateProvider>
-            <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} sx={{ p: 3 }}>
-              <RentalAgreementForm />
-            </Box>
-          </BillingStateProvider>
-        </FormProvider>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <FormProvider {...methods}>
+            <BillingStateProvider>
+              <Box component="form" onSubmit={methods.handleSubmit(onSubmit)} sx={{ p: 3 }}>
+                <RentalAgreementForm />
+              </Box>
+            </BillingStateProvider>
+          </FormProvider>
+        </LocalizationProvider>
       </Grid>
       <Grid size={{ lg: 6, xs: 12 }}>
         <IframeWrapper src={objectUrl} />

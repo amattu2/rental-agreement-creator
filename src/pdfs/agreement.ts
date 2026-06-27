@@ -1,15 +1,15 @@
 import { AgreementTermsSchema } from "@/schemas/form";
 import jsPDF, { AcroFormTextField, AcroFormComboBox } from "jspdf";
-import { loadFont } from "./fonts";
+import { loadFont } from "@/utils/fonts";
 import { PDF_FONTS } from "@/config/fonts";
 import { EnvSchema } from "@/schemas/env";
-import { formatCurrency, formatDate, coerceNumber, formatNumber } from "./text";
+import { formatCurrency, formatDate, coerceNumber, formatNumber } from "../utils/text";
 import {
   createTermsLayoutFlow,
   drawTermsListItem,
   getSubConditionPrefix,
   sanitizeTermsText,
-} from "./pdfTerms";
+} from "@/utils/pdfTerms";
 import {
   CATEGORY_NAMES,
   DISTANCE_MEASUREMENT_OPTIONS,
@@ -17,7 +17,7 @@ import {
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
 import QRCode from "qrcode";
-import { groupByCategory } from "./billing";
+import { groupByCategory } from "@/utils/billing";
 
 jsPDF.API.getLineHeightMm = function (this: jsPDF): number {
   return (this.getFontSize() * this.getLineHeightFactor()) / this.internal.scaleFactor;
@@ -260,7 +260,7 @@ jsPDF.API.drawSignatureImage = function (
  * @param record - The agreement record used to generate the rental agreement PDF
  * @returns A Blob representing the generated PDF
  */
-export const generatePDF = async (
+export const generateAgreement = async (
   env: EnvSchema,
   record: AgreementRecord
 ): Promise<Readonly<Blob>> => {

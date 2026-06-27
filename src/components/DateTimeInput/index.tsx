@@ -23,6 +23,7 @@ export const DateTimeInput = ({ name, label }: { name: Path<FormSchema>; label: 
               helperText: error?.message,
             },
           }}
+          disabled={field.disabled}
         />
       )}
     />

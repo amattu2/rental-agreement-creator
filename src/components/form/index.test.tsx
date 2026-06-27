@@ -26,6 +26,7 @@ const renderForm = () => {
     getAllAgreements: vi.fn(),
     upsertVehicle: vi.fn(),
     getVehicle: vi.fn(),
+    finalizeAgreement: vi.fn(),
     getAllVehicles: vi.fn().mockResolvedValue([]),
   };
 
@@ -123,6 +124,7 @@ describe("RentalAgreementForm", () => {
       getAllAgreements: vi.fn(),
       upsertVehicle: vi.fn(),
       getVehicle: vi.fn(),
+      finalizeAgreement: vi.fn(),
       getAllVehicles: vi.fn().mockResolvedValue([
         createVehicleRecord({
           identifier: "STK-2",
@@ -181,6 +183,7 @@ describe("RentalAgreementForm", () => {
       updateAgreement: vi.fn(),
       getAgreement: vi.fn(),
       getAllAgreements: vi.fn(),
+      finalizeAgreement: vi.fn(),
       upsertVehicle: vi.fn(),
       getVehicle: vi.fn(),
       getAllVehicles: vi.fn().mockResolvedValue([createVehicleRecord()]),
