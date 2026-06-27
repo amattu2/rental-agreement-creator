@@ -13,6 +13,7 @@ import {
   Menu,
   MenuItem,
   Chip,
+  Skeleton,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { memo, useCallback, useState, MouseEvent } from "react";
@@ -21,6 +22,41 @@ import { FinalizationSchema } from "@/schemas/finalization";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { FinalizationDialog } from "../FinalizationDialog";
+
+const TABLE_COLUMNS = [
+  { id: "agreement_number", label: "Agreement No." },
+  { id: "status", label: "Status" },
+  { id: "rentee", label: "Rentee" },
+  { id: "vehicle", label: "Vehicle" },
+  { id: "pickup_date", label: "Pickup Date" },
+  { id: "return_date", label: "Return Date" },
+  { id: "updated", label: "Updated" },
+  { id: "created", label: "Created" },
+  { id: "actions", label: "", sx: { width: 72 } },
+] as const;
+
+const LoadingRows = () =>
+  Array.from({ length: 5 }).map((_, rowIndex) => (
+    <TableRow key={rowIndex} aria-hidden>
+      {TABLE_COLUMNS.map((column) => (
+        <TableCell key={column.id}>
+          <Skeleton animation="wave" variant="rounded" width="100%" height={20} />
+        </TableCell>
+      ))}
+    </TableRow>
+  ));
+
+const PlaceholderRow = () => (
+  <TableRow>
+    <TableCell
+      colSpan={TABLE_COLUMNS.length}
+      align="center"
+      sx={{ py: 4, color: "text.secondary" }}
+    >
+      No agreements found. Adjust your filters or check back soon.
+    </TableCell>
+  </TableRow>
+);
 
 export type AgreementTableProps = {
   agreements: AgreementRecord[];
@@ -112,80 +148,74 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
     [activeAgreement, onArchive, handleCloseMenu, handleViewReceipt]
   );
 
-  if (loading) {
-    return "Loading..."; // TODO: Table skeleton
-  }
-
-  if (agreements.length === 0) {
-    return "No agreements found."; // TODO: Empty state component
-  }
-
   return (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: 600 }}>Agreement No.</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Rentee</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Vehicle</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Pickup Date</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Return Date</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Updated</TableCell>
-            <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-            <TableCell sx={{ width: 72 }} />
+            {TABLE_COLUMNS.map((column) => (
+              <TableCell
+                key={column.id}
+                sx={{ fontWeight: 600, ...("sx" in column ? column.sx : undefined) }}
+              >
+                {column.label}
+              </TableCell>
+            ))}
           </TableRow>
         </TableHead>
         <TableBody>
-          {agreements.map((record: AgreementRecord) => {
-            const { uuid, agreement, status, updatedAt, createdAt } = record;
-            const { agreement_number, rentee, rental_agreement_info, rental_vehicle } = agreement;
-            const { year, make, model } = rental_vehicle;
-            const isArchived = status === "archived";
+          {loading && <LoadingRows />}
+          {!loading && agreements.length === 0 && <PlaceholderRow />}
+          {!loading &&
+            agreements?.map((record: AgreementRecord) => {
+              const { uuid, agreement, status, updatedAt, createdAt } = record;
+              const { agreement_number, rentee, rental_agreement_info, rental_vehicle } = agreement;
+              const { year, make, model } = rental_vehicle;
+              const isArchived = status === "archived";
 
-            return (
-              <TableRow
-                key={uuid}
-                sx={{
-                  opacity: isArchived ? 0.6 : 1,
-                  backgroundColor: isArchived ? "action.hover" : "transparent",
-                }}
-              >
-                <TableCell>
-                  <Tooltip title={`Edit agreement ${agreement_number}`}>
-                    <Link href={`/agreement?uuid=${uuid}`}>{agreement_number}</Link>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={status === "archived" ? "Archived" : "Active"}
-                    color={status === "archived" ? "default" : "success"}
-                    variant={status === "archived" ? "outlined" : "filled"}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell>{rentee.full_name}</TableCell>
-                <TableCell>{`${year} ${make} ${model}`.trim()}</TableCell>
-                <TableCell>
-                  {formatDate(rental_agreement_info.date_out, "MM/DD/YYYY h:mma")}
-                </TableCell>
-                <TableCell>
-                  {formatDate(rental_agreement_info.date_in, "MM/DD/YYYY h:mma")}
-                </TableCell>
-                <TableCell>{formatDate(updatedAt, "MM/DD/YYYY h:mma")}</TableCell>
-                <TableCell>{formatDate(createdAt, "MM/DD/YYYY h:mma")}</TableCell>
-                <TableCell align="center">
-                  <IconButton
-                    size="small"
-                    aria-label={`Actions for agreement ${agreement_number}`}
-                    onClick={(event) => handleOpenMenu(event, record)}
-                  >
-                    <MoreVertIcon fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+              return (
+                <TableRow
+                  key={uuid}
+                  sx={{
+                    opacity: isArchived ? 0.6 : 1,
+                    backgroundColor: isArchived ? "action.hover" : "transparent",
+                  }}
+                >
+                  <TableCell>
+                    <Tooltip title={`Edit agreement ${agreement_number}`}>
+                      <Link href={`/agreement?uuid=${uuid}`}>{agreement_number}</Link>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={status === "archived" ? "Archived" : "Active"}
+                      color={status === "archived" ? "default" : "success"}
+                      variant={status === "archived" ? "outlined" : "filled"}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>{rentee.full_name}</TableCell>
+                  <TableCell>{`${year} ${make} ${model}`.trim()}</TableCell>
+                  <TableCell>
+                    {formatDate(rental_agreement_info.date_out, "MM/DD/YYYY h:mma")}
+                  </TableCell>
+                  <TableCell>
+                    {formatDate(rental_agreement_info.date_in, "MM/DD/YYYY h:mma")}
+                  </TableCell>
+                  <TableCell>{formatDate(updatedAt, "MM/DD/YYYY h:mma")}</TableCell>
+                  <TableCell>{formatDate(createdAt, "MM/DD/YYYY h:mma")}</TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      size="small"
+                      aria-label={`Actions for agreement ${agreement_number}`}
+                      onClick={(event) => handleOpenMenu(event, record)}
+                    >
+                      <MoreVertIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
         </TableBody>
       </Table>
 
