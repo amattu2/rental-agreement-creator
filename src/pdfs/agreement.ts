@@ -605,6 +605,7 @@ export const generateAgreement = async (
   doc.setLineWidth(0.2);
 
   currentY += 3.5;
+  const hasVehicleDamageWaiver = Boolean(form.vehicle_damage_waiver);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(7.8);
   doc.setTextColor(0, 0, 0);
@@ -619,7 +620,9 @@ export const generateAgreement = async (
     currentY - 3,
     15,
     4,
-    formatCurrency(form.vehicle_damage_waiver?.rate_per_day, form.currency)
+    hasVehicleDamageWaiver
+      ? formatCurrency(form.vehicle_damage_waiver?.rate_per_day, form.currency)
+      : "N/A"
   );
   doc.line(16, currentY + 1, 31, currentY + 1);
   doc.text("PER DAY", 32, currentY);
@@ -629,7 +632,9 @@ export const generateAgreement = async (
     currentY - 3,
     15,
     4,
-    formatCurrency(form.vehicle_damage_waiver?.rate_per_week, form.currency)
+    hasVehicleDamageWaiver
+      ? formatCurrency(form.vehicle_damage_waiver?.rate_per_week, form.currency)
+      : "N/A"
   );
   doc.line(45, currentY + 1, 60, currentY + 1);
   doc.text("PER WEEK", 61, currentY);
@@ -657,7 +662,9 @@ export const generateAgreement = async (
     currentY + 3,
     26,
     3.8,
-    formatCurrency(form.vehicle_damage_waiver?.damage_liability_limit, form.currency)
+    hasVehicleDamageWaiver
+      ? formatCurrency(form.vehicle_damage_waiver?.damage_liability_limit, form.currency)
+      : "N/A"
   );
   doc.line(75, currentY + 6, 101, currentY + 6);
   doc.setFont("Cousine", "normal", 700);
@@ -670,15 +677,20 @@ export const generateAgreement = async (
   doc.setFontSize(7);
   doc.rect(108.5, currentY - 10.5, 15, 8);
   doc.text("ACCEPTS", 116, currentY - 7.5, { align: "center" });
-  doc.setFontSize(10);
-  doc.text("×", 109, currentY - 3);
-  doc.buildTextField("VDW_ACCEPT_INITIAL", 110.5, currentY - 7.5, 12.5, 5);
   doc.rect(108.5, currentY + 12, 15, 8);
-  doc.setFontSize(7);
   doc.text("DECLINES", 116, currentY + 15, { align: "center" });
-  doc.setFontSize(10);
-  doc.text("×", 109, currentY + 19.5);
-  doc.buildTextField("VDW_DECLINE_INITIAL", 110.5, currentY + 15, 12.5, 5);
+  if (hasVehicleDamageWaiver) {
+    doc.setFontSize(10);
+    doc.text("×", 109, currentY - 3);
+    doc.buildTextField("VDW_ACCEPT_INITIAL", 110.5, currentY - 7.5, 12.5, 5);
+    doc.text("×", 109, currentY + 19.5);
+    doc.buildTextField("VDW_DECLINE_INITIAL", 110.5, currentY + 15, 12.5, 5);
+  } else {
+    doc.setFontSize(6);
+    doc.setFont("Cousine", "italic", 700);
+    doc.text("NOT OFFERED", 116, currentY - 4.5, { align: "center" });
+    doc.text("NOT OFFERED", 116, currentY + 18, { align: "center" });
+  }
 
   currentY += 21.5;
   doc.setDrawColor(0, 0, 0);
@@ -688,6 +700,7 @@ export const generateAgreement = async (
   doc.setLineWidth(0.2);
 
   currentY += 3.5;
+  const hasPersonalAccidentInsurance = Boolean(form.personal_accident_insurance);
   doc.setFont("Cousine", "normal", 400);
   doc.setFontSize(8);
   doc.setTextColor(0, 0, 0);
@@ -714,23 +727,29 @@ export const generateAgreement = async (
     currentY + 3,
     26,
     3.8,
-    formatCurrency(form.personal_accident_insurance?.rate_per_day, form.currency)
+    hasPersonalAccidentInsurance
+      ? formatCurrency(form.personal_accident_insurance?.rate_per_day, form.currency)
+      : "N/A"
   );
   doc.line(25.5, currentY + 6, 51.5, currentY + 6);
   doc.setDrawColor(0, 0, 0);
   doc.setFontSize(7);
   doc.rect(91.5, currentY - 4, 15, 8);
-  doc.setFontSize(7);
   doc.text("ACCEPTS", 99, currentY - 1, { align: "center" });
-  doc.setFontSize(10);
-  doc.text("×", 92, currentY + 3.5);
-  doc.buildTextField("PAI_ACCEPT_INITIAL", 93.5, currentY - 1, 12.5, 5);
   doc.rect(108.5, currentY - 4, 15, 8);
-  doc.setFontSize(7);
   doc.text("DECLINES", 116, currentY - 1, { align: "center" });
-  doc.setFontSize(10);
-  doc.text("×", 109, currentY + 3.5);
-  doc.buildTextField("PAI_DECLINE_INITIAL", 110.5, currentY - 1, 12.5, 5);
+  if (hasPersonalAccidentInsurance) {
+    doc.setFontSize(10);
+    doc.text("×", 92, currentY + 3.5);
+    doc.buildTextField("PAI_ACCEPT_INITIAL", 93.5, currentY - 1, 12.5, 5);
+    doc.text("×", 109, currentY + 3.5);
+    doc.buildTextField("PAI_DECLINE_INITIAL", 110.5, currentY - 1, 12.5, 5);
+  } else {
+    doc.setFontSize(6);
+    doc.setFont("Cousine", "italic", 700);
+    doc.text("NOT OFFERED", 99, currentY + 2.5, { align: "center" });
+    doc.text("NOT OFFERED", 116, currentY + 2.5, { align: "center" });
+  }
 
   currentY += 8;
   doc.setDrawColor(0, 0, 0);

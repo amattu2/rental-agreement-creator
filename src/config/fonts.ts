@@ -29,4 +29,10 @@ export const PDF_FONTS: Readonly<FontResource[]> = [
     src: "https://fonts.gstatic.com/s/cousine/v29/d6lNkaiiRdih4SpP9Z8K6T4.ttf",
     fontWeight: 700,
   },
+  {
+    family: "Cousine",
+    style: "italic",
+    src: "https://fonts.gstatic.com/s/cousine/v30/d6lPkaiiRdih4SpP_SEXdTvM1w.ttf",
+    fontWeight: 700,
+  },
 ];
