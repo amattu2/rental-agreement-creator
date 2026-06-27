@@ -29,6 +29,7 @@ const createDatabaseApi = (overrides?: Partial<DatabaseApi>): DatabaseApi => ({
   getAllAgreements: vi.fn(),
   upsertVehicle: vi.fn(),
   getVehicle: vi.fn(),
+  finalizeAgreement: vi.fn(),
   getAllVehicles: vi.fn().mockResolvedValue([]),
   ...overrides,
 });

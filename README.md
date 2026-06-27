@@ -11,15 +11,15 @@ with form inputs.
 Natively supports the following features:
 
 - Create and edit automotive rental agreements from a structured form
-- Live PDF generation and in-app preview while filling agreement details
+- Agreement PDF generation and in-app preview while filling agreement details
+- Agreement archival and thermal receipt generation (4" x 6")
+- QR Code generation for agreement verification or quick access to online records
 - Client-side persistence with IndexedDB for previously created agreements
 - Reopen and update existing agreements using URL-based record identifiers
-- QR Code generation for agreement verification or quick access to online records
 - Configurable company branding via environment variables
 
 Upcoming features:
 
-- [ ] Automatic tax and total cost calculation
 - [ ] Vehicle management
 - [ ] Preexisting customer selection and management
 
