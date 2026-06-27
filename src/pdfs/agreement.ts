@@ -260,7 +260,7 @@ jsPDF.API.drawSignatureImage = function (
  * @param record - The agreement record used to generate the rental agreement PDF
  * @returns A Blob representing the generated PDF
  */
-export const generatePDF = async (
+export const generateAgreement = async (
   env: EnvSchema,
   record: AgreementRecord
 ): Promise<Readonly<Blob>> => {

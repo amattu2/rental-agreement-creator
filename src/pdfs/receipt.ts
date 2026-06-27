@@ -12,7 +12,7 @@ import { EnvSchema } from "@/schemas/env";
  * @param record - The agreement record used to generate the receipt PDF
  * @returns A Blob representing the generated PDF
  */
-export const generateReceiptPDF = async (
+export const generateReceipt = async (
   envData: EnvSchema,
   record: AgreementRecord
 ): Promise<Blob> => {
