@@ -50,6 +50,11 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
         shouldValidate: true,
       }
     );
+    setValue("rental_vehicle.rental_rates", vehicle.rental_rates ?? [], {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
 
     onClose();
   };
