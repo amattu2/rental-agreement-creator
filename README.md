@@ -64,3 +64,6 @@ Open <http://localhost:3000> to view the app.
 <img width="1210" height="881" alt="list_page" src="https://github.com/user-attachments/assets/d8111b9b-ebce-4bb2-98fe-e62e0be4a105" />
 
 <img width="1601" height="887" alt="editor_screen" src="https://github.com/user-attachments/assets/6af222d2-b15a-481e-8a47-85cfa02ce397" />
+
+<img width="558" height="837" alt="finalized_receipt" src="https://github.com/user-attachments/assets/031431d4-e76b-4746-8ab6-fd17f456005a" />
+
