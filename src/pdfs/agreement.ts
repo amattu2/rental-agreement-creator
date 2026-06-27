@@ -487,20 +487,32 @@ export const generateAgreement = async (
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
   if (FUEL_LEVEL_OPTIONS.includes(form.rental_agreement_info.fuel_level_out)) {
-    const fuelOutY =
+    doc.roundedRect(
+      99.75,
       currentY +
-      13 +
-      FUEL_LEVEL_OPTIONS.indexOf(form.rental_agreement_info.fuel_level_out) * 6.3504 -
-      4.29;
-    doc.roundedRect(99.75, fuelOutY, 11.5, 5.9504, 0.5, 0.5, "FD");
+        13 +
+        FUEL_LEVEL_OPTIONS.indexOf(form.rental_agreement_info.fuel_level_out) * 6.3504 -
+        4.29,
+      11.5,
+      5.9504,
+      0.5,
+      0.5,
+      "FD"
+    );
   }
   if (FUEL_LEVEL_OPTIONS.includes(form.rental_agreement_info.fuel_level_in)) {
-    const fuelInY =
+    doc.roundedRect(
+      111.75,
       currentY +
-      13 +
-      FUEL_LEVEL_OPTIONS.indexOf(form.rental_agreement_info.fuel_level_in) * 6.3504 -
-      4.29;
-    doc.roundedRect(111.75, fuelInY, 11.5, 5.9504, 0.5, 0.5, "FD");
+        13 +
+        FUEL_LEVEL_OPTIONS.indexOf(form.rental_agreement_info.fuel_level_in) * 6.3504 -
+        4.29,
+      11.5,
+      5.9504,
+      0.5,
+      0.5,
+      "FD"
+    );
   }
   doc.setFontSize(10);
   doc.text(FUEL_LEVEL_OPTIONS, 105, currentY + 13, {
