@@ -483,6 +483,21 @@ export const generateAgreement = async (
   doc.text("IN", 118, currentY + 7, { align: "center" });
   doc.line(99.5, currentY + 8.5, 123.5, currentY + 8.5);
   doc.line(111.5, currentY + 8.5, 111.5, currentY + 40.4);
+  doc.setFillColor(235, 235, 235);
+  doc.setDrawColor(59, 59, 59);
+  doc.setLineWidth(0.2);
+  const fuelOutY =
+    currentY +
+    13 +
+    FUEL_LEVEL_OPTIONS.indexOf(form.rental_agreement_info.fuel_level_out) * 6.3504 -
+    4.29;
+  doc.roundedRect(99.75, fuelOutY, 11.5, 5.9504, 0.5, 0.5, "FD");
+  const fuelInY =
+    currentY +
+    13 +
+    FUEL_LEVEL_OPTIONS.indexOf(form.rental_agreement_info.fuel_level_in) * 6.3504 -
+    4.29;
+  doc.roundedRect(111.75, fuelInY, 11.5, 5.9504, 0.5, 0.5, "FD");
   doc.setFontSize(10);
   doc.text(FUEL_LEVEL_OPTIONS, 105, currentY + 13, {
     align: "center",
