@@ -44,7 +44,7 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
     setActiveAgreement(null);
   }, []);
 
-  const handleViewPdf = useCallback(async () => {
+  const handleViewAgreement = useCallback(async () => {
     if (!activeAgreement) {
       return;
     }
@@ -196,7 +196,7 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <MenuItem onClick={handleViewPdf}>View PDF</MenuItem>
+        <MenuItem onClick={handleViewAgreement}>View Agreement</MenuItem>
         {activeAgreement?.status === "archived" && (
           <MenuItem onClick={handleViewReceipt}>View Receipt</MenuItem>
         )}
