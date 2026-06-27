@@ -32,7 +32,7 @@ const Page = () => {
   });
 
   const renderPDF = async (record: AgreementRecord) => {
-    const { generatePDF } = await import("@/utils/pdf");
+    const { generatePDF } = await import("@/pdfs/agreement");
 
     const envData = z.parse(ENV_SCHEMA, {
       NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,

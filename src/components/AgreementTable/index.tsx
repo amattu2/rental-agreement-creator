@@ -106,7 +106,7 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
       NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
     });
 
-    const { generatePDF } = await import("@/utils/pdf");
+    const { generatePDF } = await import("@/pdfs/agreement");
 
     const pdfUrl = URL.createObjectURL(await generatePDF(envData, activeAgreement));
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
@@ -133,7 +133,7 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
         NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
       });
 
-      const { generateReceiptPDF } = await import("@/utils/receiptPdf");
+      const { generateReceiptPDF } = await import("@/pdfs/receipt");
 
       const pdfUrl = URL.createObjectURL(await generateReceiptPDF(envData, record));
       window.open(pdfUrl, "_blank", "noopener,noreferrer");

@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
-import { formatCurrency, formatDate, formatNumber } from "./text";
-import { groupByCategory } from "./billing";
+import { formatCurrency, formatDate, formatNumber } from "@/utils/text";
+import { groupByCategory } from "@/utils/billing";
 import { CATEGORY_NAMES } from "@/config/constants";
 import { EnvSchema } from "@/schemas/env";
 
