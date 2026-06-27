@@ -59,9 +59,21 @@ const PlaceholderRow = () => (
 );
 
 export type AgreementTableProps = {
+  /**
+   * The list of rental agreements to display in the table.
+   */
   agreements: AgreementRecord[];
+  /**
+   * Indicates whether the table data is currently loading.
+   */
   loading: boolean;
-  onArchive: (uuid: string, details: FinalizationSchema) => Promise<void>;
+  /**
+   * Callback function to archive an agreement.
+   * @param uuid - The UUID of the agreement to archive.
+   * @param details - The finalization details for the agreement.
+   * @returns A promise that resolves to the finalized agreement record.
+   */
+  onArchive: (uuid: string, details: FinalizationSchema) => Promise<AgreementRecord>;
 };
 
 const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps) => {
@@ -106,31 +118,34 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
     handleCloseMenu();
   }, [activeAgreement, handleCloseMenu]);
 
-  const handleViewReceipt = useCallback(async () => {
-    if (!activeAgreement) {
-      return;
-    }
+  const handleViewReceipt = useCallback(
+    async (record: AgreementRecord) => {
+      if (!record) {
+        return;
+      }
 
-    const envData = ENV_SCHEMA.parse({
-      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
-      NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
-      NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
-      NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
-      NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
-      NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
-    });
+      const envData = ENV_SCHEMA.parse({
+        NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+        NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+        NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
+        NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
+        NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
+        NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
+      });
 
-    const { generateReceiptPDF } = await import("@/utils/receiptPdf");
+      const { generateReceiptPDF } = await import("@/utils/receiptPdf");
 
-    const pdfUrl = URL.createObjectURL(await generateReceiptPDF(envData, activeAgreement));
-    window.open(pdfUrl, "_blank", "noopener,noreferrer");
+      const pdfUrl = URL.createObjectURL(await generateReceiptPDF(envData, record));
+      window.open(pdfUrl, "_blank", "noopener,noreferrer");
 
-    setTimeout(() => {
-      URL.revokeObjectURL(pdfUrl);
-    }, 10_000);
+      setTimeout(() => {
+        URL.revokeObjectURL(pdfUrl);
+      }, 10_000);
 
-    handleCloseMenu();
-  }, [activeAgreement, handleCloseMenu]);
+      handleCloseMenu();
+    },
+    [handleCloseMenu]
+  );
 
   const handleArchive = () => setFinalizingAgreement(true);
 
@@ -141,11 +156,10 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
       }
 
       setFinalizingAgreement(false);
-      await onArchive(activeAgreement.uuid, details);
-      handleViewReceipt();
-      handleCloseMenu();
+      const record = await onArchive(activeAgreement.uuid, details);
+      handleViewReceipt(record);
     },
-    [activeAgreement, onArchive, handleCloseMenu, handleViewReceipt]
+    [activeAgreement, onArchive, handleViewReceipt]
   );
 
   return (
@@ -228,7 +242,7 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
       >
         <MenuItem onClick={handleViewAgreement}>View Agreement</MenuItem>
         {activeAgreement?.status === "archived" && (
-          <MenuItem onClick={handleViewReceipt}>View Receipt</MenuItem>
+          <MenuItem onClick={() => handleViewReceipt(activeAgreement)}>View Receipt</MenuItem>
         )}
         {activeAgreement?.status === "active" && (
           <MenuItem onClick={handleArchive}>Finalize</MenuItem>

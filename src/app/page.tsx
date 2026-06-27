@@ -37,14 +37,12 @@ const AgreementListPage = () => {
   };
 
   const handleArchive = useCallback(
-    async (uuid: string, details: FinalizationSchema) => {
-      try {
-        await databaseApi.finalizeAgreement(uuid, details);
-        const data = await databaseApi.getAllAgreements();
-        setAgreements(data);
-      } catch (error) {
-        console.error("Failed to finalize agreement", error);
-      }
+    async (uuid: string, details: FinalizationSchema): Promise<AgreementRecord> => {
+      const record = await databaseApi.finalizeAgreement(uuid, details);
+      const data = await databaseApi.getAllAgreements();
+
+      setAgreements(data);
+      return record;
     },
     [databaseApi]
   );
