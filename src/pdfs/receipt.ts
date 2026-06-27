@@ -47,7 +47,6 @@ export const generateReceipt = async (
   });
   doc.setLanguage("en-US");
 
-  // Helper function to add text with optional centering/right-align
   const addText = (
     text: string,
     size: number,
@@ -75,15 +74,7 @@ export const generateReceipt = async (
     8,
     { align: "center" }
   );
-  currentY += 10;
-
-  const qrImage = await QRCode.toDataURL(`${NEXT_PUBLIC_DEPLOYMENT_URL}/agreement?uuid=${uuid}`, {
-    errorCorrectionLevel: "H",
-    type: "image/png",
-    margin: 0,
-  });
-  doc.addImage(qrImage, "PNG", pageWidth - 26.5, 4, 20, 20, "QR_CODE");
-  currentY += 12;
+  currentY += 22;
 
   doc.setFont("Helvetica", "bold");
   doc.setFontSize(12);
@@ -134,6 +125,7 @@ export const generateReceipt = async (
   const charges = agreement.agreement_charges;
   const categorizedItems = groupByCategory(charges.line_items);
   addText("Charges", 8, "bold");
+  currentY += 0.5;
   doc.setFontSize(7);
   doc.setFont("Helvetica", "normal");
   Object.entries(categorizedItems).forEach(([category, items]) => {
@@ -206,6 +198,21 @@ export const generateReceipt = async (
     pageWidth / 2,
     doc.internal.pageSize.getHeight() - 10,
     { align: "center" }
+  );
+
+  const qrImage = await QRCode.toDataURL(`${NEXT_PUBLIC_DEPLOYMENT_URL}/agreement?uuid=${uuid}`, {
+    errorCorrectionLevel: "H",
+    type: "image/png",
+    margin: 0,
+  });
+  doc.addImage(
+    qrImage,
+    "PNG",
+    (pageWidth - 20) / 2,
+    doc.internal.pageSize.getHeight() - 35,
+    20,
+    20,
+    "QR_CODE"
   );
 
   return doc.output("blob");
