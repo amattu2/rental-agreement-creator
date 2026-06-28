@@ -6,7 +6,7 @@ import {
   getSubConditionPrefix,
   sanitizeTermsText,
 } from "@/utils/pdfTerms";
-import { AgreementTermsSchema } from "@/schemas/form";
+import type { AgreementTermsSchema } from "@/schemas/form";
 
 jsPDF.API.getLineHeightMm = function (this: jsPDF): number {
   return (this.getFontSize() * this.getLineHeightFactor()) / this.internal.scaleFactor;
