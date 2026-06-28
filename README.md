@@ -12,7 +12,7 @@ Natively supports the following features:
 
 - Create and edit automotive rental agreements from a structured form
 - Agreement PDF generation and in-app preview while filling agreement details
-- Agreement archival and thermal receipt generation (4" x 6")
+- Agreement archival and thermal receipt generation (80mm)
 - QR Code generation for agreement verification or quick access to online records
 - Client-side persistence with IndexedDB for previously created agreements
 - Reopen and update existing agreements using URL-based record identifiers
@@ -21,7 +21,8 @@ Natively supports the following features:
 Upcoming features:
 
 - [ ] Vehicle management
-- [ ] Preexisting customer selection and management
+- [ ] Customer management
+- [ ] Digital receipt emailing
 
 # Getting Started
 
@@ -67,4 +68,4 @@ Open <http://localhost:3000> to view the app.
 
 <img width="791" height="1024" alt="agreement-pdf" src="https://github.com/user-attachments/assets/29db67c2-d892-4bb4-8596-2ded92f4bd41" />
 
-<img width="687" height="1024" alt="agreement-receipt-pdf" src="https://github.com/user-attachments/assets/3166f126-6a15-4674-9852-786df48b14bf" />
+<img width="945" height="2186" alt="agreement-receipt-pdf" src="https://github.com/user-attachments/assets/0c1e695d-4c5c-470d-ae60-c2298f1f5335" />
