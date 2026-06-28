@@ -1065,18 +1065,6 @@ export const generateAgreement = async (
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
 
-  doc.text("Less Deposit", dividerX + 2, currentY + 3.8);
-  doc.buildTextField(
-    "DEPOSIT_CREDIT",
-    dividerX + 60,
-    currentY + 1.2,
-    25,
-    4,
-    formatCurrency(-form.agreement_charges?.deposit_amount, form.currency)
-  );
-  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
-  currentY += 5;
-
   doc.text("Sales Tax", dividerX + 2, currentY + 3.8);
   doc.buildTextField(
     "SALES_TAX",
@@ -1088,6 +1076,18 @@ export const generateAgreement = async (
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
+
+  doc.text("Less Deposit", dividerX + 2, currentY + 3.8);
+  doc.buildTextField(
+    "DEPOSIT_CREDIT",
+    dividerX + 60,
+    currentY + 1.2,
+    25,
+    4,
+    formatCurrency(-form.agreement_charges?.deposit_amount, form.currency)
+  );
+  doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
+  currentY += 5;  
 
   doc.setFont("Cousine", "normal", 700);
   doc.text("Total Due", dividerX + 2, currentY + 3.8);
