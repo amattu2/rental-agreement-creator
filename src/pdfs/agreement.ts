@@ -1087,7 +1087,7 @@ export const generateAgreement = async (
     formatCurrency(-form.agreement_charges?.deposit_amount, form.currency)
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
-  currentY += 5;  
+  currentY += 5;
 
   doc.setFont("Cousine", "normal", 700);
   doc.text("Total Due", dividerX + 2, currentY + 3.8);
