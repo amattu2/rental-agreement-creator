@@ -1,6 +1,11 @@
 import { AgreementTermsSchema } from "@/schemas/form";
 
 /**
+ * The static terms for the rental receipt.
+ */
+export const RECEIPT_TERMS: string = `By signing this Rental Receipt, RENTEE acknowledges that the vehicle identified above was returned on the date and time shown, that the odometer reading, fuel level, and other return information listed herein accurately reflect the vehicle at the time of return, and that the rental period under the Rental Agreement ended upon return of the vehicle. RENTEE further acknowledges receipt of this Rental Receipt and the charges stated herein, subject to any additional amounts that may become due under the Rental Agreement.`;
+
+/**
  * A static definition of the rental agreement terms and conditions.
  *
  * @note In the future, support customization of these terms.
