@@ -77,6 +77,7 @@ export const BillingStateProvider: FC<BillingStateProviderProps> = ({
   const [
     currency,
     rental_rates,
+    usage_rates,
     vehicle_damage_waiver,
     personal_accident_insurance,
     calculatedAt,
@@ -86,6 +87,7 @@ export const BillingStateProvider: FC<BillingStateProviderProps> = ({
     name: [
       "currency",
       "rental_vehicle.rental_rates",
+      "rental_vehicle.usage_rates",
       "vehicle_damage_waiver",
       "personal_accident_insurance",
       "agreement_charges.calculated_at",
@@ -97,11 +99,11 @@ export const BillingStateProvider: FC<BillingStateProviderProps> = ({
     () =>
       computeBillingSignature({
         currency,
-        rental_vehicle: { rental_rates },
+        rental_vehicle: { rental_rates, usage_rates },
         vehicle_damage_waiver,
         personal_accident_insurance,
       }),
-    [currency, rental_rates, vehicle_damage_waiver, personal_accident_insurance]
+    [currency, rental_rates, usage_rates, vehicle_damage_waiver, personal_accident_insurance]
   );
 
   const state = useMemo<BillingCtxState>(() => {

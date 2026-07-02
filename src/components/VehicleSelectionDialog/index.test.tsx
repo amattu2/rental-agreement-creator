@@ -18,6 +18,7 @@ const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord 
     model: "Transit",
     color: "White",
     rental_rates: [],
+    usage_rates: [],
   },
   ...overrides,
 });
@@ -43,6 +44,9 @@ const SelectedVehicleSnapshot = () => {
       <div data-testid="selected-make">{rentalVehicle.make}</div>
       <div data-testid="selected-model">{rentalVehicle.model}</div>
       <div data-testid="selected-vin">{rentalVehicle.VIN}</div>
+      <div data-testid="selected-usage-rates">
+        {JSON.stringify(rentalVehicle.usage_rates ?? [])}
+      </div>
     </div>
   );
 };
@@ -79,6 +83,7 @@ describe("VehicleSelectionDialog", () => {
             model: "Sprinter",
             color: "Blue",
             rental_rates: [],
+            usage_rates: [],
           },
         }),
         createVehicleRecord(),
@@ -109,6 +114,13 @@ describe("VehicleSelectionDialog", () => {
             model: "Sprinter",
             color: "Blue",
             rental_rates: [],
+            usage_rates: [
+              {
+                usage_type: "gasoline",
+                usage_cost: 3.99,
+                usage_note: "PER GAL",
+              },
+            ],
           },
         }),
       ]),
@@ -122,6 +134,9 @@ describe("VehicleSelectionDialog", () => {
       expect(screen.getByTestId("selected-make")).toHaveTextContent("Mercedes");
       expect(screen.getByTestId("selected-model")).toHaveTextContent("Sprinter");
       expect(screen.getByTestId("selected-vin")).toHaveTextContent("1FTBW2CM5MKA00002");
+      expect(screen.getByTestId("selected-usage-rates")).toHaveTextContent(
+        '"usage_type":"gasoline"'
+      );
     });
   });
 

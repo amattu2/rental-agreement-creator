@@ -41,7 +41,9 @@ import {
   DISTANCE_MEASUREMENT_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
   MAX_RENTAL_RATES,
+  MAX_USAGE_RATES,
   RATE_UNIT_OPTIONS,
+  USAGE_TYPE_OPTIONS,
 } from "@/config/constants";
 import { useBillingState } from "../BillingContext";
 
@@ -79,6 +81,15 @@ export const RentalAgreementForm = () => {
   } = useFieldArray({
     control,
     name: "rental_vehicle.rental_rates",
+  });
+
+  const {
+    fields: usageRateFields,
+    append: appendUsageRate,
+    remove: removeUsageRate,
+  } = useFieldArray({
+    control,
+    name: "rental_vehicle.usage_rates",
   });
 
   const odometerOut = watch("rental_agreement_info.odometer_out");
@@ -343,8 +354,9 @@ export const RentalAgreementForm = () => {
               startIcon={<AddIcon />}
               onClick={() =>
                 appendRentalRate({
-                  rate_unit: "days",
+                  rate_unit: RATE_UNIT_OPTIONS[0].value,
                   rate_cost: 0,
+                  rate_note: RATE_UNIT_OPTIONS[0].note,
                 })
               }
               variant="outlined"
@@ -352,6 +364,84 @@ export const RentalAgreementForm = () => {
               disabled={rentalRateFields.length >= MAX_RENTAL_RATES || disabled}
             >
               Add rate
+            </Button>
+          </Subsection>
+
+          <Subsection title="Usage Charges">
+            <Stack spacing={2} mb={2}>
+              {usageRateFields.map((field, index) => (
+                <Box
+                  key={field.id}
+                  sx={{ border: 1, borderColor: "divider", borderRadius: 1.5, p: 2 }}
+                >
+                  <Stack spacing={2}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 2,
+                      }}
+                    >
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        Usage Rate #{index + 1}
+                      </Typography>
+                      <IconButton
+                        color="error"
+                        size="small"
+                        onClick={() => removeUsageRate(index)}
+                        disabled={disabled}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+
+                    <FieldRow>
+                      <FieldCell>
+                        <SelectInput
+                          name={`rental_vehicle.usage_rates.${index}.usage_type`}
+                          label="Type"
+                          options={USAGE_TYPE_OPTIONS}
+                        />
+                      </FieldCell>
+                      <FieldCell>
+                        <NumberInput
+                          name={`rental_vehicle.usage_rates.${index}.usage_cost`}
+                          label="Cost Per Unit"
+                          slotProps={{ htmlInput: { step: 0.01, min: 0 } }}
+                        />
+                      </FieldCell>
+                    </FieldRow>
+
+                    <FieldRow>
+                      <FieldCell>
+                        <TextInput
+                          name={`rental_vehicle.usage_rates.${index}.usage_note`}
+                          label="Unit Note"
+                          slotProps={{ input: { readOnly: true } }}
+                          disabled
+                        />
+                      </FieldCell>
+                    </FieldRow>
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+
+            <Button
+              startIcon={<AddIcon />}
+              onClick={() =>
+                appendUsageRate({
+                  usage_type: USAGE_TYPE_OPTIONS[0].value,
+                  usage_cost: 0,
+                  usage_note: USAGE_TYPE_OPTIONS[0].note,
+                })
+              }
+              variant="outlined"
+              size="small"
+              disabled={usageRateFields.length >= MAX_USAGE_RATES || disabled}
+            >
+              Add usage rate
             </Button>
           </Subsection>
         </Stack>

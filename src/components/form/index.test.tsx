@@ -62,6 +62,7 @@ const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord 
     model: "Transit",
     color: "White",
     rental_rates: [],
+    usage_rates: [],
   },
   ...overrides,
 });
@@ -140,6 +141,13 @@ describe("RentalAgreementForm", () => {
               { rate_unit: "hours", rate_cost: 2.2, rate_note: "PER HOUR" },
               { rate_unit: "days", rate_cost: 25, rate_note: "PER DAY" },
             ],
+            usage_rates: [
+              {
+                usage_type: "electricity",
+                usage_cost: 0.35,
+                usage_note: "PER KWH",
+              },
+            ],
           },
         }),
       ]),
@@ -171,10 +179,12 @@ describe("RentalAgreementForm", () => {
     });
 
     const costInputs = screen.getAllByRole("spinbutton", { name: /cost per unit/i });
-    expect(costInputs).toHaveLength(2);
+    expect(costInputs).toHaveLength(3);
     expect(costInputs[0]).toHaveValue(2.2);
     expect(costInputs[1]).toHaveValue(25);
+    expect(costInputs[2]).toHaveValue(0.35);
     expect(screen.getByText("Rate #2")).toBeInTheDocument();
+    expect(screen.getByText("Usage Rate #1")).toBeInTheDocument();
   });
 
   it("removes existing rental rates when the selected vehicle has none", async () => {
@@ -196,6 +206,13 @@ describe("RentalAgreementForm", () => {
           rental_vehicle: {
             ...DEFAULT_FORM.rental_vehicle,
             rental_rates: [{ rate_unit: "days", rate_cost: 50, rate_note: "PER DAY" }],
+            usage_rates: [
+              {
+                usage_type: "gasoline",
+                usage_cost: 3.5,
+                usage_note: "PER GAL",
+              },
+            ],
           },
         },
       });
@@ -216,12 +233,14 @@ describe("RentalAgreementForm", () => {
     render(<Wrapper />);
 
     expect(screen.getByText("Rate #1")).toBeInTheDocument();
+    expect(screen.getByText("Usage Rate #1")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /select an existing vehicle/i }));
     fireEvent.click(await screen.findByRole("button", { name: "Select" }));
 
     await waitFor(() => {
       expect(screen.queryByText("Rate #1")).not.toBeInTheDocument();
+      expect(screen.queryByText("Usage Rate #1")).not.toBeInTheDocument();
     });
     expect(screen.queryAllByRole("spinbutton", { name: /cost per unit/i })).toHaveLength(0);
   });
