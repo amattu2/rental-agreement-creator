@@ -402,6 +402,12 @@ export const RentalAgreementForm = () => {
                           name={`rental_vehicle.usage_rates.${index}.usage_type`}
                           label="Type"
                           options={USAGE_TYPE_OPTIONS}
+                          onChange={(value) => {
+                            const note = USAGE_TYPE_OPTIONS.find((o) => o.value === value)?.note;
+                            if (note) {
+                              setValue(`rental_vehicle.usage_rates.${index}.usage_note`, note);
+                            }
+                          }}
                         />
                       </FieldCell>
                       <FieldCell>
