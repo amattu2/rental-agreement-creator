@@ -3,8 +3,10 @@ import {
   FUEL_LEVEL_OPTIONS,
   MAX_ADDITIONAL_DRIVERS,
   MAX_RENTAL_RATES,
+  MAX_USAGE_RATES,
   PAYLOAD_MEASUREMENT_OPTIONS,
   RATE_UNIT_OPTIONS,
+  USAGE_TYPE_OPTIONS,
 } from "@/config/constants";
 import { computeBillingSignature } from "@/utils/billing";
 import dayjs from "dayjs";
@@ -116,6 +118,15 @@ const RENTAL_RATE_SCHEMA = z.object({
   rate_note: z.string().max(25).optional(),
 });
 
+const USAGE_RATE_SCHEMA = z.object({
+  usage_type: z.enum(
+    USAGE_TYPE_OPTIONS.map((option) => option.value),
+    `Usage type must be one of ${USAGE_TYPE_OPTIONS.map((option) => option.value).join(", ")}`
+  ),
+  usage_cost: z.number().min(0.01, "Usage cost must be a positive number"),
+  usage_note: z.string().max(25).optional(),
+});
+
 const RENTAL_VEHICLE_SCHEMA = z
   .object({
     identifier: z
@@ -145,6 +156,10 @@ const RENTAL_VEHICLE_SCHEMA = z
       .array(RENTAL_RATE_SCHEMA)
       .max(MAX_RENTAL_RATES, `Maximum of ${MAX_RENTAL_RATES} rental rates allowed`)
       .optional(),
+    usage_rates: z
+      .array(USAGE_RATE_SCHEMA)
+      .max(MAX_USAGE_RATES, `Maximum of ${MAX_USAGE_RATES} usage rates allowed`)
+      .optional(),
   })
   .superRefine((data, ctx) => {
     if (data.rental_rates) {
@@ -158,6 +173,21 @@ const RENTAL_VEHICLE_SCHEMA = z
           });
         } else {
           uniqueRates.add(rate_unit);
+        }
+      });
+    }
+
+    if (data.usage_rates) {
+      const uniqueRates = new Set<string>();
+      data.usage_rates.forEach(({ usage_type }, index) => {
+        if (uniqueRates.has(usage_type)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["usage_rates", index, "usage_type"],
+            message: "Duplicate usage types are not allowed",
+          });
+        } else {
+          uniqueRates.add(usage_type);
         }
       });
     }
@@ -241,7 +271,7 @@ export const AGREEMENT_TERMS_SCHEMA = z.object({
 const AGREEMENT_CHARGE_ITEM = z.object({
   code: z.string().min(1, "Code is required"),
   label: z.string().min(1, "Label is required"),
-  category: z.enum(["rental_rates", "vehicle_protection"]),
+  category: z.enum(["rental_rates", "usage_charges", "vehicle_protection"]),
   rate: z.number().min(0, "Rate must be a non-negative number"),
   quantity: z.number().min(0, "Quantity must be a non-negative number"),
   total: z.number().min(0, "Total must be a non-negative number"),

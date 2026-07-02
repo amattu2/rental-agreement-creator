@@ -145,8 +145,8 @@ export const ChargeConfirmationDialog = ({ onClose, onConfirm }: ChargeConfirmat
 
           {previewCharges.line_items.length === 0 ? (
             <Alert severity="info">
-              No billable units are configured on this agreement. Add rental rates, VDW, or PAI to
-              the form first.
+              No billable units are configured on this agreement. Add rental rates, usage rates,
+              VDW, or PAI to the form first.
             </Alert>
           ) : null}
 

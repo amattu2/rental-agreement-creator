@@ -772,12 +772,12 @@ export const generateAgreement = async (
     currentY += 5;
     items.forEach(({ label, rate, note, total }, index) => {
       doc.text(label, dividerX + 2, currentY + 3.8);
-      doc.text(`@`, dividerX + 18, currentY + 3.8);
+      doc.text(`@`, dividerX + 21, currentY + 3.8);
       doc.buildTextField(
         `${category}_${index}_RATE`,
-        dividerX + 20,
+        dividerX + 23,
         currentY + 1.2,
-        15,
+        13,
         4,
         formatCurrency(rate, form.currency)
       );
@@ -836,7 +836,7 @@ export const generateAgreement = async (
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
 
-  doc.text("Less Deposit", dividerX + 2, currentY + 3.8);
+  doc.text("Deposit", dividerX + 2, currentY + 3.8);
   doc.buildTextField(
     "DEPOSIT_CREDIT",
     dividerX + 60,

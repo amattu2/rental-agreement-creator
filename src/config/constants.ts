@@ -2,6 +2,16 @@ import { FormSchema } from "@/schemas/form";
 import { AGREEMENT_TERMS } from "./terms";
 
 /**
+ * The base height of the rental receipt PDF in millimeters.
+ */
+export const BASE_RECEIPT_PDF_HEIGHT = 152;
+
+/**
+ * The base width of the rental receipt PDF in millimeters.
+ */
+export const BASE_RECEIPT_PDF_WIDTH = 80;
+
+/**
  * A constant array of fuel level options for the rental agreement form.
  */
 export const FUEL_LEVEL_OPTIONS = ["E", "1/4", "1/2", "3/4", "F"];
@@ -17,21 +27,39 @@ export const MAX_ADDITIONAL_DRIVERS = 2;
 export const MAX_RENTAL_RATES = 4;
 
 /**
+ * A constant representing the maximum number of usage rates allowed in the rental agreement form.
+ */
+export const MAX_USAGE_RATES = 6;
+
+/**
  * A user-friendly mapping of internal category identifiers to readable names.
  */
 export const CATEGORY_NAMES: Record<string, string> = {
   rental_rates: "Rental Rates",
+  usage_charges: "Usage Charges",
   vehicle_protection: "Vehicle Protection",
 };
 
 /**
  * Constant representing the rate unit options for rental rates.
  */
-export const RATE_UNIT_OPTIONS = [
+export const RATE_UNIT_OPTIONS: Array<{ label: string; value: string; note?: string }> = [
   { label: "Hours", value: "hours", note: "PER HOUR" },
   { label: "Days", value: "days" },
   { label: "Weeks", value: "weeks" },
   { label: "Distance", value: "distance", note: "PER MILE" }, // TODO: Use specific distance measurement
+];
+
+/**
+ * Constant representing usage type options for usage rates.
+ */
+export const USAGE_TYPE_OPTIONS: Array<{ label: string; value: string; note?: string }> = [
+  { label: "Gasoline", value: "gasoline", note: "PER GAL" },
+  { label: "Diesel", value: "diesel", note: "PER GAL" },
+  { label: "Electricity", value: "electricity", note: "PER KWH" },
+  { label: "CNG", value: "cng", note: "PER GGE" },
+  { label: "Propane", value: "propane", note: "PER GAL" },
+  { label: "Hydrogen", value: "hydrogen", note: "PER KG" },
 ];
 
 /**
@@ -95,6 +123,7 @@ export const DEFAULT_FORM: FormSchema = {
     model: "",
     color: "",
     rental_rates: [],
+    usage_rates: [],
   },
   rental_agreement_info: {
     odometer_in: 0,

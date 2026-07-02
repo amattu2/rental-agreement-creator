@@ -1,3 +1,4 @@
+import { BASE_RECEIPT_PDF_HEIGHT, BASE_RECEIPT_PDF_WIDTH } from "@/config/constants";
 import type { AgreementChargeItemSchema, AgreementChargesSchema, FormSchema } from "@/schemas/form";
 
 /**
@@ -21,7 +22,7 @@ type BillingSignatureInput = Pick<
   FormSchema,
   "currency" | "vehicle_damage_waiver" | "personal_accident_insurance"
 > & {
-  rental_vehicle: Pick<FormSchema["rental_vehicle"], "rental_rates">;
+  rental_vehicle: Pick<FormSchema["rental_vehicle"], "rental_rates" | "usage_rates">;
 };
 
 /**
@@ -34,6 +35,7 @@ export const computeBillingSignature = (form: BillingSignatureInput): string =>
   JSON.stringify({
     currency: form.currency,
     rental_rates: form.rental_vehicle.rental_rates ?? [],
+    usage_rates: form.rental_vehicle.usage_rates ?? [],
     vehicle_damage_waiver: form.vehicle_damage_waiver ?? null,
     personal_accident_insurance: form.personal_accident_insurance ?? null,
   });
@@ -52,6 +54,17 @@ const createDraftLineItems = (form: FormSchema): Array<AgreementChargeItemSchema
       category: "rental_rates",
       note: rate_note ?? "",
       rate: rate_cost,
+      quantity: 0,
+      total: 0,
+    })) ?? [];
+
+  const usageRateItems: Array<AgreementChargeItemSchema> =
+    form.rental_vehicle.usage_rates?.map(({ usage_type, usage_cost, usage_note }) => ({
+      code: `usage_rate:${usage_type}`,
+      label: usage_type.toUpperCase(),
+      category: "usage_charges",
+      note: usage_note ?? "",
+      rate: usage_cost,
       quantity: 0,
       total: 0,
     })) ?? [];
@@ -90,7 +103,7 @@ const createDraftLineItems = (form: FormSchema): Array<AgreementChargeItemSchema
     });
   }
 
-  return [...rentalRateItems, ...vehicleProtectionItems];
+  return [...rentalRateItems, ...usageRateItems, ...vehicleProtectionItems];
 };
 
 type BillingInputOverrides = {
@@ -174,4 +187,37 @@ export const groupByCategory = (
     },
     {} as Record<string, Array<AgreementChargeItemSchema>>
   );
+};
+
+/**
+ * Dynamically computes the height of the rental receipt size based on the
+ * number of charge line items and their categories.
+ *
+ * @param items The charge line items present on the agreement
+ * @returns A tuple containing the computed height and the base width of the receipt PDF
+ */
+export const computeReceiptHeight = (
+  items?: Array<AgreementChargeItemSchema>
+): [number, number] => {
+  if (!Array.isArray(items) || !items.length) {
+    return [BASE_RECEIPT_PDF_HEIGHT, BASE_RECEIPT_PDF_WIDTH];
+  }
+
+  const groupedItems = items.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = 1;
+      } else {
+        acc[item.category] += 1;
+      }
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  const categoryCount = Object.keys(groupedItems).length;
+  const itemCount = Object.values(groupedItems).reduce((sum, count) => sum + count, 0);
+  const height = BASE_RECEIPT_PDF_HEIGHT + 6.222224 + categoryCount * 3 + itemCount * 3;
+
+  return [Math.round(height * 100) / 100, BASE_RECEIPT_PDF_WIDTH];
 };
