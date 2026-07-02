@@ -9,7 +9,7 @@ import {
 
 type CancellationDialogProps = {
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
 };
 
 /**

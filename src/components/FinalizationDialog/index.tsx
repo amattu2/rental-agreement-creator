@@ -22,7 +22,7 @@ import { FUEL_LEVEL_OPTIONS } from "@/config/constants";
 type FinalizationDialogProps = {
   agreement: FormSchema;
   onClose: () => void;
-  onConfirm: (details: FinalizationSchema) => void;
+  onConfirm: (details: FinalizationSchema) => Promise<void>;
 };
 
 /**
