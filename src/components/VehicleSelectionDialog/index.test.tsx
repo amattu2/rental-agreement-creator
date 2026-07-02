@@ -27,6 +27,7 @@ const createDatabaseApi = (overrides?: Partial<DatabaseApi>): DatabaseApi => ({
   updateAgreement: vi.fn(),
   getAgreement: vi.fn(),
   getAllAgreements: vi.fn(),
+  cancelAgreement: vi.fn(),
   upsertVehicle: vi.fn(),
   getVehicle: vi.fn(),
   finalizeAgreement: vi.fn(),

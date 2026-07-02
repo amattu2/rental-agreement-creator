@@ -2,7 +2,7 @@ type AgreementData = import("@/schemas/form").FormSchema;
 type VehicleData = import("@/schemas/form").VehicleSchema;
 type FinalizationData = import("@/schemas/finalization").FinalizationSchema;
 
-type AgreementStatus = "active" | "archived";
+type AgreementStatus = "active" | "archived" | "canceled";
 
 type AgreementRecord = {
   uuid: string;
@@ -26,6 +26,7 @@ type DatabaseApi = {
   getAgreement(uuid: string): Promise<AgreementRecord | undefined>;
   getAllAgreements(): Promise<AgreementRecord[]>;
   finalizeAgreement(uuid: string, finalizationDetails: FinalizationData): Promise<AgreementRecord>;
+  cancelAgreement(uuid: string): Promise<AgreementRecord>;
   upsertVehicle(input: VehicleData): Promise<VehicleRecord>;
   getVehicle(identifier: string): Promise<VehicleRecord | undefined>;
   getAllVehicles(): Promise<VehicleRecord[]>;

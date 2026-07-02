@@ -17,12 +17,10 @@ const AgreementListPage = () => {
   const filteredAgreements = useMemo<AgreementRecord[]>(
     () =>
       agreements.filter((agreement) => {
-        if (statusFilter === "active") {
-          return agreement.status === "active";
+        if (statusFilter !== "all") {
+          return agreement.status === statusFilter;
         }
-        if (statusFilter === "archived") {
-          return agreement.status === "archived";
-        }
+
         return true;
       }),
     [agreements, statusFilter]
@@ -39,6 +37,17 @@ const AgreementListPage = () => {
   const handleArchive = useCallback(
     async (uuid: string, details: FinalizationSchema): Promise<AgreementRecord> => {
       const record = await databaseApi.finalizeAgreement(uuid, details);
+      const data = await databaseApi.getAllAgreements();
+
+      setAgreements(data);
+      return record;
+    },
+    [databaseApi]
+  );
+
+  const handleCancel = useCallback(
+    async (uuid: string): Promise<AgreementRecord> => {
+      const record = await databaseApi.cancelAgreement(uuid);
       const data = await databaseApi.getAllAgreements();
 
       setAgreements(data);
@@ -86,15 +95,17 @@ const AgreementListPage = () => {
             label="Status"
             size="small"
           >
+            <MenuItem value="all">All</MenuItem>
             <MenuItem value="active">Active</MenuItem>
             <MenuItem value="archived">Archived</MenuItem>
-            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="canceled">Canceled</MenuItem>
           </Select>
         </FormControl>
         <AgreementTable
           agreements={filteredAgreements}
           loading={isLoading}
           onArchive={handleArchive}
+          onCancel={handleCancel}
         />
       </Box>
     </Box>

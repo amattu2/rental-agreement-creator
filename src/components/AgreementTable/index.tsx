@@ -12,7 +12,6 @@ import {
   Tooltip,
   Menu,
   MenuItem,
-  Chip,
   Skeleton,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -21,7 +20,9 @@ import Link from "next/link";
 import { FinalizationSchema } from "@/schemas/finalization";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { FinalizationDialog } from "../FinalizationDialog";
+import { FinalizationDialog } from "@/components/FinalizationDialog";
+import { CancellationDialog } from "@/components/CancellationDialog";
+import StatusChip from "@/components/StatusChip";
 
 const TABLE_COLUMNS = [
   { id: "agreement_number", label: "Agreement No." },
@@ -69,17 +70,26 @@ export type AgreementTableProps = {
   loading: boolean;
   /**
    * Callback function to archive an agreement.
+   *
    * @param uuid - The UUID of the agreement to archive.
    * @param details - The finalization details for the agreement.
    * @returns A promise that resolves to the finalized agreement record.
    */
   onArchive: (uuid: string, details: FinalizationSchema) => Promise<AgreementRecord>;
+  /**
+   * Callback function to cancel an agreement.
+   *
+   * @param uuid - The UUID of the agreement to cancel.
+   * @returns A promise that resolves to the canceled agreement record.
+   */
+  onCancel: (uuid: string) => Promise<AgreementRecord>;
 };
 
-const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps) => {
+const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementTableProps) => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [activeAgreement, setActiveAgreement] = useState<AgreementRecord | null>(null);
   const [finalizingAgreement, setFinalizingAgreement] = useState<boolean>(false);
+  const [cancelingAgreement, setCancelingAgreement] = useState<boolean>(false);
 
   const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>, agreement: AgreementRecord) => {
     event.stopPropagation();
@@ -147,8 +157,6 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
     [handleCloseMenu]
   );
 
-  const handleArchive = () => setFinalizingAgreement(true);
-
   const handleFinalizationConfirm = useCallback(
     async (details: FinalizationSchema) => {
       if (!activeAgreement?.uuid) {
@@ -161,6 +169,16 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
     },
     [activeAgreement, onArchive, handleViewReceipt]
   );
+
+  const handleCancellationConfirm = useCallback(async () => {
+    if (!activeAgreement?.uuid) {
+      return;
+    }
+
+    await onCancel(activeAgreement.uuid);
+    setCancelingAgreement(false);
+    handleCloseMenu();
+  }, [activeAgreement, onCancel, handleCloseMenu]);
 
   return (
     <TableContainer component={Paper}>
@@ -185,14 +203,14 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
               const { uuid, agreement, status, updatedAt, createdAt } = record;
               const { agreement_number, rentee, rental_agreement_info, rental_vehicle } = agreement;
               const { year, make, model } = rental_vehicle;
-              const isArchived = status === "archived";
+              const isReadOnly = status !== "active";
 
               return (
                 <TableRow
                   key={uuid}
                   sx={{
-                    opacity: isArchived ? 0.6 : 1,
-                    backgroundColor: isArchived ? "action.hover" : "transparent",
+                    opacity: isReadOnly ? 0.6 : 1,
+                    backgroundColor: isReadOnly ? "action.hover" : "transparent",
                   }}
                 >
                   <TableCell>
@@ -201,12 +219,7 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
                     </Tooltip>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={status === "archived" ? "Archived" : "Active"}
-                      color={status === "archived" ? "default" : "success"}
-                      variant={status === "archived" ? "outlined" : "filled"}
-                      size="small"
-                    />
+                    <StatusChip status={status} />
                   </TableCell>
                   <TableCell>{rentee.full_name}</TableCell>
                   <TableCell>{`${year} ${make} ${model}`.trim()}</TableCell>
@@ -245,7 +258,10 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
           <MenuItem onClick={() => handleViewReceipt(activeAgreement)}>View Receipt</MenuItem>
         )}
         {activeAgreement?.status === "active" && (
-          <MenuItem onClick={handleArchive}>Finalize</MenuItem>
+          <MenuItem onClick={() => setFinalizingAgreement(true)}>Finalize</MenuItem>
+        )}
+        {activeAgreement?.status === "active" && (
+          <MenuItem onClick={() => setCancelingAgreement(true)}>Cancel</MenuItem>
         )}
       </Menu>
 
@@ -257,6 +273,13 @@ const AgreementTable = ({ agreements, loading, onArchive }: AgreementTableProps)
             onConfirm={handleFinalizationConfirm}
           />
         </LocalizationProvider>
+      )}
+
+      {cancelingAgreement && activeAgreement && (
+        <CancellationDialog
+          onClose={() => setCancelingAgreement(false)}
+          onConfirm={handleCancellationConfirm}
+        />
       )}
     </TableContainer>
   );

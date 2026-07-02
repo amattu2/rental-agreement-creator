@@ -91,10 +91,13 @@ const updateAgreement = async (uuid: string, input: AgreementData): Promise<Agre
     throw new Error(`Agreement with identifier '${uuid}' was not found`);
   }
 
+  if (existing.status !== "active") {
+    throw new Error(`Agreement with identifier '${uuid}' cannot be modified`);
+  }
+
   const record: AgreementRecord = {
     ...existing,
     agreement: input,
-    status: "active",
     updatedAt: new Date().toISOString(),
   };
 
@@ -178,10 +181,40 @@ const finalizeAgreement = async (
     throw new Error(`Agreement with identifier '${uuid}' was not found`);
   }
 
+  if (existing.status !== "active") {
+    throw new Error(`Agreement with identifier '${uuid}' cannot be finalized`);
+  }
+
   const record: AgreementRecord = {
     ...existing,
     status: "archived",
     finalization: finalizationDetails,
+    updatedAt: new Date().toISOString(),
+  };
+
+  await requestToPromise(store.put(record));
+  await transactionDone(transaction);
+
+  return record;
+};
+
+const cancelAgreement = async (uuid: string): Promise<AgreementRecord> => {
+  const db = await openDatabase();
+  const transaction = db.transaction(INDEXED_DB_AGREEMENT_STORE, "readwrite");
+  const store = transaction.objectStore(INDEXED_DB_AGREEMENT_STORE);
+
+  const existing = await requestToPromise<AgreementRecord | undefined>(store.get(uuid));
+  if (!existing) {
+    throw new Error(`Agreement with identifier '${uuid}' was not found`);
+  }
+
+  if (existing.status !== "active") {
+    throw new Error(`Agreement with identifier '${uuid}' cannot be canceled`);
+  }
+
+  const record: AgreementRecord = {
+    ...existing,
+    status: "canceled",
     updatedAt: new Date().toISOString(),
   };
 
@@ -213,6 +246,10 @@ export class IndexedDbDatabaseApi implements DatabaseApi {
     finalizationDetails: FinalizationSchema
   ): Promise<AgreementRecord> {
     return finalizeAgreement(uuid, finalizationDetails);
+  }
+
+  cancelAgreement(uuid: string): Promise<AgreementRecord> {
+    return cancelAgreement(uuid);
   }
 
   upsertVehicle(input: VehicleData): Promise<VehicleRecord> {

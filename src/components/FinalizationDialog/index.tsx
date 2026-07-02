@@ -22,7 +22,7 @@ import { FUEL_LEVEL_OPTIONS } from "@/config/constants";
 type FinalizationDialogProps = {
   agreement: FormSchema;
   onClose: () => void;
-  onConfirm: (details: FinalizationSchema) => void;
+  onConfirm: (details: FinalizationSchema) => Promise<void>;
 };
 
 /**
@@ -133,7 +133,7 @@ export const FinalizationDialog = ({ agreement, onClose, onConfirm }: Finalizati
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit(onSubmit)} variant="contained" disabled={isSubmitting}>
-          Finalize
+          Confirm
         </Button>
       </DialogActions>
     </Dialog>
