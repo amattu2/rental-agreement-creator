@@ -4,7 +4,7 @@ import { AGREEMENT_TERMS } from "./terms";
 /**
  * The base height of the rental receipt PDF in millimeters.
  */
-export const BASE_RECEIPT_PDF_HEIGHT = 150;
+export const BASE_RECEIPT_PDF_HEIGHT = 152;
 
 /**
  * The base width of the rental receipt PDF in millimeters.

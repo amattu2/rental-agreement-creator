@@ -85,20 +85,24 @@ export const generateReceipt = async (
   addText(`Rental Agreement No.: ${agreement.agreement_number}`, 8, "bold");
   doc.setDrawColor(0, 0, 0);
   doc.setLineWidth(0.2);
-  doc.line(margin, currentY - 1, maxWidth, currentY - 1);
-  currentY += 2;
+  doc.setLineDashPattern([1], 0);
+  doc.line(margin, currentY - 0.5, maxWidth, currentY - 0.5);
+  doc.setLineDashPattern([], 0);
+  currentY += 2.9;
 
   addText("Summary", 8, "bold");
   currentY += 0.5;
+  addText(`Rentee: ${agreement.rentee.full_name}`, 7);
   addText(
     `Vehicle: ${`${agreement.rental_vehicle.year} ${agreement.rental_vehicle.make} ${agreement.rental_vehicle.model}`.trim()}`,
     7
   );
   addText(`VIN: ${agreement.rental_vehicle.VIN}`, 7);
   addText(`Plate: ${agreement.rental_vehicle.license_plate}`, 7);
-  addText(`Rentee: ${agreement.rentee.full_name}`, 7);
-  doc.line(margin, currentY - 1, maxWidth, currentY - 1);
-  currentY += 2;
+  doc.setLineDashPattern([1], 0);
+  doc.line(margin, currentY - 0.5, maxWidth, currentY - 0.5);
+  doc.setLineDashPattern([], 0);
+  currentY += 2.9;
 
   addText("Return Details", 8, "bold");
   currentY += 0.5;
@@ -120,8 +124,10 @@ export const generateReceipt = async (
   );
   addText(`Fuel Out: ${agreement.rental_agreement_info.fuel_level_out}`, 7);
   addText(`Fuel In (Actual): ${finalization!.actual_fuel_level_in}`, 7);
-  doc.line(margin, currentY - 1, maxWidth, currentY - 1);
-  currentY += 2;
+  doc.setLineDashPattern([1], 0);
+  doc.line(margin, currentY - 0.5, maxWidth, currentY - 0.5);
+  doc.setLineDashPattern([], 0);
+  currentY += 2.9;
 
   const charges = agreement.agreement_charges;
   if (charges.line_items.length) {
@@ -148,8 +154,10 @@ export const generateReceipt = async (
         currentY += 3;
       });
     });
-    doc.line(margin, currentY - 1, maxWidth, currentY - 1);
-    currentY += 2;
+    doc.setLineDashPattern([1], 0);
+    doc.line(margin, currentY - 0.5, maxWidth, currentY - 0.5);
+    doc.setLineDashPattern([], 0);
+    currentY += 2.9;
   }
 
   doc.setFontSize(7);
