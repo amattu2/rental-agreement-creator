@@ -217,7 +217,7 @@ export const computeReceiptHeight = (
 
   const categoryCount = Object.keys(groupedItems).length;
   const itemCount = Object.values(groupedItems).reduce((sum, count) => sum + count, 0);
-  const height = BASE_RECEIPT_PDF_HEIGHT + 5.322224 + categoryCount * 3 + itemCount * 3;
+  const height = BASE_RECEIPT_PDF_HEIGHT + 6.222224 + categoryCount * 3 + itemCount * 3;
 
   return [Math.round(height * 100) / 100, BASE_RECEIPT_PDF_WIDTH];
 };
