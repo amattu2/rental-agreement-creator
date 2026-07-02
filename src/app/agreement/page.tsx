@@ -81,7 +81,7 @@ const Page = () => {
         .getAgreement(agreementUuid)
         .then((record) => {
           if (record) {
-            setIsArchived(record.status === "archived");
+            setIsArchived(record.status !== "active");
             methods.reset(record.agreement);
             renderPDF(record);
           }

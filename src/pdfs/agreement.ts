@@ -30,7 +30,7 @@ export const generateAgreement = async (
     NEXT_PUBLIC_ADDRESS_LINE2,
     NEXT_PUBLIC_DEPLOYMENT_URL,
   } = env;
-  const { uuid, agreement: form } = record;
+  const { uuid, status, agreement: form } = record;
 
   const doc = new jsPDF({
     orientation: "p",
@@ -948,6 +948,17 @@ export const generateAgreement = async (
   const bottomHeight = pageHeight - 6;
   for (let page = 1; page <= totalPages; page += 1) {
     doc.setPage(page);
+
+    if (status === "canceled") {
+      const centerY = pageHeight / 2;
+      doc.setFont("Archivo Black", "normal");
+      doc.setFontSize(56);
+      doc.setTextColor(205, 60, 60);
+      doc.text("CANCELED", centerX, centerY - 50, { align: "center", charSpace: 1.4 });
+      doc.text("CANCELED", centerX, centerY, { align: "center", charSpace: 1.4 });
+      doc.text("CANCELED", centerX, centerY + 50, { align: "center", charSpace: 1.4 });
+    }
+
     doc.setFont("Helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 100, 100);

@@ -133,7 +133,7 @@ export const FinalizationDialog = ({ agreement, onClose, onConfirm }: Finalizati
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit(onSubmit)} variant="contained" disabled={isSubmitting}>
-          Finalize
+          Confirm
         </Button>
       </DialogActions>
     </Dialog>
