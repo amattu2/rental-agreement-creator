@@ -836,7 +836,7 @@ export const generateAgreement = async (
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
 
-  doc.text("Less Deposit", dividerX + 2, currentY + 3.8);
+  doc.text("Deposit", dividerX + 2, currentY + 3.8);
   doc.buildTextField(
     "DEPOSIT_CREDIT",
     dividerX + 60,
