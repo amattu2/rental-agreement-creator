@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type MouseEvent } from "react";
 import {
   Alert,
   Box,
@@ -78,13 +78,33 @@ export const ChargeConfirmationDialog = ({ onClose, onConfirm }: ChargeConfirmat
     [form.rental_agreement_info.date_in, form.rental_agreement_info.date_out]
   );
 
-  const handleConfirm = () => {
+  const persistCharges = () => {
     setValue("agreement_charges", previewCharges, {
       shouldValidate: true,
       shouldDirty: true,
       shouldTouch: true,
     });
+  };
+
+  const handleConfirm = () => {
+    persistCharges();
     onConfirm();
+  };
+
+  const handleConfirmAndGenerate = (event: MouseEvent<HTMLButtonElement>) => {
+    persistCharges();
+
+    try {
+      if (event?.currentTarget?.form) {
+        event.currentTarget.form.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true })
+        );
+      }
+    } catch (e) {
+      console.error("Unable to submit form", e);
+    } finally {
+      onConfirm();
+    }
   };
 
   if (!form) {
@@ -239,7 +259,7 @@ export const ChargeConfirmationDialog = ({ onClose, onConfirm }: ChargeConfirmat
         <Button onClick={handleConfirm} variant="text">
           Save & Close
         </Button>
-        <Button onClick={handleConfirm} variant="contained" type="submit">
+        <Button onClick={handleConfirmAndGenerate} variant="contained" type="button">
           Save & Generate
         </Button>
       </DialogActions>
