@@ -1,10 +1,10 @@
 import QRCode from "qrcode";
 import { formatCurrency, formatDate, formatNumber } from "@/utils/text";
-import { groupByCategory } from "@/utils/billing";
+import { computeReceiptHeight, groupByCategory } from "@/utils/billing";
 import { CATEGORY_NAMES } from "@/config/constants";
 import { EnvSchema } from "@/schemas/env";
-import jsPDF from "./base";
 import { RECEIPT_TERMS } from "@/config/terms";
+import jsPDF from "./base";
 
 /**
  * A utility function to generate a rental receipt PDF from the provided agreement record.
@@ -29,7 +29,7 @@ export const generateReceipt = async (
   const doc = new jsPDF({
     orientation: "p",
     unit: "mm",
-    format: [80, 185],
+    format: computeReceiptHeight(agreement.agreement_charges.line_items),
     putOnlyUsedFonts: true,
   });
 
@@ -124,32 +124,33 @@ export const generateReceipt = async (
   currentY += 2;
 
   const charges = agreement.agreement_charges;
-  const categorizedItems = groupByCategory(charges.line_items);
-  addText("Charges", 8, "bold");
-  currentY += 0.5;
-  doc.setFontSize(7);
-  doc.setFont("Helvetica", "normal");
-  Object.entries(categorizedItems).forEach(([category, items]) => {
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(7);
-    doc.text(CATEGORY_NAMES[category] ?? category, margin, currentY);
-    currentY += 3;
-    doc.setFont("Helvetica", "normal");
-    items.forEach(({ label, quantity, rate, total, note }) => {
-      doc.text(label, margin + 3, currentY);
-      doc.text(
-        `${formatNumber(quantity)} @ ${formatCurrency(rate, agreement.currency)} ${note ?? ""}`,
-        margin + 20,
-        currentY
-      );
-      doc.text(formatCurrency(total, agreement.currency), maxWidth, currentY, {
-        align: "right",
-      });
+  if (charges.line_items.length) {
+    addText("Charges", 8, "bold");
+    currentY += 0.5;
+
+    const categorizedItems = groupByCategory(charges.line_items);
+    Object.entries(categorizedItems).forEach(([category, items]) => {
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(7);
+      doc.text(CATEGORY_NAMES[category] ?? category, margin, currentY);
       currentY += 3;
+      doc.setFont("Helvetica", "normal");
+      items.forEach(({ label, quantity, rate, total, note }) => {
+        doc.text(label, margin + 3, currentY);
+        doc.text(
+          `${formatNumber(quantity)} @ ${formatCurrency(rate, agreement.currency)} ${note ?? ""}`,
+          margin + 20,
+          currentY
+        );
+        doc.text(formatCurrency(total, agreement.currency), maxWidth, currentY, {
+          align: "right",
+        });
+        currentY += 3;
+      });
     });
-  });
-  doc.line(margin, currentY - 1, maxWidth, currentY - 1);
-  currentY += 2;
+    doc.line(margin, currentY - 1, maxWidth, currentY - 1);
+    currentY += 2;
+  }
 
   doc.setFontSize(7);
   doc.setFont("Helvetica", "normal");

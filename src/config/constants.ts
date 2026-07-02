@@ -2,6 +2,16 @@ import { FormSchema } from "@/schemas/form";
 import { AGREEMENT_TERMS } from "./terms";
 
 /**
+ * The base height of the rental receipt PDF in millimeters.
+ */
+export const BASE_RECEIPT_PDF_HEIGHT = 150;
+
+/**
+ * The base width of the rental receipt PDF in millimeters.
+ */
+export const BASE_RECEIPT_PDF_WIDTH = 80;
+
+/**
  * A constant array of fuel level options for the rental agreement form.
  */
 export const FUEL_LEVEL_OPTIONS = ["E", "1/4", "1/2", "3/4", "F"];

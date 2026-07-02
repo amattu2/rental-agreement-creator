@@ -175,3 +175,34 @@ export const groupByCategory = (
     {} as Record<string, Array<AgreementChargeItemSchema>>
   );
 };
+
+/**
+ * Dynamically computes the height of the rental receipt size based on the
+ * number of charge line items and their categories.
+ *
+ * @param items The charge line items present on the agreement
+ * @returns A tuple containing the computed height and the base width of the receipt PDF
+ */
+export const computeReceiptHeight = (items?: Array<AgreementChargeItemSchema>): [number, number] => {
+  if (!Array.isArray(items) || !items.length) {
+    return [BASE_RECEIPT_PDF_HEIGHT, BASE_RECEIPT_PDF_WIDTH];
+  }
+
+  const groupedItems = items.reduce(
+    (acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = 1;
+      } else {
+        acc[item.category] += 1;
+      }
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  const categoryCount = Object.keys(groupedItems).length;
+  const itemCount = Object.values(groupedItems).reduce((sum, count) => sum + count, 0);
+  const height = BASE_RECEIPT_PDF_HEIGHT + 5.322224 + categoryCount * 3 + itemCount * 3;
+
+  return [Math.round(height * 100) / 100, BASE_RECEIPT_PDF_WIDTH];
+};
