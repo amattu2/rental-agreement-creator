@@ -9,7 +9,7 @@
     "build": "next build --webpack",
     "build:open": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare deploy --keep-vars",
+    "deploy": "opennextjs-cloudflare deploy -- --keep-vars",
     "test": "vitest",
     "test:ci": "vitest --reporter verbose --coverage --maxWorkers=2 --maxConcurrency=2",
     "lint": "eslint",
