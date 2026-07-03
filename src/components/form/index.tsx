@@ -105,7 +105,7 @@ export const RentalAgreementForm = () => {
           <StyledIconButton
             type="button"
             size="small"
-            disabled={newDistance === 0 || newDistance === odometerIn}
+            disabled={newDistance === 0 || newDistance === odometerIn || disabled}
             onClick={() =>
               setValue("rental_agreement_info.odometer_in", newDistance, {
                 shouldDirty: true,
@@ -119,7 +119,7 @@ export const RentalAgreementForm = () => {
         </span>
       </Tooltip>
     );
-  }, [odometerOut, maxDistance, odometerIn, setValue]);
+  }, [odometerOut, maxDistance, odometerIn, disabled, setValue]);
 
   const VehicleSelectAdornment = useMemo<React.ReactElement>(() => {
     return (
