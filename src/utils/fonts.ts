@@ -11,20 +11,23 @@ export const arrayBufferToBase64 = (buffer: ArrayBuffer | null): string => {
     return "";
   }
 
-  let binary = "";
-  const bytes = new Uint8Array(buffer);
-  const len = bytes.byteLength;
-
-  for (let i = 0; i < len; i += 1) {
-    binary += String.fromCharCode(bytes[i]);
+  if (typeof Buffer === "function") {
+    return Buffer.from(buffer).toString("base64");
   }
 
-  try {
-    return window.btoa(binary);
-  } catch (e) {
-    console.error("arrayBufferToBase64: Failed to convert ArrayBuffer to base64", e);
+  if (typeof btoa === "function") {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+
+    for (let i = 0; i < len; i += 1) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+
+    return btoa(binary);
   }
 
+  console.error("arrayBufferToBase64: No compatible method to convert ArrayBuffer to base64");
   return "";
 };
 
