@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Box,
   Button,
   Dialog,
   DialogActions,
@@ -54,81 +53,79 @@ export const FinalizationDialog = ({ agreement, onClose, onConfirm }: Finalizati
     <Dialog onClose={onClose} maxWidth="sm" open fullWidth>
       <DialogTitle>Finalize Agreement</DialogTitle>
       <DialogContent>
-        <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-          <Stack spacing={3} sx={{ mt: 2 }}>
-            <Controller
-              name="vehicle_returned_at"
-              control={control}
-              render={({ field, fieldState: { error } }) => (
-                <DateTimePicker
-                  {...field}
-                  value={field.value ? dayjs(field.value) : null}
-                  onChange={(date) =>
-                    field.onChange(date && date.isValid() ? date.toDate() : undefined)
-                  }
-                  label="Vehicle Returned Date/Time"
-                  slotProps={{
-                    textField: {
-                      fullWidth: true,
-                      size: "small",
-                      error: !!error,
-                      helperText: error?.message,
-                    },
-                  }}
-                />
-              )}
-            />
+        <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3} sx={{ mt: 2 }}>
+          <Controller
+            name="vehicle_returned_at"
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <DateTimePicker
+                {...field}
+                value={field.value ? dayjs(field.value) : null}
+                onChange={(date) =>
+                  field.onChange(date && date.isValid() ? date.toDate() : undefined)
+                }
+                label="Vehicle Returned Date/Time"
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    size: "small",
+                    error: !!error,
+                    helperText: error?.message,
+                  },
+                }}
+              />
+            )}
+          />
 
-            <Controller
-              name="actual_odometer_in"
-              control={control}
-              render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  value={field.value ?? ""}
-                  onChange={(event) => {
-                    field.onChange(event.target.value === "" ? "" : Number(event.target.value));
-                  }}
-                  label="Odometer In"
-                  type="number"
-                  slotProps={{
-                    htmlInput: {
-                      step: 1,
-                      min: agreement.rental_agreement_info.odometer_out ?? 0,
-                    },
-                  }}
-                  fullWidth
-                  size="small"
-                  error={!!error}
-                  helperText={error?.message}
-                />
-              )}
-            />
+          <Controller
+            name="actual_odometer_in"
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                value={field.value ?? ""}
+                onChange={(event) => {
+                  field.onChange(event.target.value === "" ? "" : Number(event.target.value));
+                }}
+                label="Odometer In"
+                type="number"
+                slotProps={{
+                  htmlInput: {
+                    step: 1,
+                    min: agreement.rental_agreement_info.odometer_out ?? 0,
+                  },
+                }}
+                fullWidth
+                size="small"
+                error={!!error}
+                helperText={error?.message}
+              />
+            )}
+          />
 
-            <Controller
-              name="actual_fuel_level_in"
-              control={control}
-              render={({ field, fieldState: { error } }) => (
-                <TextField
-                  {...field}
-                  select
-                  value={field.value ?? ""}
-                  label="Fuel Level In"
-                  fullWidth
-                  size="small"
-                  error={!!error}
-                  helperText={error?.message}
-                >
-                  {FUEL_LEVEL_OPTIONS.map((level) => (
-                    <MenuItem key={level} value={level}>
-                      {level}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              )}
-            />
-          </Stack>
-        </Box>
+          <Controller
+            name="actual_fuel_level_in"
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                select
+                value={field.value ?? ""}
+                label="Fuel Level In"
+                fullWidth
+                size="small"
+                error={!!error}
+                helperText={error?.message}
+              >
+                {FUEL_LEVEL_OPTIONS.map((level) => (
+                  <MenuItem key={level} value={level}>
+                    {level}
+                  </MenuItem>
+                ))}
+              </TextField>
+            )}
+          />
+        </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

@@ -35,6 +35,7 @@ import { SignatureInput } from "../SignatureInput";
 import { Subsection } from "../Subsection";
 import { TextInput } from "../TextInput";
 import { VehicleSelectionDialog } from "../VehicleSelectionDialog";
+import { CustomerSelectionDialog } from "../CustomerSelectionDialog";
 import {
   MAX_ADDITIONAL_DRIVERS,
   FUEL_LEVEL_OPTIONS,
@@ -62,6 +63,7 @@ export const RentalAgreementForm = () => {
   const { status: billingStatus, description: billingDescription } = useBillingState();
 
   const [isResetDialogOpen, setIsResetDialogOpen] = useState<boolean>(false);
+  const [customerSelectionOpen, setCustomerSelectionOpen] = useState<boolean>(false);
   const [vehicleSelectionOpen, setVehicleSelectionOpen] = useState<boolean>(false);
   const [isChargeDialogOpen, setIsChargeDialogOpen] = useState<boolean>(false);
 
@@ -124,17 +126,38 @@ export const RentalAgreementForm = () => {
   const VehicleSelectAdornment = useMemo<React.ReactElement>(() => {
     return (
       <Tooltip title="Select an existing vehicle">
-        <StyledIconButton
-          type="button"
-          size="small"
-          onClick={() => setVehicleSelectionOpen(true)}
-          disabled={disabled}
-        >
-          <SearchIcon />
-        </StyledIconButton>
+        <span>
+          <StyledIconButton
+            type="button"
+            size="small"
+            onClick={() => setVehicleSelectionOpen(true)}
+            disabled={disabled}
+          >
+            <SearchIcon />
+          </StyledIconButton>
+        </span>
       </Tooltip>
     );
   }, [setVehicleSelectionOpen, disabled]);
+
+  const CustomerSelectAdornment = useMemo<React.ReactElement>(() => {
+    return (
+      // TODO: If a customer is selected, their UUID is persisted with no way to reset
+      // back to a new or unselected state.
+      <Tooltip title="Select an existing customer">
+        <span>
+          <StyledIconButton
+            type="button"
+            size="small"
+            onClick={() => setCustomerSelectionOpen(true)}
+            disabled={disabled}
+          >
+            <SearchIcon />
+          </StyledIconButton>
+        </span>
+      </Tooltip>
+    );
+  }, [setCustomerSelectionOpen, disabled]);
 
   const vehicleDamageWaiver = watch("vehicle_damage_waiver");
   const hasVehicleDamageWaiver = vehicleDamageWaiver !== undefined;
@@ -459,13 +482,19 @@ export const RentalAgreementForm = () => {
         title="Rentee details"
         description="Capture the renter's personal contact details, driver's license, optional employer details, and insurance."
       >
-        <Stack spacing={3}>
-          <TextInput name="rentee.full_name" label="Rentee name" />
+        <Stack spacing={2}>
+          <TextInput
+            name="rentee.full_name"
+            label="Rentee name"
+            slotProps={{
+              input: {
+                endAdornment: CustomerSelectAdornment,
+              },
+            }}
+          />
 
+          <TextInput name="rentee.address_street1" label="Street address" />
           <FieldRow>
-            <FieldCell>
-              <TextInput name="rentee.address_street1" label="Street address" />
-            </FieldCell>
             <FieldCell>
               <TextInput name="rentee.address_city" label="City" />
             </FieldCell>
@@ -477,27 +506,8 @@ export const RentalAgreementForm = () => {
             </FieldCell>
           </FieldRow>
 
-          <CheckboxInput name="rentee.verified" label="Rentee information verified" />
-
+          <TextInput name="rentee.email" label="Email address" />
           <FieldRow>
-            <FieldCell>
-              <TextInput name="rentee.driver_license_number" label="Driver's license number" />
-            </FieldCell>
-            <FieldCell>
-              <TextInput name="rentee.driver_license_state" label="Driver's license state" />
-            </FieldCell>
-            <FieldCell>
-              <DateInput
-                name="rentee.driver_license_expiration"
-                label="Driver's license expiration"
-              />
-            </FieldCell>
-          </FieldRow>
-
-          <FieldRow>
-            <FieldCell>
-              <DateInput name="rentee.date_of_birth" label="Date of birth" />
-            </FieldCell>
             <FieldCell>
               <TextInput name="rentee.cell_phone" label="Cell phone" />
             </FieldCell>
@@ -506,31 +516,53 @@ export const RentalAgreementForm = () => {
             </FieldCell>
           </FieldRow>
 
-          <TextInput name="rentee.email" label="Email address" />
-
-          <Subsection title="Employer information">
+          <Subsection title="Driver's license">
             <Stack spacing={2}>
               <FieldRow>
                 <FieldCell>
-                  <TextInput name="rentee_employer.company" label="Employer name" />
+                  <TextInput name="rentee.driver_license_number" label="Driver's license number" />
                 </FieldCell>
                 <FieldCell>
-                  <TextInput name="rentee_employer.position" label="Position" />
+                  <TextInput name="rentee.driver_license_state" label="Driver's license state" />
+                </FieldCell>
+                <FieldCell>
+                  <DateInput
+                    name="rentee.driver_license_expiration"
+                    label="Driver's license expiration"
+                  />
                 </FieldCell>
               </FieldRow>
 
               <FieldRow>
                 <FieldCell>
-                  <TextInput name="rentee_employer.address_street1" label="Street address" />
+                  <DateInput name="rentee.date_of_birth" label="Date of birth" />
+                </FieldCell>
+                <CheckboxInput name="rentee.verified" label="Verified" />
+              </FieldRow>
+            </Stack>
+          </Subsection>
+
+          <Subsection title="Employer information">
+            <Stack spacing={2}>
+              <FieldRow>
+                <FieldCell>
+                  <TextInput name="rentee.employer.company" label="Employer name" />
                 </FieldCell>
                 <FieldCell>
-                  <TextInput name="rentee_employer.address_city" label="City" />
+                  <TextInput name="rentee.employer.position" label="Position" />
+                </FieldCell>
+              </FieldRow>
+
+              <TextInput name="rentee.employer.address_street1" label="Street address" />
+              <FieldRow>
+                <FieldCell>
+                  <TextInput name="rentee.employer.address_city" label="City" />
                 </FieldCell>
                 <FieldCell>
-                  <TextInput name="rentee_employer.address_state" label="State" />
+                  <TextInput name="rentee.employer.address_state" label="State" />
                 </FieldCell>
                 <FieldCell>
-                  <TextInput name="rentee_employer.address_zip" label="Zip code" />
+                  <TextInput name="rentee.employer.address_zip" label="Zip code" />
                 </FieldCell>
               </FieldRow>
             </Stack>
@@ -539,10 +571,10 @@ export const RentalAgreementForm = () => {
           <Subsection title="Insurance information">
             <FieldRow>
               <FieldCell>
-                <TextInput name="rentee_insurance.company" label="Insurance company" />
+                <TextInput name="rentee.insurance.company" label="Insurance company" />
               </FieldCell>
               <FieldCell>
-                <TextInput name="rentee_insurance.policy_number" label="Policy number" />
+                <TextInput name="rentee.insurance.policy_number" label="Policy number" />
               </FieldCell>
             </FieldRow>
           </Subsection>
@@ -848,6 +880,10 @@ export const RentalAgreementForm = () => {
 
       {vehicleSelectionOpen && (
         <VehicleSelectionDialog onClose={() => setVehicleSelectionOpen(false)} />
+      )}
+
+      {customerSelectionOpen && (
+        <CustomerSelectionDialog onClose={() => setCustomerSelectionOpen(false)} />
       )}
 
       {isChargeDialogOpen && (

@@ -25,10 +25,6 @@ type VehicleSelectionDialogProps = {
   onClose: () => void;
 };
 
-const getVehicleDisplayName = (vehicle: VehicleSchema) => {
-  return `${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim();
-};
-
 export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps) => {
   const databaseApi = useDatabaseApi();
   const { setValue } = useFormContext<FormSchema>();
@@ -115,7 +111,7 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
               {vehicles?.map(({ identifier, vehicle }) => (
                 <TableRow key={identifier}>
                   <TableCell>{identifier}</TableCell>
-                  <TableCell>{getVehicleDisplayName(vehicle)}</TableCell>
+                  <TableCell>{`${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim()}</TableCell>
                   <TableCell>{vehicle.VIN}</TableCell>
                   <TableCell>{vehicle.license_plate}</TableCell>
                   <TableCell>{vehicle.color}</TableCell>

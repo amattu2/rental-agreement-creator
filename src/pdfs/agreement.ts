@@ -169,13 +169,19 @@ export const generateAgreement = async (
   doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3;
-  doc.drawField("EMPLOYER", 6, currentY, 64, form.rentee_employer.company ?? "");
-  doc.drawField("POSITION", 71, currentY, 54, form.rentee_employer.position ?? "");
+  doc.drawField("EMPLOYER", 6, currentY, 64, form.rentee.employer?.company ?? "");
+  doc.drawField("POSITION", 71, currentY, 54, form.rentee.employer?.position ?? "");
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("EMPLOYER'S ADDRESS", 6, currentY, 119, form.rentee_employer.address_street1 ?? "");
+  doc.drawField(
+    "EMPLOYER'S ADDRESS",
+    6,
+    currentY,
+    119,
+    form.rentee.employer?.address_street1 ?? ""
+  );
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
@@ -185,7 +191,7 @@ export const generateAgreement = async (
     6,
     currentY,
     47.4,
-    form.rentee_employer.address_city ?? "",
+    form.rentee.employer?.address_city ?? "",
     "EMPLOYER_CITY"
   );
   doc.drawField(
@@ -193,7 +199,7 @@ export const generateAgreement = async (
     54.2,
     currentY,
     47,
-    form.rentee_employer.address_state ?? "",
+    form.rentee.employer?.address_state ?? "",
     "EMPLOYER_STATE"
   );
   doc.drawField(
@@ -201,15 +207,15 @@ export const generateAgreement = async (
     102,
     currentY,
     22.6,
-    form.rentee_employer.address_zip ?? "",
+    form.rentee.employer?.address_zip ?? "",
     "EMPLOYER_ZIP_CODE"
   );
   currentY += 5;
   doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3;
-  doc.drawField("INSURANCE CO.", 6, currentY, 53, form.rentee_insurance.company ?? "");
-  doc.drawField("POLICY #", 60, currentY, 54, form.rentee_insurance.policy_number ?? "");
+  doc.drawField("INSURANCE CO.", 6, currentY, 53, form.rentee.insurance?.company ?? "");
+  doc.drawField("POLICY #", 60, currentY, 54, form.rentee.insurance?.policy_number ?? "");
   currentY += 5;
   doc.line(5, currentY, dividerX, currentY);
 

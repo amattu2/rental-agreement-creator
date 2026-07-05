@@ -12,8 +12,23 @@ import { computeBillingSignature } from "@/utils/billing";
 import dayjs from "dayjs";
 import z from "zod";
 
-const RENTEE_SCHEMA = z
+const EMPLOYER_SCHEMA = z.object({
+  company: z.string().max(100, "Maximum of 100 characters allowed").optional(),
+  position: z.string().max(100, "Maximum of 100 characters allowed").optional(),
+  address_street1: z.string().max(100, "Maximum of 100 characters allowed").optional(),
+  address_city: z.string().max(50, "Maximum of 50 characters allowed").optional(),
+  address_state: z.string().max(50, "Maximum of 50 characters allowed").optional(),
+  address_zip: z.string().max(20, "Maximum of 20 characters allowed").optional(),
+});
+
+const INSURANCE_SCHEMA = z.object({
+  company: z.string().max(100, "Maximum of 100 characters allowed").optional(),
+  policy_number: z.string().max(50, "Maximum of 50 characters allowed").optional(),
+});
+
+export const RENTEE_SCHEMA = z
   .object({
+    uuid: z.uuidv4().optional(),
     full_name: z
       .string()
       .min(1, "Rentee name is required")
@@ -49,10 +64,11 @@ const RENTEE_SCHEMA = z
       .min(1, "Cell phone number is required")
       .max(20, "Maximum of 20 characters allowed"),
     alternate_phone: z.string().max(20, "Maximum of 20 characters allowed").optional(),
-
     email: z
       .union([z.literal(""), z.email().max(100, "Maximum of 100 characters allowed")])
       .optional(),
+    employer: EMPLOYER_SCHEMA.optional(),
+    insurance: INSURANCE_SCHEMA.optional(),
   })
   .superRefine((data, ctx) => {
     if (data.driver_license_expiration && dayjs(data.driver_license_expiration).isBefore(dayjs())) {
@@ -71,20 +87,6 @@ const RENTEE_SCHEMA = z
       });
     }
   });
-
-const RENTEE_EMPLOYER_SCHEMA = z.object({
-  company: z.string().max(100, "Maximum of 100 characters allowed").optional(),
-  position: z.string().max(100, "Maximum of 100 characters allowed").optional(),
-  address_street1: z.string().max(100, "Maximum of 100 characters allowed").optional(),
-  address_city: z.string().max(50, "Maximum of 50 characters allowed").optional(),
-  address_state: z.string().max(50, "Maximum of 50 characters allowed").optional(),
-  address_zip: z.string().max(20, "Maximum of 20 characters allowed").optional(),
-});
-
-const RENTEE_INSURANCE_SCHEMA = z.object({
-  company: z.string().max(100, "Maximum of 100 characters allowed").optional(),
-  policy_number: z.string().max(50, "Maximum of 50 characters allowed").optional(),
-});
 
 const ADDITIONAL_DRIVER_SCHEMA = z.object({
   full_name: z
@@ -297,8 +299,6 @@ export const FORM_SCHEMA = z
       .max(50, "Maximum of 50 characters allowed"),
     agreement_terms: AGREEMENT_TERMS_SCHEMA,
     rentee: RENTEE_SCHEMA,
-    rentee_employer: RENTEE_EMPLOYER_SCHEMA,
-    rentee_insurance: RENTEE_INSURANCE_SCHEMA,
     additional_drivers: z
       .array(ADDITIONAL_DRIVER_SCHEMA)
       .max(
@@ -328,6 +328,7 @@ export const FORM_SCHEMA = z
   })
   .strict();
 
+export type RenteeSchema = z.infer<typeof RENTEE_SCHEMA>;
 export type VehicleSchema = z.infer<typeof RENTAL_VEHICLE_SCHEMA>;
 export type FormSchema = z.infer<typeof FORM_SCHEMA>;
 export type AgreementTermsSchema = z.infer<typeof AGREEMENT_TERMS_SCHEMA>;

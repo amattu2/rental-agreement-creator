@@ -48,6 +48,7 @@ const Page = () => {
 
   const onSubmit: SubmitHandler<FormSchema> = async (data: FormSchema) => {
     try {
+      await databaseApi.upsertCustomer(data.rentee);
       await databaseApi.upsertVehicle(data.rental_vehicle);
 
       let record: AgreementRecord;
