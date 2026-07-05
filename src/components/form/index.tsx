@@ -123,13 +123,14 @@ export const RentalAgreementForm = () => {
     );
   }, [odometerOut, maxDistance, odometerIn, disabled, setValue]);
 
-  const VehicleSelectAdornment = useMemo<React.ReactElement>(() => {
-    return (
+  const VehicleSelectAdornment = useMemo<React.ReactElement>(
+    () => (
       <Tooltip title="Select an existing vehicle">
         <span>
           <StyledIconButton
             type="button"
             size="small"
+            aria-label="Select an existing vehicle"
             onClick={() => setVehicleSelectionOpen(true)}
             disabled={disabled}
           >
@@ -137,11 +138,12 @@ export const RentalAgreementForm = () => {
           </StyledIconButton>
         </span>
       </Tooltip>
-    );
-  }, [setVehicleSelectionOpen, disabled]);
+    ),
+    [setVehicleSelectionOpen, disabled]
+  );
 
-  const CustomerSelectAdornment = useMemo<React.ReactElement>(() => {
-    return (
+  const CustomerSelectAdornment = useMemo<React.ReactElement>(
+    () => (
       // TODO: If a customer is selected, their UUID is persisted with no way to reset
       // back to a new or unselected state.
       <Tooltip title="Select an existing customer">
@@ -149,6 +151,7 @@ export const RentalAgreementForm = () => {
           <StyledIconButton
             type="button"
             size="small"
+            aria-label="Select an existing customer"
             onClick={() => setCustomerSelectionOpen(true)}
             disabled={disabled}
           >
@@ -156,8 +159,9 @@ export const RentalAgreementForm = () => {
           </StyledIconButton>
         </span>
       </Tooltip>
-    );
-  }, [setCustomerSelectionOpen, disabled]);
+    ),
+    [setCustomerSelectionOpen, disabled]
+  );
 
   const vehicleDamageWaiver = watch("vehicle_damage_waiver");
   const hasVehicleDamageWaiver = vehicleDamageWaiver !== undefined;
