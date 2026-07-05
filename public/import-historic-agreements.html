@@ -1,0 +1,868 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Historic Agreement Import</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #d1d5db;
+        --accent: #0f766e;
+        --accent-hover: #115e59;
+        --danger: #b91c1c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: Segoe UI, Tahoma, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 20px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+
+      .help {
+        color: var(--muted);
+        margin-bottom: 20px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      input[type="file"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #fff;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: 0;
+        border-radius: 6px;
+        padding: 10px 14px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .primary {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .secondary {
+        background: #e5e7eb;
+        color: var(--text);
+      }
+
+      .status {
+        margin-top: 16px;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: #f9fafb;
+        white-space: pre-wrap;
+      }
+
+      .errors {
+        margin-top: 16px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: #fff;
+        max-height: 280px;
+        overflow: auto;
+      }
+
+      .errors table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .errors th,
+      .errors td {
+        text-align: left;
+        padding: 8px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        vertical-align: top;
+      }
+
+      .errors th {
+        position: sticky;
+        top: 0;
+        background: #f3f4f6;
+      }
+
+      .danger {
+        color: var(--danger);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Historic Agreement Import</h1>
+        <div class="help">
+          Upload rentals, customers, and vehicles CSV files, then run the import directly into IndexedDB.
+          Database and store are hardcoded to <b>rental-agreement-creator / agreements</b>.
+        </div>
+
+        <div class="grid">
+          <div>
+            <label for="rentalsFile">Rentals CSV</label>
+            <input id="rentalsFile" type="file" accept=".csv,text/csv" />
+          </div>
+
+          <div>
+            <label for="customersFile">Customers CSV</label>
+            <input id="customersFile" type="file" accept=".csv,text/csv" />
+          </div>
+
+          <div>
+            <label for="vehiclesFile">Vehicles CSV</label>
+            <input id="vehiclesFile" type="file" accept=".csv,text/csv" />
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button id="importButton" class="primary" type="button">Run Import</button>
+          <button id="clearButton" class="secondary" type="button">Clear Result</button>
+        </div>
+
+        <div id="status" class="status">Ready.</div>
+
+        <div id="errorsWrapper" class="errors" style="display: none">
+          <table>
+            <thead>
+              <tr>
+                <th>Row</th>
+                <th>Agreement</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="errorsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const DB_NAME = "rental-agreement-creator";
+      const DB_VERSION = 3;
+      const AGREEMENTS_STORE = "agreements";
+
+      const AGREEMENT_TERMS = {
+        version: 1,
+        effective_date: new Date("2023-01-01T00:00:00"),
+        conditions: [],
+      };
+
+      const roundCurrency = (value) => Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
+
+      const toNumber = (value, fallback = 0) => {
+        if (value === null || value === undefined || value === "") {
+          return fallback;
+        }
+
+        const num = Number(value);
+        return Number.isFinite(num) ? num : fallback;
+      };
+
+      const toBoolean = (value) => {
+        if (typeof value === "boolean") {
+          return value;
+        }
+
+        const normalized = String(value || "")
+          .trim()
+          .toLowerCase();
+
+        return normalized === "true" || normalized === "1" || normalized === "yes";
+      };
+
+      const toTrimmedString = (value, fallback = "") => {
+        if (value === null || value === undefined) {
+          return fallback;
+        }
+
+        const text = String(value).trim();
+        return text.length > 0 ? text : fallback;
+      };
+
+      const parseDateOnly = (value) => {
+        if (!value) {
+          return null;
+        }
+
+        const date = new Date(String(value));
+        if (Number.isNaN(date.getTime())) {
+          return null;
+        }
+
+        date.setHours(0, 0, 0, 0);
+        return date;
+      };
+
+      const parseTimeComponent = (value) => {
+        if (value === null || value === undefined || value === "") {
+          return { hours: 0, minutes: 0, seconds: 0 };
+        }
+
+        if (typeof value === "number" && Number.isFinite(value)) {
+          const totalSeconds = Math.round(value * 24 * 60 * 60);
+          const hours = Math.floor((totalSeconds % 86400) / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          const seconds = totalSeconds % 60;
+          return { hours, minutes, seconds };
+        }
+
+        const asText = String(value).trim();
+        if (/^\d+(\.\d+)?$/.test(asText)) {
+          const numeric = Number(asText);
+          if (Number.isFinite(numeric)) {
+            const totalSeconds = Math.round(numeric * 24 * 60 * 60);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return { hours, minutes, seconds };
+          }
+        }
+
+        const parsed = new Date(asText);
+        if (!Number.isNaN(parsed.getTime())) {
+          return {
+            hours: parsed.getHours(),
+            minutes: parsed.getMinutes(),
+            seconds: parsed.getSeconds(),
+          };
+        }
+
+        return { hours: 0, minutes: 0, seconds: 0 };
+      };
+
+      const combineDateAndTime = (dateValue, timeValue) => {
+        const date = parseDateOnly(dateValue);
+        if (!date) {
+          return null;
+        }
+
+        const { hours, minutes, seconds } = parseTimeComponent(timeValue);
+        date.setHours(hours, minutes, seconds, 0);
+        return date;
+      };
+
+      const normalizeFuelLevel = () => "F";
+
+      const getUuid = () => {
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+          return crypto.randomUUID();
+        }
+
+        return Date.now() + "-" + Math.random().toString(16).slice(2);
+      };
+
+      const openDatabase = () =>
+        new Promise((resolve, reject) => {
+          if (typeof indexedDB === "undefined") {
+            reject(new Error("IndexedDB is not available in this execution environment."));
+            return;
+          }
+
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+          request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(AGREEMENTS_STORE)) {
+              db.createObjectStore(AGREEMENTS_STORE, { keyPath: "uuid" });
+            }
+          };
+
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error || new Error("Failed to open IndexedDB."));
+        });
+
+      const transactionDone = (transaction) =>
+        new Promise((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error || new Error("IndexedDB transaction failed."));
+          transaction.onabort = () => reject(transaction.error || new Error("IndexedDB transaction aborted."));
+        });
+
+      const addRateLineItem = (items, item) => {
+        const safeRate = toNumber(item.rate, 0);
+        const safeQuantity = toNumber(item.quantity, 0);
+
+        if (safeRate <= 0) {
+          return;
+        }
+
+        items.push({
+          code: item.code,
+          label: item.label,
+          category: item.category,
+          note: item.note,
+          rate: safeRate,
+          quantity: safeQuantity,
+          total: roundCurrency(safeRate * safeQuantity),
+        });
+      };
+
+      const computeBillingSignature = ({
+        currency,
+        rental_rates,
+        usage_rates,
+        vehicle_damage_waiver,
+        personal_accident_insurance,
+      }) =>
+        JSON.stringify({
+          currency,
+          rental_rates,
+          usage_rates,
+          vehicle_damage_waiver,
+          personal_accident_insurance,
+        });
+
+      const mapRentalToAgreementRecord = (rental, customer, vehicle) => {
+        const dateOut = combineDateAndTime(rental["Date Out"], rental["Time Out"]);
+        const dateIn = combineDateAndTime(rental["Date In"], rental["Time In"]);
+
+        if (!dateOut || !dateIn) {
+          throw new Error("missing or invalid Date Out/Time Out or Date In/Time In");
+        }
+
+        const customerName = [
+          toTrimmedString(customer["First Name"]),
+          toTrimmedString(customer["Middle Name"]),
+          toTrimmedString(customer["Last Name"]),
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        const dailyRate = toNumber(rental["Daily Rental Rate"]);
+        const weeklyRate = toNumber(rental["Weekly Rental Rate"]);
+        const hourlyRate = toNumber(rental["Hourly Rental Rate"]);
+        const mileageRate = toNumber(rental["Rental Mileage Rate"]);
+        const fuelRate = toNumber(rental["Fuel Cost per Gallon"]);
+
+        const rentalRates = [];
+        if (hourlyRate > 0) {
+          rentalRates.push({ rate_unit: "hours", rate_cost: hourlyRate, rate_note: "PER HOUR" });
+        }
+        if (dailyRate > 0) {
+          rentalRates.push({ rate_unit: "days", rate_cost: dailyRate });
+        }
+        if (weeklyRate > 0) {
+          rentalRates.push({ rate_unit: "weeks", rate_cost: weeklyRate });
+        }
+        if (mileageRate > 0) {
+          rentalRates.push({ rate_unit: "distance", rate_cost: mileageRate, rate_note: "PER MILE" });
+        }
+
+        const usageRates = [];
+        if (fuelRate > 0) {
+          usageRates.push({ usage_type: "gasoline", usage_cost: fuelRate, usage_note: "PER GAL" });
+        }
+
+        const vdwAccepted = toBoolean(rental["Vehicle Damage Waiver Accepted"]);
+        const paiAccepted = toBoolean(rental["Personal Accident Insurance Accepted"]);
+
+        const vehicleDamageWaiver = vdwAccepted
+          ? {
+              rate_per_day: toNumber(rental["Vehicle Damage Waiver Daily Rate"], 0),
+              rate_per_week: toNumber(rental["Vehicle Damage Waiver Weekly Rate"], 0),
+              damage_liability_limit: Math.max(
+                1,
+                toNumber(rental["Vehicle Damage Responsibility"], 1)
+              ),
+            }
+          : undefined;
+
+        const personalAccidentInsurance = paiAccepted
+          ? {
+              rate_per_day: toNumber(rental["Person Accident Insurance Daily Rate"], 0),
+            }
+          : undefined;
+
+        const lineItems = [];
+
+        addRateLineItem(lineItems, {
+          code: "rental_rate:hours",
+          label: "HOURS",
+          category: "rental_rates",
+          note: "PER HOUR",
+          rate: hourlyRate,
+          quantity: toBoolean(rental["Hourly Rate Charged"])
+            ? toNumber(rental["Number of Hours Charged"])
+            : 0,
+        });
+
+        addRateLineItem(lineItems, {
+          code: "rental_rate:days",
+          label: "DAYS",
+          category: "rental_rates",
+          note: undefined,
+          rate: dailyRate,
+          quantity: toBoolean(rental["Daily Rate Charged"])
+            ? toNumber(rental["Number of Days Charged"])
+            : 0,
+        });
+
+        addRateLineItem(lineItems, {
+          code: "rental_rate:weeks",
+          label: "WEEKS",
+          category: "rental_rates",
+          note: undefined,
+          rate: weeklyRate,
+          quantity: toBoolean(rental["Weekly Rate Charged"])
+            ? toNumber(rental["Number of Weeks Charged"])
+            : 0,
+        });
+
+        addRateLineItem(lineItems, {
+          code: "rental_rate:distance",
+          label: "DISTANCE",
+          category: "rental_rates",
+          note: "PER MILE",
+          rate: mileageRate,
+          quantity:
+            toNumber(rental["Odometer In"]) > 0 && toNumber(rental["Odometer Out"]) > 0
+              ? Math.max(0, toNumber(rental["Odometer In"]) - toNumber(rental["Odometer Out"]))
+              : 0,
+        });
+
+        addRateLineItem(lineItems, {
+          code: "usage_rate:gasoline",
+          label: "GASOLINE",
+          category: "usage_charges",
+          note: "PER GAL",
+          rate: fuelRate,
+          quantity: toNumber(rental["Refueling Gallons"]),
+        });
+
+        if (vehicleDamageWaiver) {
+          addRateLineItem(lineItems, {
+            code: "vehicle_damage_waiver:day",
+            label: "VDW",
+            category: "vehicle_protection",
+            note: "PER DAY",
+            rate: vehicleDamageWaiver.rate_per_day,
+            quantity: toBoolean(rental["Daily VDW Charged"])
+              ? toNumber(rental["Number of Days Charged"])
+              : 0,
+          });
+
+          addRateLineItem(lineItems, {
+            code: "vehicle_damage_waiver:week",
+            label: "VDW",
+            category: "vehicle_protection",
+            note: "PER WEEK",
+            rate: vehicleDamageWaiver.rate_per_week,
+            quantity: toBoolean(rental["Weekly VDW Charged"])
+              ? toNumber(rental["Number of Weeks Charged"])
+              : 0,
+          });
+        }
+
+        if (personalAccidentInsurance) {
+          addRateLineItem(lineItems, {
+            code: "personal_accident_insurance:day",
+            label: "PAI",
+            category: "vehicle_protection",
+            note: undefined,
+            rate: personalAccidentInsurance.rate_per_day,
+            quantity: toNumber(rental["Number of Days Charged"]),
+          });
+        }
+
+        const salesTaxRate =
+          toNumber(rental["Sales Tax Rate"]) +
+          toNumber(rental["Rental Tax Rate"]) +
+          toNumber(rental["Local Tax Rate"]) +
+          toNumber(rental["Surcharge Tax Rate"]);
+
+        const deposit = toNumber(rental["Deposit"]);
+        const subtotal = roundCurrency(lineItems.reduce((sum, item) => sum + item.total, 0));
+        const salesTaxAmount = roundCurrency(subtotal * (salesTaxRate / 100));
+        const totalDue = roundCurrency(subtotal + salesTaxAmount - deposit);
+
+        const odometerOut = Math.max(1, toNumber(rental["Odometer Out"], 1));
+        const rawOdometerIn = toNumber(rental["Odometer In"], odometerOut);
+        const odometerIn = rawOdometerIn > 0 ? rawOdometerIn : odometerOut;
+
+        const agreement = {
+          agreement_number: toTrimmedString(rental["Rental Form Number"], "UNKNOWN-AGREEMENT"),
+          agreement_terms: AGREEMENT_TERMS,
+          rentee: {
+            full_name: customerName || "UNKNOWN CUSTOMER",
+            address_street1: toTrimmedString(customer["Address"], "UNKNOWN ADDRESS"),
+            address_city: toTrimmedString(customer["City"], "UNKNOWN CITY"),
+            address_state: toTrimmedString(customer["State"], "NA"),
+            address_zip: toTrimmedString(customer["Zip Code"], "00000"),
+            verified: true,
+            driver_license_number: toTrimmedString(customer["Drivers License Number"], "UNKNOWN"),
+            driver_license_state: toTrimmedString(customer["Drivers License State"], "NA"),
+            driver_license_expiration:
+              parseDateOnly(customer["Drivers License Expiration Date"]) || new Date("2099-12-31"),
+            date_of_birth: parseDateOnly(customer["Date of Birth"]) || new Date("1970-01-01"),
+            cell_phone: toTrimmedString(customer["Home Phone"], "N/A"),
+            alternate_phone: toTrimmedString(customer["Local Contact Phone"], ""),
+            email: "",
+          },
+          rentee_employer: {
+            company: toTrimmedString(customer["Employer"], ""),
+            position: toTrimmedString(customer["Position"], ""),
+            address_street1: toTrimmedString(customer["Employer Address"], ""),
+            address_city: toTrimmedString(customer["Employer City"], ""),
+            address_state: toTrimmedString(customer["Employer State"], ""),
+            address_zip: toTrimmedString(customer["Employer Zip Code"], ""),
+          },
+          rentee_insurance: {
+            company: toTrimmedString(rental["Insurance Company"], ""),
+            policy_number: toTrimmedString(rental["Insurance Policy Number"], ""),
+          },
+          additional_drivers: [
+            {
+              full_name: toTrimmedString(rental["Second Driver Name"]),
+              date_of_birth: parseDateOnly(rental["Second Driver Date of Birth"]),
+              driver_license_number: toTrimmedString(rental["Second Driver License"]),
+              driver_license_expiration: parseDateOnly(rental["Second Driver Expiration"]),
+            },
+            {
+              full_name: toTrimmedString(rental["Third Driver Name"]),
+              date_of_birth: parseDateOnly(rental["Third DriverDate of Birth"]),
+              driver_license_number: toTrimmedString(rental["Third Driver License"]),
+              driver_license_expiration: parseDateOnly(rental["Third Driver Expiration"]),
+            },
+          ].filter(
+            (driver) =>
+              driver.full_name &&
+              driver.date_of_birth &&
+              driver.driver_license_number &&
+              driver.driver_license_expiration
+          ),
+          vehicle_damage_waiver: vehicleDamageWaiver,
+          personal_accident_insurance: personalAccidentInsurance,
+          rental_vehicle: {
+            identifier: toTrimmedString(vehicle["Stock Number"], "UNKNOWN-STOCK"),
+            VIN: toTrimmedString(vehicle["VIN"], "UNKNOWNVIN00000000"),
+            license_plate: toTrimmedString(vehicle["License Number"], "UNKNOWN"),
+            year: Math.max(1900, toNumber(vehicle["Year"], 2000)),
+            make: toTrimmedString(vehicle["Make"], "UNKNOWN"),
+            model: toTrimmedString(vehicle["Model"], "UNKNOWN"),
+            color: toTrimmedString(vehicle["Color"], "UNKNOWN"),
+            rental_rates: rentalRates,
+            usage_rates: usageRates,
+          },
+          rental_agreement_info: {
+            odometer_in: odometerIn,
+            date_in: dateIn,
+            odometer_out: odometerOut,
+            date_out: dateOut,
+            fuel_level_out: normalizeFuelLevel(),
+            fuel_level_in: normalizeFuelLevel(),
+            max_distance: Math.max(0, toNumber(rental["Allowable Miles"])),
+            max_distance_measurement: "MI",
+            max_payload: Math.max(0, toNumber(rental["Maximum Payload"])),
+            max_payload_measurement: "LB",
+          },
+          agreement_charges: {
+            line_items: lineItems,
+            sales_tax_rate: roundCurrency(salesTaxRate),
+            deposit_amount: roundCurrency(deposit),
+            subtotal,
+            sales_tax_amount: salesTaxAmount,
+            total_due: totalDue,
+            source_signature: "",
+            calculated_at: dateIn,
+          },
+          currency: "USD",
+          clerk_signature: "",
+        };
+
+        agreement.agreement_charges.source_signature = computeBillingSignature({
+          currency: agreement.currency,
+          rental_rates: agreement.rental_vehicle.rental_rates,
+          usage_rates: agreement.rental_vehicle.usage_rates,
+          vehicle_damage_waiver: agreement.vehicle_damage_waiver,
+          personal_accident_insurance: agreement.personal_accident_insurance,
+        });
+
+        const createdAt = combineDateAndTime(rental["Rental Date"], rental["Time Out"]) || dateOut;
+
+        return {
+          uuid: getUuid(),
+          agreement,
+          status: "archived",
+          finalization: {
+            vehicle_returned_at: dateIn,
+            actual_odometer_in: odometerIn,
+            actual_fuel_level_in: normalizeFuelLevel(),
+            finalized_at: dateIn,
+          },
+          createdAt: createdAt.toISOString(),
+          updatedAt: dateIn.toISOString(),
+        };
+      };
+
+      const parseCsvText = (csvText) => {
+        const rows = [];
+        let row = [];
+        let value = "";
+        let inQuotes = false;
+
+        for (let i = 0; i < csvText.length; i += 1) {
+          const char = csvText[i];
+          const nextChar = csvText[i + 1];
+
+          if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+              value += '"';
+              i += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+            continue;
+          }
+
+          if (char === "," && !inQuotes) {
+            row.push(value);
+            value = "";
+            continue;
+          }
+
+          if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (char === "\r" && nextChar === "\n") {
+              i += 1;
+            }
+            row.push(value);
+            rows.push(row);
+            row = [];
+            value = "";
+            continue;
+          }
+
+          value += char;
+        }
+
+        if (value.length > 0 || row.length > 0) {
+          row.push(value);
+          rows.push(row);
+        }
+
+        if (!rows.length) {
+          return [];
+        }
+
+        const headers = rows[0].map((h) => String(h || "").trim());
+        const dataRows = rows.slice(1).filter((r) => r.some((cell) => String(cell || "").trim() !== ""));
+
+        return dataRows.map((cells) => {
+          const result = {};
+          for (let i = 0; i < headers.length; i += 1) {
+            result[headers[i]] = cells[i] !== undefined ? String(cells[i]).trim() : "";
+          }
+          return result;
+        });
+      };
+
+      const readCsvFile = async (file) => {
+        const text = await file.text();
+        return parseCsvText(text);
+      };
+
+      const importHistoricAgreements = async (rentals, customers, vehicles) => {
+        const customerById = new Map(
+          customers.map((customer) => [toTrimmedString(customer["Customer ID"]), customer])
+        );
+
+        const vehicleByStockNumber = new Map(
+          vehicles.map((vehicle) => [toTrimmedString(vehicle["Stock Number"]), vehicle])
+        );
+
+        const db = await openDatabase();
+        const transaction = db.transaction(AGREEMENTS_STORE, "readwrite");
+        const store = transaction.objectStore(AGREEMENTS_STORE);
+
+        const errors = [];
+        let inserted = 0;
+
+        rentals.forEach((rental, index) => {
+          try {
+            const customerId = toTrimmedString(rental["Customer ID"]);
+            const stockNumber = toTrimmedString(rental["Rented Vehicle Stock Number"]);
+            const agreementNumber = toTrimmedString(rental["Rental Form Number"], "UNKNOWN");
+
+            const customer = customerById.get(customerId);
+            if (!customer) {
+              const reason = "No customer found for Customer ID '" + customerId + "'.";
+              console.error("[HistoricImport] Skipped row " + (index + 1) + " (" + agreementNumber + "): " + reason);
+              errors.push({ row: index + 1, rentalFormNumber: agreementNumber, reason });
+              return;
+            }
+
+            const vehicle = vehicleByStockNumber.get(stockNumber);
+            if (!vehicle) {
+              const reason = "No vehicle found for Stock Number '" + stockNumber + "'.";
+              console.error("[HistoricImport] Skipped row " + (index + 1) + " (" + agreementNumber + "): " + reason);
+              errors.push({ row: index + 1, rentalFormNumber: agreementNumber, reason });
+              return;
+            }
+
+            const record = mapRentalToAgreementRecord(rental, customer, vehicle);
+            store.put(record);
+            inserted += 1;
+          } catch (error) {
+            const agreementNumber = toTrimmedString(rental["Rental Form Number"], "UNKNOWN");
+            const reason = error instanceof Error ? error.message : String(error);
+            console.error("[HistoricImport] Skipped row " + (index + 1) + " (" + agreementNumber + "): " + reason);
+            errors.push({ row: index + 1, rentalFormNumber: agreementNumber, reason });
+          }
+        });
+
+        await transactionDone(transaction);
+
+        return {
+          inserted,
+          skipped: errors.length,
+          errors,
+        };
+      };
+
+      const setStatus = (text, isError = false) => {
+        const status = document.getElementById("status");
+        status.textContent = text;
+        status.classList.toggle("danger", isError);
+      };
+
+      const renderErrors = (errors) => {
+        const wrapper = document.getElementById("errorsWrapper");
+        const body = document.getElementById("errorsBody");
+        body.innerHTML = "";
+
+        if (!errors || errors.length === 0) {
+          wrapper.style.display = "none";
+          return;
+        }
+
+        errors.forEach((err) => {
+          const tr = document.createElement("tr");
+
+          const tdRow = document.createElement("td");
+          tdRow.textContent = String(err.row);
+
+          const tdAgreement = document.createElement("td");
+          tdAgreement.textContent = err.rentalFormNumber || "UNKNOWN";
+
+          const tdReason = document.createElement("td");
+          tdReason.textContent = err.reason;
+
+          tr.appendChild(tdRow);
+          tr.appendChild(tdAgreement);
+          tr.appendChild(tdReason);
+          body.appendChild(tr);
+        });
+
+        wrapper.style.display = "block";
+      };
+
+      const importButton = document.getElementById("importButton");
+      const clearButton = document.getElementById("clearButton");
+
+      importButton.addEventListener("click", async () => {
+        const rentalsFile = document.getElementById("rentalsFile").files[0];
+        const customersFile = document.getElementById("customersFile").files[0];
+        const vehiclesFile = document.getElementById("vehiclesFile").files[0];
+
+        if (!rentalsFile || !customersFile || !vehiclesFile) {
+          setStatus("Please select all three CSV files before importing.", true);
+          return;
+        }
+
+        importButton.disabled = true;
+        setStatus("Reading CSV files...");
+
+        try {
+          const rentals = await readCsvFile(rentalsFile);
+          const customers = await readCsvFile(customersFile);
+          const vehicles = await readCsvFile(vehiclesFile);
+
+          setStatus(
+            "Parsed rows -> rentals: " +
+              rentals.length +
+              ", customers: " +
+              customers.length +
+              ", vehicles: " +
+              vehicles.length +
+              ". Importing..."
+          );
+
+          const result = await importHistoricAgreements(rentals, customers, vehicles);
+
+          setStatus(
+            "Import complete. Inserted: " +
+              result.inserted +
+              ", Skipped: " +
+              result.skipped +
+              "."
+          );
+
+          renderErrors(result.errors);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          setStatus("Import failed: " + message, true);
+        } finally {
+          importButton.disabled = false;
+        }
+      });
+
+      clearButton.addEventListener("click", () => {
+        setStatus("Ready.");
+        renderErrors([]);
+      });
+    </script>
+  </body>
+</html>
