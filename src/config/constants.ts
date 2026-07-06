@@ -112,12 +112,13 @@ export const DEFAULT_CUSTOMER: RenteeSchema = {
 export const DEFAULT_FORM: FormSchema = {
   agreement_number: "",
   agreement_terms: AGREEMENT_TERMS,
+  customer_uuid: "",
   rentee: { ...DEFAULT_CUSTOMER },
   additional_drivers: [],
   vehicle_damage_waiver: undefined,
   personal_accident_insurance: undefined,
+  vehicle_identifier: "",
   rental_vehicle: {
-    identifier: "",
     VIN: "",
     license_plate: "",
     year: new Date().getFullYear(),

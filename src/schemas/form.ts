@@ -28,7 +28,6 @@ const INSURANCE_SCHEMA = z.object({
 
 export const RENTEE_SCHEMA = z
   .object({
-    uuid: z.uuidv4().optional(),
     full_name: z
       .string()
       .min(1, "Rentee name is required")
@@ -131,10 +130,6 @@ const USAGE_RATE_SCHEMA = z.object({
 
 const RENTAL_VEHICLE_SCHEMA = z
   .object({
-    identifier: z
-      .string()
-      .min(1, "Vehicle identifier is required")
-      .max(50, "Maximum of 50 characters allowed"),
     VIN: z.string().min(1, "Vehicle VIN is required").max(17, "Maximum of 17 characters allowed"),
     license_plate: z
       .string()
@@ -298,6 +293,7 @@ export const FORM_SCHEMA = z
       .min(1, "Agreement number is required")
       .max(50, "Maximum of 50 characters allowed"),
     agreement_terms: AGREEMENT_TERMS_SCHEMA,
+    customer_uuid: z.uuidv4().optional(),
     rentee: RENTEE_SCHEMA,
     additional_drivers: z
       .array(ADDITIONAL_DRIVER_SCHEMA)
@@ -308,6 +304,7 @@ export const FORM_SCHEMA = z
       .optional(),
     vehicle_damage_waiver: VEHICLE_DAMAGE_WAIVER_SCHEMA.optional(),
     personal_accident_insurance: PERSONAL_ACCIDENT_INSURANCE_SCHEMA.optional(),
+    vehicle_identifier: z.string().max(50, "Maximum of 50 characters allowed"),
     rental_vehicle: RENTAL_VEHICLE_SCHEMA,
     rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,
     agreement_charges: AGREEMENT_CHARGES_SCHEMA,

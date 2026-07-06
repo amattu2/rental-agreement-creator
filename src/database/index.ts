@@ -113,16 +113,17 @@ const updateAgreement = async (uuid: string, input: AgreementData): Promise<Agre
   return record;
 };
 
-const upsertVehicle = async (input: VehicleData): Promise<VehicleRecord> => {
+const upsertVehicle = async (identifier: string, input: VehicleData): Promise<VehicleRecord> => {
   const db = await openDatabase();
   const transaction = db.transaction(INDEXED_DB_VEHICLE_STORE, "readwrite");
   const store = transaction.objectStore(INDEXED_DB_VEHICLE_STORE);
 
-  const existing = await requestToPromise<VehicleRecord | undefined>(store.get(input.identifier));
   const now = new Date().toISOString();
+  const existing = await requestToPromise<VehicleRecord | undefined>(store.get(identifier));
+
   const record: VehicleRecord = existing
     ? { ...existing, vehicle: input, updatedAt: now }
-    : { identifier: input.identifier, vehicle: input, createdAt: now, updatedAt: now };
+    : { identifier: identifier, vehicle: input, createdAt: now, updatedAt: now };
 
   await requestToPromise(store.put(record));
   await transactionDone(transaction);
@@ -152,23 +153,24 @@ const getAllCustomers = async (): Promise<CustomerRecord[]> => {
   return result;
 };
 
-const upsertCustomer = async (input: RenteeData): Promise<CustomerRecord> => {
+const upsertCustomer = async (
+  uuid: string | undefined,
+  input: RenteeData
+): Promise<CustomerRecord> => {
   const db = await openDatabase();
   const transaction = db.transaction(INDEXED_DB_CUSTOMER_STORE, "readwrite");
   const store = transaction.objectStore(INDEXED_DB_CUSTOMER_STORE);
 
-  const uuid = input.uuid ?? uuidv4();
+  const normalizedUuid = uuid ?? uuidv4();
   const now = new Date().toISOString();
   let existing: CustomerRecord | undefined;
-  if (input.uuid) {
-    existing = await requestToPromise<CustomerRecord | undefined>(store.get(uuid));
-  } else {
-    input.uuid = uuid;
+  if (uuid) {
+    existing = await requestToPromise<CustomerRecord | undefined>(store.get(normalizedUuid));
   }
 
   const record: CustomerRecord = existing
     ? { ...existing, customer: input, updatedAt: now }
-    : { uuid, status: "active", customer: input, createdAt: now, updatedAt: now };
+    : { uuid: normalizedUuid, status: "active", customer: input, createdAt: now, updatedAt: now };
 
   await requestToPromise(store.put(record));
   await transactionDone(transaction);
@@ -311,8 +313,8 @@ export class IndexedDbDatabaseApi implements DatabaseApi {
     return cancelAgreement(uuid);
   }
 
-  upsertVehicle(input: VehicleData): Promise<VehicleRecord> {
-    return upsertVehicle(input);
+  upsertVehicle(identifier: string, input: VehicleData): Promise<VehicleRecord> {
+    return upsertVehicle(identifier, input);
   }
 
   getVehicle(identifier: string): Promise<VehicleRecord | undefined> {
@@ -323,8 +325,8 @@ export class IndexedDbDatabaseApi implements DatabaseApi {
     return getAllVehicles();
   }
 
-  upsertCustomer(input: RenteeData): Promise<CustomerRecord> {
-    return upsertCustomer(input);
+  upsertCustomer(uuid: string | undefined, input: RenteeData): Promise<CustomerRecord> {
+    return upsertCustomer(uuid, input);
   }
 
   getCustomer(uuid: string): Promise<CustomerRecord | undefined> {

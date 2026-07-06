@@ -38,12 +38,12 @@ export const CustomerSelectionDialog = ({ onClose }: CustomerSelectionDialogProp
   const isLoading = customers === null && errorMessage === null;
 
   const handleSelectCustomer = (record: CustomerRecord) => {
-    setValue("rentee", record.customer, {
+    setValue("customer_uuid", record.uuid, {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
     });
-    setValue("rentee.uuid", record.uuid, {
+    setValue("rentee", record.customer, {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,

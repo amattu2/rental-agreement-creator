@@ -235,7 +235,7 @@ export const RentalAgreementForm = () => {
           <Subsection title="Vehicle Information">
             <Stack spacing={2}>
               <TextInput
-                name="rental_vehicle.identifier"
+                name="vehicle_identifier"
                 label="Vehicle identifier (Stock #)"
                 slotProps={{
                   input: {

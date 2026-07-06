@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@mui/material";
 import { useDatabaseApi } from "@/database/provider";
-import type { FormSchema, VehicleSchema } from "@/schemas/form";
+import type { FormSchema } from "@/schemas/form";
 
 type VehicleSelectionDialogProps = {
   onClose: () => void;
@@ -33,7 +33,14 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isLoading = vehicles === null && errorMessage === null;
 
-  const handleSelectVehicle = (vehicle: VehicleSchema) => {
+  const handleSelectVehicle = (record: VehicleRecord) => {
+    const { vehicle, identifier } = record;
+
+    setValue("vehicle_identifier", identifier, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
     setValue(
       "rental_vehicle",
       {
@@ -108,15 +115,17 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
               </TableRow>
             </TableHead>
             <TableBody>
-              {vehicles?.map(({ identifier, vehicle }) => (
-                <TableRow key={identifier}>
-                  <TableCell>{identifier}</TableCell>
-                  <TableCell>{`${vehicle.year} ${vehicle.make} ${vehicle.model}`.trim()}</TableCell>
-                  <TableCell>{vehicle.VIN}</TableCell>
-                  <TableCell>{vehicle.license_plate}</TableCell>
-                  <TableCell>{vehicle.color}</TableCell>
+              {vehicles?.map((record) => (
+                <TableRow key={record.identifier}>
+                  <TableCell>{record.identifier}</TableCell>
                   <TableCell>
-                    <Button size="small" onClick={() => handleSelectVehicle(vehicle)}>
+                    {`${record.vehicle.year} ${record.vehicle.make} ${record.vehicle.model}`.trim()}
+                  </TableCell>
+                  <TableCell>{record.vehicle.VIN}</TableCell>
+                  <TableCell>{record.vehicle.license_plate}</TableCell>
+                  <TableCell>{record.vehicle.color}</TableCell>
+                  <TableCell>
+                    <Button size="small" onClick={() => handleSelectVehicle(record)}>
                       Select
                     </Button>
                   </TableCell>

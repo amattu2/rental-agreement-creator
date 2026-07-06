@@ -17,7 +17,6 @@ import { Controller, useForm } from "react-hook-form";
 import { RENTEE_SCHEMA, RenteeSchema } from "@/schemas/form";
 import dayjs from "dayjs";
 import { Subsection } from "../Subsection";
-import { useMemo } from "react";
 import { FieldRow } from "../FieldRow";
 
 type CustomerEditorDialogProps = {
@@ -31,11 +30,6 @@ export const CustomerEditorDialog = ({
   onClose,
   onSave,
 }: CustomerEditorDialogProps) => {
-  const dialogTitle = useMemo<string>(
-    () => (!!initialValue?.uuid ? "Edit Customer" : "New Customer"),
-    [initialValue?.uuid]
-  );
-
   const {
     control,
     handleSubmit,
@@ -51,7 +45,7 @@ export const CustomerEditorDialog = ({
 
   return (
     <Dialog onClose={onClose} maxWidth="md" scroll="body" fullWidth open>
-      <DialogTitle>{dialogTitle}</DialogTitle>
+      <DialogTitle>Edit Customer</DialogTitle>
       <DialogContent>
         <Stack component="form" onSubmit={handleSubmit(onSubmit)} spacing={3}>
           <Subsection title="Customer information">

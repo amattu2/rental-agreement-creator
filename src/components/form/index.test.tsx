@@ -59,7 +59,6 @@ const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord 
   createdAt: "2026-06-08T10:00:00.000Z",
   updatedAt: "2026-06-08T10:00:00.000Z",
   vehicle: {
-    identifier: "STK-1",
     VIN: "1FTBW2CM5MKA00001",
     license_plate: "ABC-123",
     year: 2024,
@@ -136,7 +135,6 @@ describe("RentalAgreementForm", () => {
         createVehicleRecord({
           identifier: "STK-2",
           vehicle: {
-            identifier: "STK-2",
             VIN: "1FTBW2CM5MKA00002",
             license_plate: "XYZ-789",
             year: 2025,

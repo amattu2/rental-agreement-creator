@@ -69,7 +69,7 @@ const CustomersPage = () => {
 
   const handleSaveCustomer = async (customer: RenteeSchema) => {
     try {
-      await databaseApi.upsertCustomer({ ...customer, uuid: activeCustomer?.uuid });
+      await databaseApi.upsertCustomer(activeCustomer?.uuid, customer);
       await handleSearch(query);
       closeEditorDialog();
     } catch (error) {

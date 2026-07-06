@@ -39,11 +39,11 @@ type DatabaseApi = {
   finalizeAgreement(uuid: string, finalizationDetails: FinalizationData): Promise<AgreementRecord>;
   cancelAgreement(uuid: string): Promise<AgreementRecord>;
 
-  upsertVehicle(input: VehicleData): Promise<VehicleRecord>;
+  upsertVehicle(identifier: string, input: VehicleData): Promise<VehicleRecord>;
   getVehicle(identifier: string): Promise<VehicleRecord | undefined>;
   getAllVehicles(): Promise<VehicleRecord[]>;
 
-  upsertCustomer(input: RenteeData): Promise<CustomerRecord>;
+  upsertCustomer(uuid?: string, input: RenteeData): Promise<CustomerRecord>;
   getCustomer(uuid: string): Promise<CustomerRecord | undefined>;
   getAllCustomers(): Promise<CustomerRecord[]>;
   searchCustomers(query: string): Promise<CustomerRecord[]>;

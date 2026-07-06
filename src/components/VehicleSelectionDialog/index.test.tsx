@@ -10,7 +10,6 @@ const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord 
   createdAt: "2026-06-08T10:00:00.000Z",
   updatedAt: "2026-06-08T10:00:00.000Z",
   vehicle: {
-    identifier: "STK-1",
     VIN: "1FTBW2CM5MKA00001",
     license_plate: "ABC-123",
     year: 2024,
@@ -43,9 +42,11 @@ const createDatabaseApi = (overrides?: Partial<DatabaseApi>): DatabaseApi => ({
 const SelectedVehicleSnapshot = () => {
   const { control } = useFormContext<FormSchema>();
   const rentalVehicle = useWatch({ control, name: "rental_vehicle" });
+  const vehicleIdentifier = useWatch({ control, name: "vehicle_identifier" });
 
   return (
     <div>
+      <div data-testid="selected-identifier">{vehicleIdentifier ?? ""}</div>
       <div data-testid="selected-make">{rentalVehicle.make}</div>
       <div data-testid="selected-model">{rentalVehicle.model}</div>
       <div data-testid="selected-vin">{rentalVehicle.VIN}</div>
@@ -80,7 +81,6 @@ describe("VehicleSelectionDialog", () => {
         createVehicleRecord({
           identifier: "STK-2",
           vehicle: {
-            identifier: "STK-2",
             VIN: "1FTBW2CM5MKA00002",
             license_plate: "XYZ-789",
             year: 2026,
@@ -111,7 +111,6 @@ describe("VehicleSelectionDialog", () => {
       getAllVehicles: vi.fn().mockResolvedValue([
         createVehicleRecord({
           vehicle: {
-            identifier: "STK-2",
             VIN: "1FTBW2CM5MKA00002",
             license_plate: "XYZ-789",
             year: 2025,
@@ -136,6 +135,7 @@ describe("VehicleSelectionDialog", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Select" }));
 
     await waitFor(() => {
+      expect(screen.getByTestId("selected-identifier")).toHaveTextContent("STK-1");
       expect(screen.getByTestId("selected-make")).toHaveTextContent("Mercedes");
       expect(screen.getByTestId("selected-model")).toHaveTextContent("Sprinter");
       expect(screen.getByTestId("selected-vin")).toHaveTextContent("1FTBW2CM5MKA00002");
