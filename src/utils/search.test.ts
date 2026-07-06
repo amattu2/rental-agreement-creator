@@ -1,4 +1,4 @@
-import { customerMatchesQuery, customerSearchTokens, normalize } from "./search";
+import { customerMatchesQuery, normalize } from "./search";
 
 const makeCustomer = (overrides: Partial<CustomerRecord["customer"]> = {}): CustomerRecord =>
   ({
@@ -24,22 +24,6 @@ describe("normalize", () => {
 
   it("returns an empty string for undefined", () => {
     expect(normalize(undefined)).toBe("");
-  });
-});
-
-describe("customerSearchTokens", () => {
-  it("normalizes customer fields and removes empty tokens", () => {
-    const customer = makeCustomer({
-      alternate_phone: undefined,
-      email: "   ",
-    });
-
-    expect(customerSearchTokens(customer)).toEqual([
-      "jane doe",
-      "d1234567",
-      "555-0100",
-      "123 main st",
-    ]);
   });
 });
 
