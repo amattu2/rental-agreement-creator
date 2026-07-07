@@ -1,4 +1,4 @@
-import { FormSchema } from "@/schemas/form";
+import type { FormSchema, RenteeSchema } from "@/schemas/form";
 import { AGREEMENT_TERMS } from "./terms";
 
 /**
@@ -78,28 +78,21 @@ export const PAYLOAD_MEASUREMENT_OPTIONS = [
   { label: "Kilograms (KG)", value: "KG" },
 ];
 
-/**
- * A default form object that adheres to the FormSchema
- */
-export const DEFAULT_FORM: FormSchema = {
-  agreement_number: "",
-  agreement_terms: AGREEMENT_TERMS,
-  rentee: {
-    full_name: "",
-    address_street1: "",
-    address_city: "",
-    address_state: "",
-    address_zip: "",
-    verified: false,
-    driver_license_number: "",
-    driver_license_state: "",
-    driver_license_expiration: new Date(), // TODO: Needs to be empty by default
-    date_of_birth: new Date(),
-    cell_phone: "",
-    alternate_phone: "",
-    email: "",
-  },
-  rentee_employer: {
+export const DEFAULT_CUSTOMER: RenteeSchema = {
+  full_name: "",
+  address_street1: "",
+  address_city: "",
+  address_state: "",
+  address_zip: "",
+  verified: false,
+  driver_license_number: "",
+  driver_license_state: "",
+  driver_license_expiration: new Date(), // TODO: Needs to be empty by default
+  date_of_birth: new Date(),
+  cell_phone: "",
+  alternate_phone: "",
+  email: "",
+  employer: {
     company: "",
     position: "",
     address_street1: "",
@@ -107,15 +100,25 @@ export const DEFAULT_FORM: FormSchema = {
     address_state: "",
     address_zip: "",
   },
-  rentee_insurance: {
+  insurance: {
     company: "",
     policy_number: "",
   },
+};
+
+/**
+ * A default form object that adheres to the FormSchema
+ */
+export const DEFAULT_FORM: FormSchema = {
+  agreement_number: "",
+  agreement_terms: AGREEMENT_TERMS,
+  customer_uuid: undefined,
+  rentee: { ...DEFAULT_CUSTOMER },
   additional_drivers: [],
   vehicle_damage_waiver: undefined,
   personal_accident_insurance: undefined,
+  vehicle_identifier: "",
   rental_vehicle: {
-    identifier: "",
     VIN: "",
     license_plate: "",
     year: new Date().getFullYear(),
@@ -151,7 +154,8 @@ export const DEFAULT_FORM: FormSchema = {
 };
 
 export const INDEXED_DB_NAME = "rental-agreement-creator";
-export const INDEXED_DB_VERSION = 2;
+export const INDEXED_DB_VERSION = 3;
 export const INDEXED_DB_AGREEMENT_STORE = "agreements";
 export const INDEXED_DB_VEHICLE_STORE = "vehicles";
+export const INDEXED_DB_CUSTOMER_STORE = "customers";
 export const AGREEMENT_TERMS_PDF_URL = "/AgreementTerms.pdf";

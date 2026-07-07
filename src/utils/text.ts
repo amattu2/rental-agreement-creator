@@ -79,3 +79,68 @@ export const formatCurrency = (value: number | undefined, currency = "USD"): str
 
   return formatter.format(value);
 };
+
+/**
+ * A utility function to format an address object into a single string.
+ *
+ * @param address The address object containing street, city, state, and zip code.
+ * @returns The formatted address string, or an empty string if the address is invalid.
+ */
+export const formatAddress = <
+  T extends {
+    address_street1?: string;
+    address_city?: string;
+    address_state?: string;
+    address_zip?: string;
+  },
+>(
+  address: T
+): string => {
+  if (!address) {
+    return "";
+  }
+
+  let final = "";
+  if (address.address_street1) {
+    final += address.address_street1.trim();
+  }
+  if (address.address_city) {
+    final += final ? ", " : "";
+    final += address.address_city.trim();
+  }
+  if (address.address_state || address.address_zip) {
+    final += final ? ", " : "";
+    final += address.address_state ? address.address_state.trim() : "";
+    if (address.address_state && address.address_zip) {
+      final += " ";
+    }
+    final += address.address_zip ? address.address_zip.trim() : "";
+  }
+
+  return final;
+};
+
+/**
+ * A utility function to format contact information into an array of strings.
+ *
+ * @param customer The contact information object containing email, cell phone, and alternate phone.
+ * @returns An array of formatted contact information strings, or an empty array if no contact information is available.
+ */
+export const formatContactInfo = ({ email, cell_phone, alternate_phone }: RenteeData): string[] => {
+  if (!email && !cell_phone && !alternate_phone) {
+    return [];
+  }
+
+  const result: string[] = [];
+  if (cell_phone) {
+    result.push(`Cell: ${cell_phone}`);
+  }
+  if (alternate_phone) {
+    result.push(`Alt: ${alternate_phone}`);
+  }
+  if (email) {
+    result.push(`Email: ${email}`);
+  }
+
+  return result;
+};
