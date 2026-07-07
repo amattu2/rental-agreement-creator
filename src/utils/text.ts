@@ -119,28 +119,3 @@ export const formatAddress = <
 
   return final;
 };
-
-/**
- * A utility function to format contact information into an array of strings.
- *
- * @param customer The contact information object containing email, cell phone, and alternate phone.
- * @returns An array of formatted contact information strings, or an empty array if no contact information is available.
- */
-export const formatContactInfo = ({ email, cell_phone, alternate_phone }: RenteeData): string[] => {
-  if (!email && !cell_phone && !alternate_phone) {
-    return [];
-  }
-
-  const result: string[] = [];
-  if (cell_phone) {
-    result.push(`Cell: ${cell_phone}`);
-  }
-  if (alternate_phone) {
-    result.push(`Alt: ${alternate_phone}`);
-  }
-  if (email) {
-    result.push(`Email: ${email}`);
-  }
-
-  return result;
-};

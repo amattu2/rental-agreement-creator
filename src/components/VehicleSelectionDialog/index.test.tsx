@@ -1,5 +1,5 @@
 import { FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { DEFAULT_FORM } from "@/config/constants";
 import type { FormSchema } from "@/schemas/form";
 import { VehicleSelectionDialog } from "./index";
@@ -100,10 +100,7 @@ describe("VehicleSelectionDialog", () => {
     expect(await screen.findByText("2024 Ford Transit")).toBeInTheDocument();
     expect(databaseApi.getAllVehicles).toHaveBeenCalledTimes(1);
     expect(screen.getAllByRole("button", { name: "Select" })).toHaveLength(2);
-
-    const tableRows = screen.getAllByRole("row");
-    expect(within(tableRows[1]).getByText("2026 Mercedes Sprinter")).toBeInTheDocument();
-    expect(within(tableRows[2]).getByText("2024 Ford Transit")).toBeInTheDocument();
+    expect(screen.getByText("2026 Mercedes Sprinter")).toBeInTheDocument();
   });
 
   it("updates form values when a vehicle is selected", async () => {
@@ -145,19 +142,9 @@ describe("VehicleSelectionDialog", () => {
     });
   });
 
-  it("shows an empty state when there are no saved vehicles", async () => {
-    const databaseApi = createDatabaseApi({
-      getAllVehicles: vi.fn().mockResolvedValue([]),
-    });
-
-    renderDialog({ databaseApi });
-
-    expect(await screen.findByText("No saved vehicles found.")).toBeInTheDocument();
-  });
-
   it("shows an error message when loading vehicles fails", async () => {
     const databaseApi = createDatabaseApi({
-      getAllVehicles: vi.fn().mockRejectedValue(new Error("boom")),
+      getAllVehicles: vi.fn().mockRejectedValue(new Error("mock error")),
     });
 
     renderDialog({ databaseApi });

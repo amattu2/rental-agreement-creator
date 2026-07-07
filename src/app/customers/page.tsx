@@ -1,26 +1,82 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Box,
-  Button,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import { Alert, Box, Button, Stack, TextField, Typography, NoSsr } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
+import EditIcon from "@mui/icons-material/Edit";
 import { useDatabaseApi } from "@/database/provider";
 import { DEFAULT_CUSTOMER } from "@/config/constants";
 import { CustomerEditorDialog } from "@/components/CustomerEditorDialog";
 import { RenteeSchema } from "@/schemas/form";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { formatAddress, formatContactInfo, formatDate } from "@/utils/text";
+import { formatAddress, formatDate } from "@/utils/text";
+
+const CUSTOMERS_TABLE_BASE_COLUMNS: GridColDef<CustomerRecord>[] = [
+  {
+    field: "name",
+    headerName: "Name",
+    flex: 1,
+    minWidth: 90,
+    sortable: true,
+    hideable: false,
+    valueGetter: (_, row: CustomerRecord) => row.customer.full_name,
+  },
+  {
+    field: "cell_phone",
+    headerName: "Cell phone",
+    flex: 1,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) => row.customer.cell_phone,
+  },
+  {
+    field: "alternate_phone",
+    headerName: "Alternate phone",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) => row.customer.alternate_phone,
+  },
+  {
+    field: "email",
+    headerName: "Email address",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) => row.customer.email,
+  },
+  {
+    field: "license",
+    headerName: "Driver's license",
+    flex: 1,
+    minWidth: 140,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) =>
+      `${row.customer.driver_license_number} (${row.customer.driver_license_state})`,
+  },
+  {
+    field: "address",
+    headerName: "Address",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) => formatAddress(row.customer),
+  },
+  {
+    field: "updated",
+    headerName: "Updated",
+    sortable: true,
+    valueGetter: (_, row: CustomerRecord) => row.updatedAt,
+    renderCell: ({ row }) => formatDate(row.updatedAt),
+  },
+  {
+    field: "created",
+    headerName: "Created",
+    sortable: true,
+    valueGetter: (_, row: CustomerRecord) => row.createdAt,
+    renderCell: ({ row }) => formatDate(row.createdAt),
+  },
+];
 
 const CustomersPage = () => {
   const databaseApi = useDatabaseApi();
@@ -52,20 +108,20 @@ const CustomersPage = () => {
     [databaseApi]
   );
 
-  const openCreateDialog = () => {
+  const openCreateDialog = useCallback(() => {
     setActiveCustomer(null);
     setEditorOpen(true);
-  };
+  }, []);
 
-  const openEditDialog = (record: CustomerRecord) => {
+  const openEditDialog = useCallback((record: CustomerRecord) => {
     setActiveCustomer(record);
     setEditorOpen(true);
-  };
+  }, []);
 
-  const closeEditorDialog = () => {
+  const closeEditorDialog = useCallback(() => {
     setEditorOpen(false);
     setActiveCustomer(null);
-  };
+  }, []);
 
   const handleSaveCustomer = async (customer: RenteeSchema) => {
     try {
@@ -81,6 +137,25 @@ const CustomersPage = () => {
   useEffect(() => {
     handleSearch(query);
   }, [query, handleSearch]);
+
+  const columns = useMemo<GridColDef<CustomerRecord>[]>(
+    () => [
+      ...CUSTOMERS_TABLE_BASE_COLUMNS,
+      {
+        field: "actions",
+        type: "actions",
+        getActions: ({ row }) => [
+          <GridActionsCellItem
+            key="edit-customer"
+            icon={<EditIcon />}
+            label="Edit"
+            onClick={() => openEditDialog(row)}
+          />,
+        ],
+      },
+    ],
+    [openEditDialog]
+  );
 
   return (
     <Box sx={{ p: 4 }}>
@@ -113,48 +188,23 @@ const CustomersPage = () => {
         </Alert>
       )}
 
-      {isLoading ? (
-        <Typography color="text.secondary">Loading customers...</Typography>
-      ) : customers.length === 0 ? (
-        <Typography color="text.secondary">No customers found.</Typography>
-      ) : (
-        <Table size="small" aria-label="Customers table">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Contact</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Driver&apos;s license</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Address</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Updated</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-              <TableCell sx={{ fontWeight: 600 }}>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {customers.map((record) => (
-              <TableRow key={record.uuid}>
-                <TableCell>{record.customer.full_name}</TableCell>
-                <TableCell>
-                  {formatContactInfo(record.customer).map((info) => (
-                    <div key={info}>{info}</div>
-                  ))}
-                </TableCell>
-                <TableCell>
-                  {`${record.customer.driver_license_number} (${record.customer.driver_license_state})`}
-                </TableCell>
-                <TableCell>{formatAddress(record.customer)}</TableCell>
-                <TableCell>{formatDate(record.updatedAt)}</TableCell>
-                <TableCell>{formatDate(record.createdAt)}</TableCell>
-                <TableCell>
-                  <Button size="small" onClick={() => openEditDialog(record)}>
-                    Edit
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+      <NoSsr>
+        <DataGrid
+          rows={customers}
+          columns={columns}
+          getRowId={(row) => row.uuid}
+          loading={isLoading}
+          pageSizeOptions={[10, 25, 50, 100]}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 },
+            },
+          }}
+          sx={{ border: "none" }}
+          disableRowSelectionOnClick
+          disableColumnFilter
+        />
+      </NoSsr>
 
       {editorOpen && (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
