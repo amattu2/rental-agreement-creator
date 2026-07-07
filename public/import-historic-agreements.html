@@ -347,7 +347,7 @@
               db.createObjectStore(AGREEMENTS_STORE, { keyPath: "uuid" });
             }
             if (!db.objectStoreNames.contains(VEHICLES_STORE)) {
-              db.createObjectStore(VEHICLES_STORE, { keyPath: "identifier" });
+              db.createObjectStore(VEHICLES_STORE, { keyPath: "uuid" });
             }
             if (!db.objectStoreNames.contains(CUSTOMERS_STORE)) {
               db.createObjectStore(CUSTOMERS_STORE, { keyPath: "uuid" });
@@ -450,8 +450,9 @@
         };
       };
 
-      const mapVehicleRowToVehicleRecord = (vehicle) => {
+      const mapVehicleRowToVehicleRecord = (vehicle, existingUuid) => {
         const vehicleData = {
+          stock_number: toTrimmedString(vehicle["Stock Number"], "UNKNOWN-STOCK"),
           VIN: toTrimmedString(vehicle["VIN"], "UNKNOWNVIN00000000"),
           license_plate: toTrimmedString(vehicle["License Number"], "UNKNOWN"),
           year: Math.max(1900, toNumber(vehicle["Year"], 2000)),
@@ -473,7 +474,7 @@
 
         const nowIso = new Date().toISOString();
         return {
-          identifier: toTrimmedString(vehicle["Stock Number"], "UNKNOWN-STOCK"),
+          uuid: existingUuid || getUuid(),
           vehicle: vehicleData,
           status: "inactive",
           createdAt: nowIso,
@@ -481,7 +482,7 @@
         };
       };
 
-      const mapRentalToAgreementRecord = (rental, customer, vehicle, customerUuid) => {
+      const mapRentalToAgreementRecord = (rental, customer, vehicle, customerUuid, vehicleUuid) => {
         const dateOut = combineDateAndTime(rental["Date Out"], rental["Time Out"]);
         const dateIn = combineDateAndTime(rental["Date In"], rental["Time In"]);
 
@@ -490,7 +491,7 @@
         }
 
         const customerRecord = mapCustomerRowToCustomerRecord(customer, customerUuid);
-        const vehicleRecord = mapVehicleRowToVehicleRecord(vehicle);
+        const vehicleRecord = mapVehicleRowToVehicleRecord(vehicle, vehicleUuid);
 
         const dailyRate = toNumber(rental["Daily Rental Rate"]);
         const weeklyRate = toNumber(rental["Weekly Rental Rate"]);
@@ -676,7 +677,7 @@
           ),
           vehicle_damage_waiver: vehicleDamageWaiver,
           personal_accident_insurance: personalAccidentInsurance,
-          vehicle_identifier: vehicleRecord.identifier,
+          vehicle_uuid: vehicleRecord.uuid,
           rental_vehicle: {
             ...vehicleRecord.vehicle,
             rental_rates: rentalRates,
@@ -811,10 +812,12 @@
         });
 
         const vehicleByStockNumber = new Map();
+        const vehicleUuidByStockNumber = new Map();
         vehicles.forEach((vehicle) => {
           const stockNumber = toTrimmedString(vehicle["Stock Number"]);
           if (stockNumber) {
             vehicleByStockNumber.set(stockNumber, vehicle);
+            vehicleUuidByStockNumber.set(stockNumber, getUuid());
           }
         });
 
@@ -845,7 +848,10 @@
 
         vehicleByStockNumber.forEach((vehicle, stockNumber) => {
           try {
-            const vehicleRecord = mapVehicleRowToVehicleRecord(vehicle);
+            const vehicleRecord = mapVehicleRowToVehicleRecord(
+              vehicle,
+              vehicleUuidByStockNumber.get(stockNumber)
+            );
             vehicleStore.put(vehicleRecord);
           } catch (error) {
             const reason = error instanceof Error ? error.message : String(error);
@@ -879,7 +885,8 @@
               rental,
               customer,
               vehicle,
-              customerUuidById.get(customerId)
+              customerUuidById.get(customerId),
+              vehicleUuidByStockNumber.get(stockNumber)
             );
             agreementStore.put(record);
             inserted += 1;
