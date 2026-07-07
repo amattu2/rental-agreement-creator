@@ -40,3 +40,38 @@ export const customerMatchesQuery = (record: CustomerRecord, query: string): boo
 
   return terms.every((term) => haystack.some((token) => token.includes(term)));
 };
+
+/**
+ * Determines if a vehicle record matches a given search query.
+ *
+ * @param record The vehicle record to check against the query.
+ * @param query The search query string.
+ * @returns A boolean indicating whether the vehicle matches the search query.
+ */
+export const vehicleMatchesQuery = (record: VehicleRecord, query: string): boolean => {
+  const normalizedQuery = normalize(query);
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const terms = normalizedQuery
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+  if (terms.length === 0) {
+    return true;
+  }
+
+  const haystack = [
+    record?.vehicle?.stock_number,
+    record?.vehicle?.VIN,
+    record?.vehicle?.license_plate,
+    record?.vehicle?.year?.toString(),
+    record?.vehicle?.make,
+    record?.vehicle?.model,
+  ]
+    .map((token) => normalize(token))
+    .filter(Boolean);
+
+  return terms.every((term) => haystack.some((token) => token.includes(term)));
+};

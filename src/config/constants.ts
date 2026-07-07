@@ -1,4 +1,4 @@
-import type { FormSchema, RenteeSchema } from "@/schemas/form";
+import type { FormSchema, RenteeSchema, VehicleSchema } from "@/schemas/form";
 import { AGREEMENT_TERMS } from "./terms";
 
 /**
@@ -106,6 +106,18 @@ export const DEFAULT_CUSTOMER: RenteeSchema = {
   },
 };
 
+export const DEFAULT_VEHICLE: VehicleSchema = {
+  stock_number: "",
+  VIN: "",
+  license_plate: "",
+  year: new Date().getFullYear(),
+  make: "",
+  model: "",
+  color: "",
+  rental_rates: [],
+  usage_rates: [],
+};
+
 /**
  * A default form object that adheres to the FormSchema
  */
@@ -113,21 +125,12 @@ export const DEFAULT_FORM: FormSchema = {
   agreement_number: "",
   agreement_terms: AGREEMENT_TERMS,
   customer_uuid: undefined,
+  vehicle_uuid: undefined,
   rentee: { ...DEFAULT_CUSTOMER },
   additional_drivers: [],
   vehicle_damage_waiver: undefined,
   personal_accident_insurance: undefined,
-  vehicle_identifier: "",
-  rental_vehicle: {
-    VIN: "",
-    license_plate: "",
-    year: new Date().getFullYear(),
-    make: "",
-    model: "",
-    color: "",
-    rental_rates: [],
-    usage_rates: [],
-  },
+  rental_vehicle: { ...DEFAULT_VEHICLE },
   rental_agreement_info: {
     odometer_in: 0,
     date_in: new Date(),
@@ -154,7 +157,7 @@ export const DEFAULT_FORM: FormSchema = {
 };
 
 export const INDEXED_DB_NAME = "rental-agreement-creator";
-export const INDEXED_DB_VERSION = 3;
+export const INDEXED_DB_VERSION = 4;
 export const INDEXED_DB_AGREEMENT_STORE = "agreements";
 export const INDEXED_DB_VEHICLE_STORE = "vehicles";
 export const INDEXED_DB_CUSTOMER_STORE = "customers";

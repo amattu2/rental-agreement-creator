@@ -5,6 +5,8 @@ type FinalizationData = import("@/schemas/finalization").FinalizationSchema;
 
 type AgreementStatus = "active" | "archived" | "canceled";
 
+type BaseStatus = "active" | "inactive";
+
 type AgreementRecord = {
   uuid: string;
   agreement: AgreementData;
@@ -15,18 +17,17 @@ type AgreementRecord = {
 };
 
 type VehicleRecord = {
-  identifier: string;
+  uuid: string;
+  status: BaseStatus;
   vehicle: VehicleData;
   createdAt: string;
   updatedAt: string;
 };
 
-type CustomerStatus = "active" | "inactive";
-
 type CustomerRecord = {
   uuid: string;
   customer: RenteeData;
-  status: CustomerStatus;
+  status: BaseStatus;
   createdAt: string;
   updatedAt: string;
 };
@@ -39,9 +40,11 @@ type DatabaseApi = {
   finalizeAgreement(uuid: string, finalizationDetails: FinalizationData): Promise<AgreementRecord>;
   cancelAgreement(uuid: string): Promise<AgreementRecord>;
 
-  upsertVehicle(identifier: string, input: VehicleData): Promise<VehicleRecord>;
-  getVehicle(identifier: string): Promise<VehicleRecord | undefined>;
+  upsertVehicle(uuid: string | undefined, input: VehicleData): Promise<VehicleRecord>;
+  getVehicle(uuid: string): Promise<VehicleRecord | undefined>;
   getAllVehicles(): Promise<VehicleRecord[]>;
+  searchVehicles(query: string): Promise<VehicleRecord[]>;
+  setVehicleStatus(uuid: string, status: BaseStatus): Promise<VehicleRecord>;
 
   upsertCustomer(uuid?: string, input: RenteeData): Promise<CustomerRecord>;
   getCustomer(uuid: string): Promise<CustomerRecord | undefined>;

@@ -47,6 +47,7 @@ import {
   RATE_UNIT_OPTIONS,
   USAGE_TYPE_OPTIONS,
   DEFAULT_CUSTOMER,
+  DEFAULT_VEHICLE,
 } from "@/config/constants";
 import { useBillingState } from "../BillingContext";
 
@@ -104,6 +105,7 @@ export const RentalAgreementForm = () => {
   const personalAccidentInsurance = watch("personal_accident_insurance");
   const hasPersonalAccidentInsurance = personalAccidentInsurance !== undefined;
   const customerUuid = watch("customer_uuid");
+  const vehicleUuid = watch("vehicle_uuid");
 
   const handleClearCustomer = useCallback(() => {
     setValue("customer_uuid", undefined, {
@@ -112,6 +114,29 @@ export const RentalAgreementForm = () => {
       shouldValidate: true,
     });
     setValue("rentee", DEFAULT_CUSTOMER, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  }, [setValue]);
+
+  const handleClearVehicle = useCallback(() => {
+    setValue("vehicle_uuid", undefined, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    setValue("rental_vehicle", DEFAULT_VEHICLE, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    setValue("rental_vehicle.rental_rates", [], {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    setValue("rental_vehicle.usage_rates", [], {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
@@ -143,9 +168,30 @@ export const RentalAgreementForm = () => {
     );
   }, [odometerOut, maxDistance, odometerIn, disabled, setValue]);
 
-  const VehicleSelectAdornment = useMemo<React.ReactElement>(
-    () => (
-      <Tooltip title="Select an existing vehicle">
+  const VehicleSelectAdornment = useMemo<React.ReactElement>(() => {
+    const adornments: React.ReactElement[] = [];
+
+    if (vehicleUuid) {
+      adornments.push(
+        <Tooltip title="Clear vehicle selection" key="clear-vehicle-button">
+          <span>
+            <Chip
+              key="vehicle-chip"
+              label="Existing Vehicle"
+              aria-label="Clear vehicle selection"
+              size="small"
+              variant="outlined"
+              color="primary"
+              onDelete={handleClearVehicle}
+              disabled={disabled}
+            />
+          </span>
+        </Tooltip>
+      );
+    }
+
+    adornments.push(
+      <Tooltip title="Select an existing vehicle" key="select-vehicle-button">
         <span>
           <StyledIconButton
             type="button"
@@ -158,9 +204,10 @@ export const RentalAgreementForm = () => {
           </StyledIconButton>
         </span>
       </Tooltip>
-    ),
-    [setVehicleSelectionOpen, disabled]
-  );
+    );
+
+    return <>{adornments}</>;
+  }, [disabled, vehicleUuid, handleClearVehicle, setVehicleSelectionOpen]);
 
   const CustomerSelectAdornment = useMemo<React.ReactElement>(() => {
     const adornments: React.ReactElement[] = [];
@@ -270,8 +317,9 @@ export const RentalAgreementForm = () => {
           <Subsection title="Vehicle Information">
             <Stack spacing={2}>
               <TextInput
-                name="vehicle_identifier"
-                label="Vehicle identifier (Stock #)"
+                name="rental_vehicle.stock_number"
+                label="Stock number"
+                disabled={!!vehicleUuid}
                 slotProps={{
                   input: {
                     endAdornment: VehicleSelectAdornment,
@@ -509,7 +557,7 @@ export const RentalAgreementForm = () => {
               size="small"
               disabled={usageRateFields.length >= MAX_USAGE_RATES || disabled}
             >
-              Add usage rate
+              Add Usage Charge
             </Button>
           </Subsection>
         </Stack>

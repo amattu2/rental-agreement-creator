@@ -10,6 +10,8 @@ import {
   DialogTitle,
   NoSsr,
   Button,
+  Stack,
+  TextField,
 } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -18,21 +20,36 @@ import type { FormSchema } from "@/schemas/form";
 
 const VEHICLE_SELECTION_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
   {
-    field: "identifier",
-    headerName: "Identifier",
+    field: "stock_number",
+    headerName: "Stock #",
     flex: 1,
     minWidth: 100,
     sortable: true,
     hideable: false,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.stock_number,
   },
   {
-    field: "vehicle_display",
-    headerName: "Vehicle",
+    field: "year",
+    headerName: "Year",
+    minWidth: 90,
+    sortable: true,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.year,
+  },
+  {
+    field: "make",
+    headerName: "Make",
     flex: 1,
-    minWidth: 150,
-    sortable: false,
-    valueGetter: (_, row: VehicleRecord) =>
-      `${row.vehicle.year} ${row.vehicle.make} ${row.vehicle.model}`.trim(),
+    minWidth: 120,
+    sortable: true,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.make,
+  },
+  {
+    field: "model",
+    headerName: "Model",
+    flex: 1,
+    minWidth: 120,
+    sortable: true,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.model,
   },
   {
     field: "VIN",
@@ -50,14 +67,6 @@ const VEHICLE_SELECTION_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
     sortable: true,
     valueGetter: (_, row: VehicleRecord) => row.vehicle.license_plate,
   },
-  {
-    field: "color",
-    headerName: "Color",
-    flex: 1,
-    minWidth: 100,
-    sortable: true,
-    valueGetter: (_, row: VehicleRecord) => row.vehicle.color,
-  },
 ];
 
 type VehicleSelectionDialogProps = {
@@ -70,13 +79,14 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
 
   const [vehicles, setVehicles] = useState<VehicleRecord[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [query, setQuery] = useState<string>("");
   const isLoading = vehicles === null && errorMessage === null;
 
   const handleSelectVehicle = useCallback(
     (record: VehicleRecord) => {
-      const { vehicle, identifier } = record;
+      const { vehicle, uuid } = record;
 
-      setValue("vehicle_identifier", identifier, {
+      setValue("vehicle_uuid", uuid, {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
@@ -112,9 +122,9 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
 
   useEffect(() => {
     databaseApi
-      .getAllVehicles()
+      .searchVehicles(query)
       .then((records) => {
-        setVehicles(records.sort((a, b) => b.vehicle.year - a.vehicle.year));
+        setVehicles(records.filter(({ status }) => status === "active"));
         setErrorMessage(null);
       })
       .catch((error) => {
@@ -122,7 +132,7 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
         setErrorMessage("Unable to load vehicle list.");
         setVehicles([]);
       });
-  }, [databaseApi]);
+  }, [databaseApi, query]);
 
   const columns = useMemo<GridColDef<VehicleRecord>[]>(
     () => [
@@ -148,6 +158,16 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
     <Dialog onClose={onClose} maxWidth="md" open fullWidth>
       <DialogTitle>Select Vehicle</DialogTitle>
       <DialogContent>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 2, mb: 2 }}>
+          <TextField
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            label="Search"
+            size="small"
+            fullWidth
+          />
+        </Stack>
+
         {!isLoading && errorMessage && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {errorMessage}
@@ -160,7 +180,7 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
             loading={isLoading}
             localeText={{ noRowsLabel: "No saved vehicles found." }}
             columns={columns}
-            getRowId={(row) => row.identifier}
+            getRowId={(row) => row.uuid}
             pageSizeOptions={[10, 25, 50, 100]}
             initialState={{
               pagination: {
