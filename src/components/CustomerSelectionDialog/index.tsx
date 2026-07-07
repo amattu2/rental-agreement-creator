@@ -160,6 +160,7 @@ export const CustomerSelectionDialog = ({ onClose }: CustomerSelectionDialogProp
           <DataGrid
             rows={customers ?? []}
             loading={isLoading}
+            localeText={{ noRowsLabel: "No matching customers found." }}
             columns={columns}
             getRowId={(row) => row.uuid}
             pageSizeOptions={[10, 25, 50, 100]}

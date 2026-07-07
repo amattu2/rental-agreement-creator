@@ -158,6 +158,7 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
           <DataGrid
             rows={vehicles ?? []}
             loading={isLoading}
+            localeText={{ noRowsLabel: "No saved vehicles found." }}
             columns={columns}
             getRowId={(row) => row.identifier}
             pageSizeOptions={[10, 25, 50, 100]}

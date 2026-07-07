@@ -269,6 +269,9 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
           columns={columns}
           loading={loading}
           getRowId={(row) => row.uuid}
+          localeText={{
+            noRowsLabel: "No agreements found. Adjust your filters or check back soon.",
+          }}
           pageSizeOptions={[10, 25, 50, 100]}
           initialState={{
             pagination: {
