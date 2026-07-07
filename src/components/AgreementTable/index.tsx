@@ -1,21 +1,18 @@
 import { formatDate } from "@/utils/text";
 import { ENV_SCHEMA } from "@/schemas/env";
+import { Tooltip, NoSsr } from "@mui/material";
 import {
-  TableContainer,
-  Paper,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  IconButton,
-  Tooltip,
-  Menu,
-  MenuItem,
-  Skeleton,
-} from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { memo, useCallback, useState, MouseEvent } from "react";
+  DataGrid,
+  GridColDef,
+  GridRenderCellParams,
+  GridActionsCellItem,
+  GridRowParams,
+} from "@mui/x-data-grid";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import TaskIcon from "@mui/icons-material/Task";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { memo, useCallback, useState, useMemo } from "react";
 import Link from "next/link";
 import { FinalizationSchema } from "@/schemas/finalization";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -24,40 +21,90 @@ import { FinalizationDialog } from "@/components/FinalizationDialog";
 import { CancellationDialog } from "@/components/CancellationDialog";
 import StatusChip from "@/components/StatusChip";
 
-const TABLE_COLUMNS = [
-  { id: "agreement_number", label: "Agreement No." },
-  { id: "status", label: "Status" },
-  { id: "rentee", label: "Rentee" },
-  { id: "vehicle", label: "Vehicle" },
-  { id: "pickup_date", label: "Pickup Date" },
-  { id: "return_date", label: "Return Date" },
-  { id: "updated", label: "Updated" },
-  { id: "created", label: "Created" },
-  { id: "actions", label: "", sx: { width: 72 } },
-] as const;
-
-const LoadingRows = () =>
-  Array.from({ length: 5 }).map((_, rowIndex) => (
-    <TableRow key={rowIndex} aria-hidden>
-      {TABLE_COLUMNS.map((column) => (
-        <TableCell key={column.id}>
-          <Skeleton animation="wave" variant="rounded" width="100%" height={20} />
-        </TableCell>
-      ))}
-    </TableRow>
-  ));
-
-const PlaceholderRow = () => (
-  <TableRow>
-    <TableCell
-      colSpan={TABLE_COLUMNS.length}
-      align="center"
-      sx={{ py: 4, color: "text.secondary" }}
-    >
-      No agreements found. Adjust your filters or check back soon.
-    </TableCell>
-  </TableRow>
-);
+const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
+  {
+    field: "agreement_number",
+    headerName: "Agreement No.",
+    flex: 1,
+    minWidth: 120,
+    sortable: false,
+    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) => {
+      return (
+        <Tooltip title={`Manage agreement - ${row.agreement.agreement_number}`}>
+          <Link href={`/agreement?uuid=${row.uuid}`}>{row.agreement.agreement_number}</Link>
+        </Tooltip>
+      );
+    },
+  },
+  {
+    field: "status",
+    headerName: "Status",
+    width: 100,
+    sortable: true,
+    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) => (
+      <StatusChip status={row.status} />
+    ),
+  },
+  {
+    field: "rentee",
+    headerName: "Rentee",
+    flex: 1,
+    minWidth: 120,
+    sortable: true,
+    valueGetter: (_, row: AgreementRecord) => row.agreement.rentee.full_name,
+  },
+  {
+    field: "vehicle",
+    headerName: "Vehicle",
+    flex: 1,
+    minWidth: 150,
+    sortable: true,
+    valueGetter: (_, row: AgreementRecord) => {
+      const { year, make, model } = row.agreement.rental_vehicle;
+      return `${year} ${make} ${model}`.trim();
+    },
+  },
+  {
+    field: "pickup_date",
+    headerName: "Pickup Date",
+    flex: 1,
+    minWidth: 140,
+    sortable: true,
+    valueGetter: (_, row: AgreementRecord) => row.agreement.rental_agreement_info.date_out,
+    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) =>
+      formatDate(row.agreement.rental_agreement_info.date_out, "MM/DD/YYYY h:mma"),
+  },
+  {
+    field: "return_date",
+    headerName: "Return Date",
+    flex: 1,
+    minWidth: 140,
+    sortable: true,
+    valueGetter: (_, row: AgreementRecord) => row.agreement.rental_agreement_info.date_in,
+    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) =>
+      formatDate(row.agreement.rental_agreement_info.date_in, "MM/DD/YYYY h:mma"),
+  },
+  {
+    field: "updated",
+    headerName: "Updated",
+    flex: 1,
+    minWidth: 140,
+    sortable: true,
+    valueGetter: (_, row: AgreementRecord) => row.updatedAt,
+    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) =>
+      formatDate(row.updatedAt, "MM/DD/YYYY h:mma"),
+  },
+  {
+    field: "created",
+    headerName: "Created",
+    flex: 1,
+    minWidth: 140,
+    sortable: true,
+    valueGetter: (_, row: AgreementRecord) => row.createdAt,
+    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) =>
+      formatDate(row.createdAt, "MM/DD/YYYY h:mma"),
+  },
+];
 
 export type AgreementTableProps = {
   /**
@@ -86,24 +133,12 @@ export type AgreementTableProps = {
 };
 
 const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementTableProps) => {
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [activeAgreement, setActiveAgreement] = useState<AgreementRecord | null>(null);
   const [finalizingAgreement, setFinalizingAgreement] = useState<boolean>(false);
   const [cancelingAgreement, setCancelingAgreement] = useState<boolean>(false);
 
-  const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>, agreement: AgreementRecord) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-    setActiveAgreement(agreement);
-  };
-
-  const handleCloseMenu = useCallback(() => {
-    setAnchorEl(null);
-    setActiveAgreement(null);
-  }, []);
-
-  const handleViewAgreement = useCallback(async () => {
-    if (!activeAgreement) {
+  const handleViewAgreement = useCallback(async (record: AgreementRecord) => {
+    if (!record) {
       return;
     }
 
@@ -118,44 +153,37 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
 
     const { generateAgreement } = await import("@/pdfs/agreement");
 
-    const pdfUrl = URL.createObjectURL(await generateAgreement(envData, activeAgreement));
+    const pdfUrl = URL.createObjectURL(await generateAgreement(envData, record));
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
 
     setTimeout(() => {
       URL.revokeObjectURL(pdfUrl);
     }, 10_000);
+  }, []);
 
-    handleCloseMenu();
-  }, [activeAgreement, handleCloseMenu]);
+  const handleViewReceipt = useCallback(async (record: AgreementRecord) => {
+    if (!record) {
+      return;
+    }
 
-  const handleViewReceipt = useCallback(
-    async (record: AgreementRecord) => {
-      if (!record) {
-        return;
-      }
+    const envData = ENV_SCHEMA.parse({
+      NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+      NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+      NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
+      NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
+      NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
+      NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
+    });
 
-      const envData = ENV_SCHEMA.parse({
-        NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
-        NEXT_PUBLIC_APP_DESCRIPTION: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
-        NEXT_PUBLIC_COMPANY_NAME: process.env.NEXT_PUBLIC_COMPANY_NAME,
-        NEXT_PUBLIC_ADDRESS_LINE1: process.env.NEXT_PUBLIC_ADDRESS_LINE1,
-        NEXT_PUBLIC_ADDRESS_LINE2: process.env.NEXT_PUBLIC_ADDRESS_LINE2,
-        NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
-      });
+    const { generateReceipt } = await import("@/pdfs/receipt");
 
-      const { generateReceipt } = await import("@/pdfs/receipt");
+    const pdfUrl = URL.createObjectURL(await generateReceipt(envData, record));
+    window.open(pdfUrl, "_blank", "noopener,noreferrer");
 
-      const pdfUrl = URL.createObjectURL(await generateReceipt(envData, record));
-      window.open(pdfUrl, "_blank", "noopener,noreferrer");
-
-      setTimeout(() => {
-        URL.revokeObjectURL(pdfUrl);
-      }, 10_000);
-
-      handleCloseMenu();
-    },
-    [handleCloseMenu]
-  );
+    setTimeout(() => {
+      URL.revokeObjectURL(pdfUrl);
+    }, 10_000);
+  }, []);
 
   const handleFinalizationConfirm = useCallback(
     async (details: FinalizationSchema) => {
@@ -177,93 +205,84 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
 
     await onCancel(activeAgreement.uuid);
     setCancelingAgreement(false);
-    handleCloseMenu();
-  }, [activeAgreement, onCancel, handleCloseMenu]);
+  }, [activeAgreement, onCancel]);
+
+  const columns = useMemo<GridColDef<AgreementRecord>[]>(
+    () => [
+      ...AGREEMENT_TABLE_COLUMNS,
+      {
+        field: "actions",
+        type: "actions",
+        getActions: (params: GridRowParams<AgreementRecord>) =>
+          [
+            <GridActionsCellItem
+              icon={<PictureAsPdfIcon />}
+              onClick={() => handleViewAgreement(params.row)}
+              label="View Agreement"
+              key="view-agreement"
+              showInMenu
+            />,
+            params.row?.status === "archived" ? (
+              <GridActionsCellItem
+                icon={<ReceiptLongIcon />}
+                onClick={() => handleViewReceipt(params.row)}
+                label="View Receipt"
+                key="view-receipt"
+                showInMenu
+              />
+            ) : null,
+            params.row?.status === "active" ? (
+              <GridActionsCellItem
+                icon={<TaskIcon />}
+                onClick={() => {
+                  setActiveAgreement(params.row);
+                  setFinalizingAgreement(true);
+                }}
+                label="Finalize"
+                key="finalize"
+                showInMenu
+              />
+            ) : null,
+            params.row?.status === "active" ? (
+              <GridActionsCellItem
+                icon={<CancelIcon />}
+                onClick={() => {
+                  setActiveAgreement(params.row);
+                  setCancelingAgreement(true);
+                }}
+                label="Cancel"
+                key="cancel"
+                showInMenu
+              />
+            ) : null,
+          ].filter(Boolean),
+      },
+    ],
+    [handleViewAgreement, handleViewReceipt]
+  );
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            {TABLE_COLUMNS.map((column) => (
-              <TableCell
-                key={column.id}
-                sx={{ fontWeight: 600, ...("sx" in column ? column.sx : undefined) }}
-              >
-                {column.label}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {loading && <LoadingRows />}
-          {!loading && agreements.length === 0 && <PlaceholderRow />}
-          {!loading &&
-            agreements?.map((record: AgreementRecord) => {
-              const { uuid, agreement, status, updatedAt, createdAt } = record;
-              const { agreement_number, rentee, rental_agreement_info, rental_vehicle } = agreement;
-              const { year, make, model } = rental_vehicle;
-              const isReadOnly = status !== "active";
-
-              return (
-                <TableRow
-                  key={uuid}
-                  sx={{
-                    opacity: isReadOnly ? 0.6 : 1,
-                    backgroundColor: isReadOnly ? "action.hover" : "transparent",
-                  }}
-                >
-                  <TableCell>
-                    <Tooltip title={`Edit agreement ${agreement_number}`}>
-                      <Link href={`/agreement?uuid=${uuid}`}>{agreement_number}</Link>
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell>
-                    <StatusChip status={status} />
-                  </TableCell>
-                  <TableCell>{rentee.full_name}</TableCell>
-                  <TableCell>{`${year} ${make} ${model}`.trim()}</TableCell>
-                  <TableCell>
-                    {formatDate(rental_agreement_info.date_out, "MM/DD/YYYY h:mma")}
-                  </TableCell>
-                  <TableCell>
-                    {formatDate(rental_agreement_info.date_in, "MM/DD/YYYY h:mma")}
-                  </TableCell>
-                  <TableCell>{formatDate(updatedAt, "MM/DD/YYYY h:mma")}</TableCell>
-                  <TableCell>{formatDate(createdAt, "MM/DD/YYYY h:mma")}</TableCell>
-                  <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      aria-label={`Actions for agreement ${agreement_number}`}
-                      onClick={(event) => handleOpenMenu(event, record)}
-                    >
-                      <MoreVertIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-      </Table>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <MenuItem onClick={handleViewAgreement}>View Agreement</MenuItem>
-        {activeAgreement?.status === "archived" && (
-          <MenuItem onClick={() => handleViewReceipt(activeAgreement)}>View Receipt</MenuItem>
-        )}
-        {activeAgreement?.status === "active" && (
-          <MenuItem onClick={() => setFinalizingAgreement(true)}>Finalize</MenuItem>
-        )}
-        {activeAgreement?.status === "active" && (
-          <MenuItem onClick={() => setCancelingAgreement(true)}>Cancel</MenuItem>
-        )}
-      </Menu>
+    <>
+      <NoSsr>
+        <DataGrid
+          rows={agreements}
+          columns={columns}
+          loading={loading}
+          getRowId={(row) => row.uuid}
+          localeText={{
+            noRowsLabel: "No agreements found. Adjust your filters or check back soon.",
+          }}
+          pageSizeOptions={[10, 25, 50, 100]}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 },
+            },
+          }}
+          sx={{ border: "none" }}
+          disableRowSelectionOnClick
+          disableColumnMenu
+        />
+      </NoSsr>
 
       {finalizingAgreement && activeAgreement && (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -281,7 +300,7 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
           onConfirm={handleCancellationConfirm}
         />
       )}
-    </TableContainer>
+    </>
   );
 };
 
