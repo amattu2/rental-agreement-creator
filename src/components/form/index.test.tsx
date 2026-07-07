@@ -27,6 +27,8 @@ const renderForm = () => {
     cancelAgreement: vi.fn(),
     upsertVehicle: vi.fn(),
     getVehicle: vi.fn(),
+    searchVehicles: vi.fn().mockResolvedValue([]),
+    setVehicleStatus: vi.fn(),
     finalizeAgreement: vi.fn(),
     getAllVehicles: vi.fn().mockResolvedValue([]),
     upsertCustomer: vi.fn(),
@@ -55,10 +57,12 @@ const renderForm = () => {
 };
 
 const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord => ({
-  identifier: "STK-1",
+  uuid: "vehicle-1",
+  status: "active",
   createdAt: "2026-06-08T10:00:00.000Z",
   updatedAt: "2026-06-08T10:00:00.000Z",
   vehicle: {
+    stock_number: "STK-1",
     VIN: "1FTBW2CM5MKA00001",
     license_plate: "ABC-123",
     year: 2024,
@@ -130,11 +134,11 @@ describe("RentalAgreementForm", () => {
       cancelAgreement: vi.fn(),
       upsertVehicle: vi.fn(),
       getVehicle: vi.fn(),
-      finalizeAgreement: vi.fn(),
-      getAllVehicles: vi.fn().mockResolvedValue([
+      searchVehicles: vi.fn().mockResolvedValue([
         createVehicleRecord({
-          identifier: "STK-2",
+          uuid: "vehicle-2",
           vehicle: {
+            stock_number: "STK-2",
             VIN: "1FTBW2CM5MKA00002",
             license_plate: "XYZ-789",
             year: 2025,
@@ -155,6 +159,9 @@ describe("RentalAgreementForm", () => {
           },
         }),
       ]),
+      setVehicleStatus: vi.fn(),
+      finalizeAgreement: vi.fn(),
+      getAllVehicles: vi.fn().mockResolvedValue([]),
       upsertCustomer: vi.fn(),
       getCustomer: vi.fn(),
       getAllCustomers: vi.fn().mockResolvedValue([]),
@@ -205,7 +212,9 @@ describe("RentalAgreementForm", () => {
       finalizeAgreement: vi.fn(),
       upsertVehicle: vi.fn(),
       getVehicle: vi.fn(),
-      getAllVehicles: vi.fn().mockResolvedValue([createVehicleRecord()]),
+      searchVehicles: vi.fn().mockResolvedValue([createVehicleRecord()]),
+      setVehicleStatus: vi.fn(),
+      getAllVehicles: vi.fn().mockResolvedValue([]),
       upsertCustomer: vi.fn(),
       getCustomer: vi.fn(),
       getAllCustomers: vi.fn().mockResolvedValue([]),
@@ -310,6 +319,8 @@ describe("RentalAgreementForm", () => {
       cancelAgreement: vi.fn(),
       upsertVehicle: vi.fn(),
       getVehicle: vi.fn(),
+      searchVehicles: vi.fn().mockResolvedValue([]),
+      setVehicleStatus: vi.fn(),
       finalizeAgreement: vi.fn(),
       getAllVehicles: vi.fn().mockResolvedValue([]),
       upsertCustomer: vi.fn(),

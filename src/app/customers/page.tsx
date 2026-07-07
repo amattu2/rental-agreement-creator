@@ -144,6 +144,7 @@ const CustomersPage = () => {
       {
         field: "actions",
         type: "actions",
+        hideable: false,
         getActions: ({ row }) => [
           <GridActionsCellItem
             key="edit-customer"

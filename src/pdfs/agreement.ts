@@ -592,7 +592,7 @@ export const generateAgreement = async (
   // ---- COLUMN 2 ----
 
   currentY = 39.5;
-  doc.drawField("VEHICLE #", 126.5, currentY, 19.5, form.vehicle_identifier ?? "");
+  doc.drawField("VEHICLE #", 126.5, currentY, 19.5, form.rental_vehicle.stock_number ?? "");
   doc.setDrawColor(0, 0, 0);
   doc.line(146.2, currentY - 3, 146.2, currentY + 5);
   doc.drawField("VIN", 147, currentY, 36.5, form.rental_vehicle.VIN);

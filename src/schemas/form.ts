@@ -128,8 +128,12 @@ const USAGE_RATE_SCHEMA = z.object({
   usage_note: z.string().max(25).optional(),
 });
 
-const RENTAL_VEHICLE_SCHEMA = z
+export const VEHICLE_SCHEMA = z
   .object({
+    stock_number: z
+      .string()
+      .min(1, "Vehicle stock number is required")
+      .max(50, "Maximum of 50 characters allowed"),
     VIN: z.string().min(1, "Vehicle VIN is required").max(17, "Maximum of 17 characters allowed"),
     license_plate: z
       .string()
@@ -294,6 +298,7 @@ export const FORM_SCHEMA = z
       .max(50, "Maximum of 50 characters allowed"),
     agreement_terms: AGREEMENT_TERMS_SCHEMA,
     customer_uuid: z.uuidv4().optional(),
+    vehicle_uuid: z.uuidv4().optional(),
     rentee: RENTEE_SCHEMA,
     additional_drivers: z
       .array(ADDITIONAL_DRIVER_SCHEMA)
@@ -304,8 +309,7 @@ export const FORM_SCHEMA = z
       .optional(),
     vehicle_damage_waiver: VEHICLE_DAMAGE_WAIVER_SCHEMA.optional(),
     personal_accident_insurance: PERSONAL_ACCIDENT_INSURANCE_SCHEMA.optional(),
-    vehicle_identifier: z.string().max(50, "Maximum of 50 characters allowed"),
-    rental_vehicle: RENTAL_VEHICLE_SCHEMA,
+    rental_vehicle: VEHICLE_SCHEMA,
     rental_agreement_info: RENTAL_AGREEMENT_INFO_SCHEMA,
     agreement_charges: AGREEMENT_CHARGES_SCHEMA,
     currency: z.literal("USD"),
@@ -326,7 +330,7 @@ export const FORM_SCHEMA = z
   .strict();
 
 export type RenteeSchema = z.infer<typeof RENTEE_SCHEMA>;
-export type VehicleSchema = z.infer<typeof RENTAL_VEHICLE_SCHEMA>;
+export type VehicleSchema = z.infer<typeof VEHICLE_SCHEMA>;
 export type FormSchema = z.infer<typeof FORM_SCHEMA>;
 export type AgreementTermsSchema = z.infer<typeof AGREEMENT_TERMS_SCHEMA>;
 export type AgreementChargeItemSchema = z.infer<typeof AGREEMENT_CHARGE_ITEM>;

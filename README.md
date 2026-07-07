@@ -14,14 +14,13 @@ Supported features:
 - Create, edit, and manage vehicle rental agreements
 - Digital rental agreement PDF generation (letter)
 - Agreement finalization and dynamic receipt creation (80mm)
-- Lightweight customer management
+- Lightweight vehicle and customer management
 - Documents include a QR Code generation for quick access to online records
 - Static site generation, and client-side persistence with IndexedDB
 - Configurable company branding via environment variables
 
 Upcoming features:
 
-- [ ] Vehicle management
 - [ ] Digital receipt emailing
 
 > [!IMPORTANT]

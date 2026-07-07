@@ -51,11 +51,13 @@ const Page = () => {
       const customer = await databaseApi.upsertCustomer(data.customer_uuid, data.rentee);
       if (customer.uuid) {
         data.customer_uuid = customer.uuid;
+        data.rentee = customer.customer;
       }
 
-      const vehicle = await databaseApi.upsertVehicle(data.vehicle_identifier, data.rental_vehicle);
-      if (vehicle.identifier) {
-        data.vehicle_identifier = vehicle.identifier;
+      const vehicle = await databaseApi.upsertVehicle(data.vehicle_uuid, data.rental_vehicle);
+      if (vehicle.uuid) {
+        data.vehicle_uuid = vehicle.uuid;
+        data.rental_vehicle = vehicle.vehicle;
       }
 
       let record: AgreementRecord;
