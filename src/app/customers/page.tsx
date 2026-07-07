@@ -194,6 +194,7 @@ const CustomersPage = () => {
           columns={columns}
           getRowId={(row) => row.uuid}
           loading={isLoading}
+          localeText={{ noRowsLabel: "No customers found." }}
           pageSizeOptions={[10, 25, 50, 100]}
           initialState={{
             pagination: {
