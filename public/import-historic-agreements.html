@@ -148,7 +148,7 @@
         <h1>Historic Agreement Import</h1>
         <div class="help">
           Upload rentals, customers, and vehicles CSV files, then run the import directly into IndexedDB.
-          Database and store are hardcoded to <b>rental-agreement-creator / agreements</b>.
+          Database and stores are hardcoded to <b>rental-agreement-creator / agreements / customers / vehicles</b>.
         </div>
 
         <div class="grid">
@@ -192,8 +192,10 @@
 
     <script>
       const DB_NAME = "rental-agreement-creator";
-      const DB_VERSION = 3;
+      const DB_VERSION = 4;
       const AGREEMENTS_STORE = "agreements";
+      const VEHICLES_STORE = "vehicles";
+      const CUSTOMERS_STORE = "customers";
 
       const AGREEMENT_TERMS = {
         version: 1,
@@ -302,7 +304,32 @@
           return crypto.randomUUID();
         }
 
-        return Date.now() + "-" + Math.random().toString(16).slice(2);
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+          const rand = Math.floor(Math.random() * 16);
+          const value = char === "x" ? rand : (rand & 0x3) | 0x8;
+          return value.toString(16);
+        });
+      };
+
+      const normalizeKey = (value) => String(value || "").trim().toLowerCase();
+
+      const isValidLicenseNumber = (value) => {
+        const normalized = normalizeKey(value);
+        return normalized.length > 0 && normalized !== "na" && normalized !== "n/a";
+      };
+
+      const isNonExpiredDate = (date) => {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+          return false;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const candidate = new Date(date);
+        candidate.setHours(0, 0, 0, 0);
+
+        return candidate.getTime() >= today.getTime();
       };
 
       const openDatabase = () =>
@@ -318,6 +345,12 @@
             const db = request.result;
             if (!db.objectStoreNames.contains(AGREEMENTS_STORE)) {
               db.createObjectStore(AGREEMENTS_STORE, { keyPath: "uuid" });
+            }
+            if (!db.objectStoreNames.contains(VEHICLES_STORE)) {
+              db.createObjectStore(VEHICLES_STORE, { keyPath: "identifier" });
+            }
+            if (!db.objectStoreNames.contains(CUSTOMERS_STORE)) {
+              db.createObjectStore(CUSTOMERS_STORE, { keyPath: "uuid" });
             }
           };
 
@@ -366,7 +399,89 @@
           personal_accident_insurance,
         });
 
-      const mapRentalToAgreementRecord = (rental, customer, vehicle) => {
+      const mapCustomerRowToCustomerRecord = (customer, existingUuid) => {
+        const fullName = [
+          toTrimmedString(customer["First Name"]),
+          toTrimmedString(customer["Middle Name"]),
+          toTrimmedString(customer["Last Name"]),
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        const licenseExpiration = parseDateOnly(customer["Drivers License Expiration Date"]);
+        const hasValidLicense =
+          isValidLicenseNumber(customer["Drivers License Number"]) && isNonExpiredDate(licenseExpiration);
+
+        const customerData = {
+          full_name: fullName || "UNKNOWN CUSTOMER",
+          address_street1: toTrimmedString(customer["Address"], "UNKNOWN ADDRESS"),
+          address_city: toTrimmedString(customer["City"], "UNKNOWN CITY"),
+          address_state: toTrimmedString(customer["State"], "NA"),
+          address_zip: toTrimmedString(customer["Zip Code"], "00000"),
+          verified: true,
+          driver_license_number: toTrimmedString(customer["Drivers License Number"], "UNKNOWN"),
+          driver_license_state: toTrimmedString(customer["Drivers License State"], "NA"),
+          driver_license_expiration: licenseExpiration || new Date("1970-01-01"),
+          date_of_birth: parseDateOnly(customer["Date of Birth"]) || new Date("1970-01-01"),
+          cell_phone: toTrimmedString(customer["Home Phone"], "N/A"),
+          alternate_phone: toTrimmedString(customer["Local Contact Phone"], ""),
+          email: "",
+          employer: {
+            company: toTrimmedString(customer["Employer"], ""),
+            position: toTrimmedString(customer["Position"], ""),
+            address_street1: toTrimmedString(customer["Employer Address"], ""),
+            address_city: toTrimmedString(customer["Employer City"], ""),
+            address_state: toTrimmedString(customer["Employer State"], ""),
+            address_zip: toTrimmedString(customer["Employer Zip Code"], ""),
+          },
+          insurance: {
+            company: "",
+            policy_number: "",
+          },
+        };
+
+        const nowIso = new Date().toISOString();
+        return {
+          uuid: existingUuid || getUuid(),
+          customer: customerData,
+          status: hasValidLicense ? "active" : "inactive",
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+      };
+
+      const mapVehicleRowToVehicleRecord = (vehicle) => {
+        const vehicleData = {
+          VIN: toTrimmedString(vehicle["VIN"], "UNKNOWNVIN00000000"),
+          license_plate: toTrimmedString(vehicle["License Number"], "UNKNOWN"),
+          year: Math.max(1900, toNumber(vehicle["Year"], 2000)),
+          make: toTrimmedString(vehicle["Make"], "UNKNOWN"),
+          model: toTrimmedString(vehicle["Model"], "UNKNOWN"),
+          color: toTrimmedString(vehicle["Color"], "UNKNOWN"),
+          rental_rates: [
+            { rate_unit: "hours", rate_cost: toNumber(vehicle["Hourly Rental Rate"]), rate_note: "PER HOUR" },
+            { rate_unit: "days", rate_cost: toNumber(vehicle["Daily Rental Rate"]) },
+            { rate_unit: "weeks", rate_cost: toNumber(vehicle["Weekly Rental Rate"]) },
+            {
+              rate_unit: "distance",
+              rate_cost: toNumber(vehicle["Rental Mileage Rate"]),
+              rate_note: "PER MILE",
+            },
+          ].filter((rate) => rate.rate_cost > 0),
+          usage_rates: [],
+        };
+
+        const nowIso = new Date().toISOString();
+        return {
+          identifier: toTrimmedString(vehicle["Stock Number"], "UNKNOWN-STOCK"),
+          vehicle: vehicleData,
+          status: "inactive",
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        };
+      };
+
+      const mapRentalToAgreementRecord = (rental, customer, vehicle, customerUuid) => {
         const dateOut = combineDateAndTime(rental["Date Out"], rental["Time Out"]);
         const dateIn = combineDateAndTime(rental["Date In"], rental["Time In"]);
 
@@ -374,13 +489,8 @@
           throw new Error("missing or invalid Date Out/Time Out or Date In/Time In");
         }
 
-        const customerName = [
-          toTrimmedString(customer["First Name"]),
-          toTrimmedString(customer["Middle Name"]),
-          toTrimmedString(customer["Last Name"]),
-        ]
-          .filter(Boolean)
-          .join(" ");
+        const customerRecord = mapCustomerRowToCustomerRecord(customer, customerUuid);
+        const vehicleRecord = mapVehicleRowToVehicleRecord(vehicle);
 
         const dailyRate = toNumber(rental["Daily Rental Rate"]);
         const weeklyRate = toNumber(rental["Weekly Rental Rate"]);
@@ -536,33 +646,13 @@
         const agreement = {
           agreement_number: toTrimmedString(rental["Rental Form Number"], "UNKNOWN-AGREEMENT"),
           agreement_terms: AGREEMENT_TERMS,
+          customer_uuid: customerRecord.uuid,
           rentee: {
-            full_name: customerName || "UNKNOWN CUSTOMER",
-            address_street1: toTrimmedString(customer["Address"], "UNKNOWN ADDRESS"),
-            address_city: toTrimmedString(customer["City"], "UNKNOWN CITY"),
-            address_state: toTrimmedString(customer["State"], "NA"),
-            address_zip: toTrimmedString(customer["Zip Code"], "00000"),
-            verified: true,
-            driver_license_number: toTrimmedString(customer["Drivers License Number"], "UNKNOWN"),
-            driver_license_state: toTrimmedString(customer["Drivers License State"], "NA"),
-            driver_license_expiration:
-              parseDateOnly(customer["Drivers License Expiration Date"]) || new Date("2099-12-31"),
-            date_of_birth: parseDateOnly(customer["Date of Birth"]) || new Date("1970-01-01"),
-            cell_phone: toTrimmedString(customer["Home Phone"], "N/A"),
-            alternate_phone: toTrimmedString(customer["Local Contact Phone"], ""),
-            email: "",
-          },
-          rentee_employer: {
-            company: toTrimmedString(customer["Employer"], ""),
-            position: toTrimmedString(customer["Position"], ""),
-            address_street1: toTrimmedString(customer["Employer Address"], ""),
-            address_city: toTrimmedString(customer["Employer City"], ""),
-            address_state: toTrimmedString(customer["Employer State"], ""),
-            address_zip: toTrimmedString(customer["Employer Zip Code"], ""),
-          },
-          rentee_insurance: {
-            company: toTrimmedString(rental["Insurance Company"], ""),
-            policy_number: toTrimmedString(rental["Insurance Policy Number"], ""),
+            ...customerRecord.customer,
+            insurance: {
+              company: toTrimmedString(rental["Insurance Company"], ""),
+              policy_number: toTrimmedString(rental["Insurance Policy Number"], ""),
+            },
           },
           additional_drivers: [
             {
@@ -586,14 +676,9 @@
           ),
           vehicle_damage_waiver: vehicleDamageWaiver,
           personal_accident_insurance: personalAccidentInsurance,
+          vehicle_identifier: vehicleRecord.identifier,
           rental_vehicle: {
-            identifier: toTrimmedString(vehicle["Stock Number"], "UNKNOWN-STOCK"),
-            VIN: toTrimmedString(vehicle["VIN"], "UNKNOWNVIN00000000"),
-            license_plate: toTrimmedString(vehicle["License Number"], "UNKNOWN"),
-            year: Math.max(1900, toNumber(vehicle["Year"], 2000)),
-            make: toTrimmedString(vehicle["Make"], "UNKNOWN"),
-            model: toTrimmedString(vehicle["Model"], "UNKNOWN"),
-            color: toTrimmedString(vehicle["Color"], "UNKNOWN"),
+            ...vehicleRecord.vehicle,
             rental_rates: rentalRates,
             usage_rates: usageRates,
           },
@@ -715,20 +800,58 @@
       };
 
       const importHistoricAgreements = async (rentals, customers, vehicles) => {
-        const customerById = new Map(
-          customers.map((customer) => [toTrimmedString(customer["Customer ID"]), customer])
-        );
+        const customerById = new Map();
+        const customerUuidById = new Map();
+        customers.forEach((customer) => {
+          const customerId = toTrimmedString(customer["Customer ID"]);
+          if (customerId) {
+            customerById.set(customerId, customer);
+            customerUuidById.set(customerId, getUuid());
+          }
+        });
 
-        const vehicleByStockNumber = new Map(
-          vehicles.map((vehicle) => [toTrimmedString(vehicle["Stock Number"]), vehicle])
-        );
+        const vehicleByStockNumber = new Map();
+        vehicles.forEach((vehicle) => {
+          const stockNumber = toTrimmedString(vehicle["Stock Number"]);
+          if (stockNumber) {
+            vehicleByStockNumber.set(stockNumber, vehicle);
+          }
+        });
 
         const db = await openDatabase();
-        const transaction = db.transaction(AGREEMENTS_STORE, "readwrite");
-        const store = transaction.objectStore(AGREEMENTS_STORE);
+        const transaction = db.transaction(
+          [AGREEMENTS_STORE, CUSTOMERS_STORE, VEHICLES_STORE],
+          "readwrite"
+        );
+        const agreementStore = transaction.objectStore(AGREEMENTS_STORE);
+        const customerStore = transaction.objectStore(CUSTOMERS_STORE);
+        const vehicleStore = transaction.objectStore(VEHICLES_STORE);
 
         const errors = [];
         let inserted = 0;
+
+        customerById.forEach((customer, customerId) => {
+          try {
+            const customerRecord = mapCustomerRowToCustomerRecord(
+              customer,
+              customerUuidById.get(customerId)
+            );
+            customerStore.put(customerRecord);
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            console.error("[HistoricImport] Failed to import customer " + customerId + ": " + reason);
+          }
+        });
+
+        vehicleByStockNumber.forEach((vehicle, stockNumber) => {
+          try {
+            const vehicleRecord = mapVehicleRowToVehicleRecord(vehicle);
+            vehicleStore.put(vehicleRecord);
+          } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            console.error("[HistoricImport] Failed to import vehicle " + stockNumber + ": " + reason);
+          }
+        });
 
         rentals.forEach((rental, index) => {
           try {
@@ -752,8 +875,13 @@
               return;
             }
 
-            const record = mapRentalToAgreementRecord(rental, customer, vehicle);
-            store.put(record);
+            const record = mapRentalToAgreementRecord(
+              rental,
+              customer,
+              vehicle,
+              customerUuidById.get(customerId)
+            );
+            agreementStore.put(record);
             inserted += 1;
           } catch (error) {
             const agreementNumber = toTrimmedString(rental["Rental Form Number"], "UNKNOWN");
@@ -843,11 +971,11 @@
           const result = await importHistoricAgreements(rentals, customers, vehicles);
 
           setStatus(
-            "Import complete. Inserted: " +
+            "Import complete. Agreements inserted: " +
               result.inserted +
-              ", Skipped: " +
+              ", Agreements skipped: " +
               result.skipped +
-              "."
+              ". Customers and vehicles were also imported."
           );
 
           renderErrors(result.errors);
