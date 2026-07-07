@@ -21,7 +21,7 @@ import { FinalizationDialog } from "@/components/FinalizationDialog";
 import { CancellationDialog } from "@/components/CancellationDialog";
 import StatusChip from "@/components/StatusChip";
 
-const AGREEMENT_TABLE_COLUMNS: GridColDef[] = [
+const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
   {
     field: "agreement_number",
     headerName: "Agreement No.",
