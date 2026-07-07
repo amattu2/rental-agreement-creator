@@ -290,4 +290,65 @@ describe("RentalAgreementForm", () => {
     });
     expect(screen.queryByLabelText("Rate per day")).not.toBeInTheDocument();
   });
+
+  it("does not display selected customer chip when no customer is selected", () => {
+    renderForm();
+
+    const renteeNameInput = screen.getByLabelText("Rentee name");
+    expect(renteeNameInput).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /select an existing customer/i })
+    ).toBeInTheDocument();
+  });
+
+  it("displays selected customer chip and buttons on rentee name field when customer_uuid is set", () => {
+    const databaseApi: DatabaseApi = {
+      createAgreement: vi.fn(),
+      updateAgreement: vi.fn(),
+      getAgreement: vi.fn(),
+      getAllAgreements: vi.fn(),
+      cancelAgreement: vi.fn(),
+      upsertVehicle: vi.fn(),
+      getVehicle: vi.fn(),
+      finalizeAgreement: vi.fn(),
+      getAllVehicles: vi.fn().mockResolvedValue([]),
+      upsertCustomer: vi.fn(),
+      getCustomer: vi.fn(),
+      getAllCustomers: vi.fn().mockResolvedValue([]),
+      searchCustomers: vi.fn().mockResolvedValue([]),
+    };
+
+    const Wrapper = () => {
+      const methods = useForm<FormSchema>({
+        defaultValues: {
+          ...DEFAULT_FORM,
+          customer_uuid: "550e8400-e29b-41d4-a716-446655440000",
+          rentee: {
+            ...DEFAULT_FORM.rentee,
+            full_name: "John Smith",
+          },
+        },
+      });
+
+      return (
+        <DatabaseApiContext.Provider value={databaseApi}>
+          <FormProvider {...methods}>
+            <BillingStateCtx.Provider value={{ status: "confirmed", description: "" }}>
+              <form>
+                <RentalAgreementForm />
+              </form>
+            </BillingStateCtx.Provider>
+          </FormProvider>
+        </DatabaseApiContext.Provider>
+      );
+    };
+
+    render(<Wrapper />);
+
+    expect(screen.getByText("Existing Customer")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /select an existing customer/i })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /clear customer selection/i })).toBeInTheDocument();
+  });
 });

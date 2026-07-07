@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -45,6 +46,7 @@ import {
   MAX_USAGE_RATES,
   RATE_UNIT_OPTIONS,
   USAGE_TYPE_OPTIONS,
+  DEFAULT_CUSTOMER,
 } from "@/config/constants";
 import { useBillingState } from "../BillingContext";
 
@@ -97,6 +99,24 @@ export const RentalAgreementForm = () => {
   const odometerOut = watch("rental_agreement_info.odometer_out");
   const maxDistance = watch("rental_agreement_info.max_distance");
   const odometerIn = watch("rental_agreement_info.odometer_in");
+  const vehicleDamageWaiver = watch("vehicle_damage_waiver");
+  const hasVehicleDamageWaiver = vehicleDamageWaiver !== undefined;
+  const personalAccidentInsurance = watch("personal_accident_insurance");
+  const hasPersonalAccidentInsurance = personalAccidentInsurance !== undefined;
+  const customerUuid = watch("customer_uuid");
+
+  const handleClearCustomer = useCallback(() => {
+    setValue("customer_uuid", undefined, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+    setValue("rentee", DEFAULT_CUSTOMER, {
+      shouldDirty: true,
+      shouldTouch: true,
+      shouldValidate: true,
+    });
+  }, [setValue]);
 
   const CalculateAdornment = useMemo<React.ReactElement>(() => {
     const newDistance = (odometerOut ?? 0) + (maxDistance ?? 0);
@@ -142,11 +162,30 @@ export const RentalAgreementForm = () => {
     [setVehicleSelectionOpen, disabled]
   );
 
-  const CustomerSelectAdornment = useMemo<React.ReactElement>(
-    () => (
-      // TODO: If a customer is selected, their UUID is persisted with no way to reset
-      // back to a new or unselected state.
-      <Tooltip title="Select an existing customer">
+  const CustomerSelectAdornment = useMemo<React.ReactElement>(() => {
+    const adornments: React.ReactElement[] = [];
+
+    if (customerUuid) {
+      adornments.push(
+        <Tooltip title="Clear customer selection" key="clear-customer-button">
+          <span>
+            <Chip
+              key="customer-chip"
+              label="Existing Customer"
+              aria-label="Clear customer selection"
+              size="small"
+              variant="outlined"
+              color="primary"
+              onDelete={handleClearCustomer}
+              disabled={disabled}
+            />
+          </span>
+        </Tooltip>
+      );
+    }
+
+    adornments.push(
+      <Tooltip title="Select an existing customer" key="select-customer-button">
         <span>
           <StyledIconButton
             type="button"
@@ -159,14 +198,10 @@ export const RentalAgreementForm = () => {
           </StyledIconButton>
         </span>
       </Tooltip>
-    ),
-    [setCustomerSelectionOpen, disabled]
-  );
+    );
 
-  const vehicleDamageWaiver = watch("vehicle_damage_waiver");
-  const hasVehicleDamageWaiver = vehicleDamageWaiver !== undefined;
-  const personalAccidentInsurance = watch("personal_accident_insurance");
-  const hasPersonalAccidentInsurance = personalAccidentInsurance !== undefined;
+    return <>{adornments}</>;
+  }, [customerUuid, disabled, setCustomerSelectionOpen, handleClearCustomer]);
 
   const handleResetClick = () => setIsResetDialogOpen(true);
 
