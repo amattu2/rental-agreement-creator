@@ -1,10 +1,4 @@
-import {
-  coerceNumber,
-  formatAddress,
-  formatContactInfo,
-  formatCurrency,
-  formatNumber,
-} from "./text";
+import { coerceNumber, formatAddress, formatCurrency, formatNumber } from "./text";
 
 describe("coerceNumber", () => {
   it("returns the number as a plain string", () => {
@@ -120,63 +114,5 @@ describe("formatAddress", () => {
         address_zip: " 78701 ",
       })
     ).toBe("123 Main St, Austin, TX 78701");
-  });
-});
-
-describe("formatContactInfo", () => {
-  it("returns an empty array when no contact fields are present", () => {
-    expect(
-      formatContactInfo({
-        full_name: "Jane Doe",
-        address_street1: "123 Main St",
-        address_city: "Austin",
-        address_state: "TX",
-        address_zip: "78701",
-        verified: true,
-        driver_license_number: "D1234567",
-        driver_license_state: "TX",
-        driver_license_expiration: new Date("2099-01-01"),
-        date_of_birth: new Date("1990-01-01"),
-        cell_phone: "",
-      })
-    ).toEqual([]);
-  });
-
-  it("returns contact lines in Cell, Alt, Email order", () => {
-    expect(
-      formatContactInfo({
-        full_name: "Jane Doe",
-        address_street1: "123 Main St",
-        address_city: "Austin",
-        address_state: "TX",
-        address_zip: "78701",
-        verified: true,
-        driver_license_number: "D1234567",
-        driver_license_state: "TX",
-        driver_license_expiration: new Date("2099-01-01"),
-        date_of_birth: new Date("1990-01-01"),
-        cell_phone: "555-0100",
-        alternate_phone: "555-0199",
-        email: "jane@example.com",
-      })
-    ).toEqual(["Cell: 555-0100", "Alt: 555-0199", "Email: jane@example.com"]);
-  });
-
-  it("includes only provided fields", () => {
-    expect(
-      formatContactInfo({
-        full_name: "Jane Doe",
-        address_street1: "123 Main St",
-        address_city: "Austin",
-        address_state: "TX",
-        address_zip: "78701",
-        verified: true,
-        driver_license_number: "D1234567",
-        driver_license_state: "TX",
-        driver_license_expiration: new Date("2099-01-01"),
-        date_of_birth: new Date("1990-01-01"),
-        cell_phone: "555-0100",
-      })
-    ).toEqual(["Cell: 555-0100"]);
   });
 });

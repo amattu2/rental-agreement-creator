@@ -1,27 +1,64 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   Alert,
-  Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
+  NoSsr,
+  Button,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   TextField,
 } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { useDatabaseApi } from "@/database/provider";
 import type { FormSchema } from "@/schemas/form";
-import { formatAddress, formatContactInfo } from "@/utils/text";
+import { formatAddress } from "@/utils/text";
+
+const CUSTOMER_SELECTION_BASE_COLUMNS: GridColDef<CustomerRecord>[] = [
+  {
+    field: "name",
+    headerName: "Name",
+    flex: 1,
+    minWidth: 90,
+    sortable: true,
+    hideable: false,
+    valueGetter: (_, row: CustomerRecord) => row.customer.full_name,
+  },
+  {
+    field: "cell_phone",
+    headerName: "Cell phone",
+    flex: 1,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) => row.customer.cell_phone,
+  },
+  {
+    field: "email",
+    headerName: "Email address",
+    flex: 1,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) => row.customer.email,
+  },
+  {
+    field: "license",
+    headerName: "Driver's license",
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) =>
+      `${row.customer.driver_license_number} (${row.customer.driver_license_state})`,
+  },
+  {
+    field: "address",
+    headerName: "Address",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: CustomerRecord) => formatAddress(row.customer),
+  },
+];
 
 type CustomerSelectionDialogProps = {
   onClose: () => void;
@@ -37,30 +74,33 @@ export const CustomerSelectionDialog = ({ onClose }: CustomerSelectionDialogProp
 
   const isLoading = customers === null && errorMessage === null;
 
-  const handleSelectCustomer = (record: CustomerRecord) => {
-    setValue("customer_uuid", record.uuid, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-    setValue("rentee", record.customer, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-    setValue("rentee.employer", record.customer.employer, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-    setValue("rentee.insurance", record.customer.insurance, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
+  const handleSelectCustomer = useCallback(
+    (record: CustomerRecord) => {
+      setValue("customer_uuid", record.uuid, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      setValue("rentee", record.customer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      setValue("rentee.employer", record.customer.employer, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      setValue("rentee.insurance", record.customer.insurance, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
 
-    onClose();
-  };
+      onClose();
+    },
+    [onClose, setValue]
+  );
 
   useEffect(() => {
     databaseApi
@@ -76,6 +116,26 @@ export const CustomerSelectionDialog = ({ onClose }: CustomerSelectionDialogProp
       });
   }, [query, databaseApi]);
 
+  const columns = useMemo<GridColDef<CustomerRecord>[]>(
+    () => [
+      ...CUSTOMER_SELECTION_BASE_COLUMNS,
+      {
+        field: "actions",
+        type: "actions",
+        hideable: false,
+        getActions: ({ row }) => [
+          <GridActionsCellItem
+            key="select-customer"
+            icon={<CheckCircleOutlineIcon />}
+            label="Select"
+            onClick={() => handleSelectCustomer(row)}
+          />,
+        ],
+      },
+    ],
+    [handleSelectCustomer]
+  );
+
   return (
     <Dialog onClose={onClose} maxWidth="md" open fullWidth>
       <DialogTitle>Select Customer</DialogTitle>
@@ -90,52 +150,29 @@ export const CustomerSelectionDialog = ({ onClose }: CustomerSelectionDialogProp
           />
         </Stack>
 
-        {isLoading && (
-          <Stack alignItems="center" py={3}>
-            <CircularProgress size={28} />
-          </Stack>
-        )}
-
         {!isLoading && errorMessage && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {errorMessage}
           </Alert>
         )}
 
-        {!isLoading && !errorMessage && !customers?.length && (
-          <DialogContentText>No matching customers found.</DialogContentText>
-        )}
-
-        {!isLoading && !errorMessage && !!customers?.length && (
-          <Table size="small" aria-label="Existing customers">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Details</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Address</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {customers.map((record) => (
-                <TableRow key={record.uuid}>
-                  <TableCell>{record.customer.full_name}</TableCell>
-                  <TableCell>
-                    {formatContactInfo(record.customer).map((info) => (
-                      <div key={info}>{info}</div>
-                    ))}
-                  </TableCell>
-                  <TableCell>{formatAddress(record.customer)}</TableCell>
-                  <TableCell>
-                    <Button size="small" onClick={() => handleSelectCustomer(record)}>
-                      Select
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <NoSsr>
+          <DataGrid
+            rows={customers ?? []}
+            loading={isLoading}
+            columns={columns}
+            getRowId={(row) => row.uuid}
+            pageSizeOptions={[10, 25, 50, 100]}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10, page: 0 },
+              },
+            }}
+            disableRowSelectionOnClick
+            disableColumnFilter
+            sx={{ border: "none" }}
+          />
+        </NoSsr>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>

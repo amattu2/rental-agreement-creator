@@ -1,25 +1,64 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import {
   Alert,
-  Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
+  NoSsr,
+  Button,
 } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { useDatabaseApi } from "@/database/provider";
 import type { FormSchema } from "@/schemas/form";
+
+const VEHICLE_SELECTION_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
+  {
+    field: "identifier",
+    headerName: "Identifier",
+    flex: 1,
+    minWidth: 100,
+    sortable: true,
+    hideable: false,
+  },
+  {
+    field: "vehicle_display",
+    headerName: "Vehicle",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: VehicleRecord) =>
+      `${row.vehicle.year} ${row.vehicle.make} ${row.vehicle.model}`.trim(),
+  },
+  {
+    field: "VIN",
+    headerName: "VIN",
+    flex: 1,
+    minWidth: 120,
+    sortable: true,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.VIN,
+  },
+  {
+    field: "license_plate",
+    headerName: "License plate",
+    flex: 1,
+    minWidth: 120,
+    sortable: true,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.license_plate,
+  },
+  {
+    field: "color",
+    headerName: "Color",
+    flex: 1,
+    minWidth: 100,
+    sortable: true,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.color,
+  },
+];
 
 type VehicleSelectionDialogProps = {
   onClose: () => void;
@@ -33,40 +72,43 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isLoading = vehicles === null && errorMessage === null;
 
-  const handleSelectVehicle = (record: VehicleRecord) => {
-    const { vehicle, identifier } = record;
+  const handleSelectVehicle = useCallback(
+    (record: VehicleRecord) => {
+      const { vehicle, identifier } = record;
 
-    setValue("vehicle_identifier", identifier, {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-    setValue(
-      "rental_vehicle",
-      {
-        ...vehicle,
-        rental_rates: vehicle.rental_rates ?? [],
-        usage_rates: vehicle.usage_rates ?? [],
-      },
-      {
+      setValue("vehicle_identifier", identifier, {
         shouldDirty: true,
         shouldTouch: true,
         shouldValidate: true,
-      }
-    );
-    setValue("rental_vehicle.rental_rates", vehicle.rental_rates ?? [], {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
-    setValue("rental_vehicle.usage_rates", vehicle.usage_rates ?? [], {
-      shouldDirty: true,
-      shouldTouch: true,
-      shouldValidate: true,
-    });
+      });
+      setValue(
+        "rental_vehicle",
+        {
+          ...vehicle,
+          rental_rates: vehicle.rental_rates ?? [],
+          usage_rates: vehicle.usage_rates ?? [],
+        },
+        {
+          shouldDirty: true,
+          shouldTouch: true,
+          shouldValidate: true,
+        }
+      );
+      setValue("rental_vehicle.rental_rates", vehicle.rental_rates ?? [], {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
+      setValue("rental_vehicle.usage_rates", vehicle.usage_rates ?? [], {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
 
-    onClose();
-  };
+      onClose();
+    },
+    [onClose, setValue]
+  );
 
   useEffect(() => {
     databaseApi
@@ -82,58 +124,53 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
       });
   }, [databaseApi]);
 
+  const columns = useMemo<GridColDef<VehicleRecord>[]>(
+    () => [
+      ...VEHICLE_SELECTION_BASE_COLUMNS,
+      {
+        field: "actions",
+        type: "actions",
+        hideable: false,
+        getActions: ({ row }) => [
+          <GridActionsCellItem
+            key="select-vehicle"
+            icon={<CheckCircleOutlineIcon />}
+            label="Select"
+            onClick={() => handleSelectVehicle(row)}
+          />,
+        ],
+      },
+    ],
+    [handleSelectVehicle]
+  );
+
   return (
     <Dialog onClose={onClose} maxWidth="md" open fullWidth>
       <DialogTitle>Select Vehicle</DialogTitle>
       <DialogContent>
-        {isLoading && (
-          <Stack alignItems="center" py={3}>
-            <CircularProgress size={28} />
-          </Stack>
-        )}
-
         {!isLoading && errorMessage && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {errorMessage}
           </Alert>
         )}
 
-        {!isLoading && !errorMessage && vehicles?.length === 0 && (
-          <DialogContentText>No saved vehicles found.</DialogContentText>
-        )}
-
-        {!isLoading && !errorMessage && (vehicles?.length ?? 0) > 0 && (
-          <Table size="small" aria-label="Saved vehicles">
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 600 }}>Identifier</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Vehicle</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>VIN</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>License plate</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Color</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {vehicles?.map((record) => (
-                <TableRow key={record.identifier}>
-                  <TableCell>{record.identifier}</TableCell>
-                  <TableCell>
-                    {`${record.vehicle.year} ${record.vehicle.make} ${record.vehicle.model}`.trim()}
-                  </TableCell>
-                  <TableCell>{record.vehicle.VIN}</TableCell>
-                  <TableCell>{record.vehicle.license_plate}</TableCell>
-                  <TableCell>{record.vehicle.color}</TableCell>
-                  <TableCell>
-                    <Button size="small" onClick={() => handleSelectVehicle(record)}>
-                      Select
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <NoSsr>
+          <DataGrid
+            rows={vehicles ?? []}
+            loading={isLoading}
+            columns={columns}
+            getRowId={(row) => row.identifier}
+            pageSizeOptions={[10, 25, 50, 100]}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10, page: 0 },
+              },
+            }}
+            disableRowSelectionOnClick
+            disableColumnFilter
+            sx={{ border: "none" }}
+          />
+        </NoSsr>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
