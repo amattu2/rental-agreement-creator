@@ -112,7 +112,7 @@ export const DEFAULT_CUSTOMER: RenteeSchema = {
 export const DEFAULT_FORM: FormSchema = {
   agreement_number: "",
   agreement_terms: AGREEMENT_TERMS,
-  customer_uuid: "",
+  customer_uuid: undefined,
   rentee: { ...DEFAULT_CUSTOMER },
   additional_drivers: [],
   vehicle_damage_waiver: undefined,
