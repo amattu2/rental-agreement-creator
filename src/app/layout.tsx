@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import { DatabaseApiProvider } from "@/database/provider";
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME,
+  title: `Agreements - ${process.env.NEXT_PUBLIC_APP_NAME}`,
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
 };
 
