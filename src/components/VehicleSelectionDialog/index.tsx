@@ -56,7 +56,7 @@ const VEHICLE_SELECTION_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
     headerName: "VIN",
     flex: 1,
     minWidth: 120,
-    sortable: true,
+    sortable: false,
     valueGetter: (_, row: VehicleRecord) => row.vehicle.VIN,
   },
   {
@@ -64,8 +64,16 @@ const VEHICLE_SELECTION_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
     headerName: "License plate",
     flex: 1,
     minWidth: 120,
-    sortable: true,
+    sortable: false,
     valueGetter: (_, row: VehicleRecord) => row.vehicle.license_plate,
+  },
+  {
+    field: "color",
+    headerName: "Color",
+    flex: 1,
+    minWidth: 100,
+    sortable: false,
+    valueGetter: (_, row: VehicleRecord) => row.vehicle.color,
   },
 ];
 
@@ -185,6 +193,9 @@ export const VehicleSelectionDialog = ({ onClose }: VehicleSelectionDialogProps)
             initialState={{
               pagination: {
                 paginationModel: { pageSize: 10, page: 0 },
+              },
+              sorting: {
+                sortModel: [{ field: "year", sort: "desc" }],
               },
             }}
             disableRowSelectionOnClick

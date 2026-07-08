@@ -14,7 +14,7 @@ import { formatAddress, formatDate } from "@/utils/text";
 
 const CUSTOMERS_TABLE_BASE_COLUMNS: GridColDef<CustomerRecord>[] = [
   {
-    field: "name",
+    field: "full_name",
     headerName: "Name",
     flex: 1,
     minWidth: 90,
@@ -63,14 +63,14 @@ const CUSTOMERS_TABLE_BASE_COLUMNS: GridColDef<CustomerRecord>[] = [
     valueGetter: (_, row: CustomerRecord) => formatAddress(row.customer),
   },
   {
-    field: "updated",
+    field: "updatedAt",
     headerName: "Updated",
     sortable: true,
     valueGetter: (_, row: CustomerRecord) => row.updatedAt,
     renderCell: ({ row }) => formatDate(row.updatedAt),
   },
   {
-    field: "created",
+    field: "createdAt",
     headerName: "Created",
     sortable: true,
     valueGetter: (_, row: CustomerRecord) => row.createdAt,
@@ -200,6 +200,9 @@ const CustomersPage = () => {
           initialState={{
             pagination: {
               paginationModel: { pageSize: 10, page: 0 },
+            },
+            sorting: {
+              sortModel: [{ field: "full_name", sort: "asc" }],
             },
           }}
           sx={{ border: "none" }}
