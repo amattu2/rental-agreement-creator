@@ -74,8 +74,6 @@ const VEHICLES_TABLE_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
   {
     field: "color",
     headerName: "Color",
-    flex: 1,
-    minWidth: 100,
     sortable: false,
     valueGetter: (_, row: VehicleRecord) => row.vehicle.color,
   },
@@ -83,7 +81,7 @@ const VEHICLES_TABLE_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
     field: "status",
     headerName: "Status",
     minWidth: 110,
-    sortable: true,
+    sortable: false,
     renderCell: ({ row }) => (
       <Chip
         label={row.status === "active" ? "Active" : "Inactive"}
@@ -94,14 +92,14 @@ const VEHICLES_TABLE_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
     ),
   },
   {
-    field: "updated",
+    field: "updatedAt",
     headerName: "Updated",
     sortable: true,
     valueGetter: (_, row: VehicleRecord) => row.updatedAt,
     renderCell: ({ row }) => formatDate(row.updatedAt),
   },
   {
-    field: "created",
+    field: "createdAt",
     headerName: "Created",
     sortable: true,
     valueGetter: (_, row: VehicleRecord) => row.createdAt,
@@ -264,6 +262,9 @@ const VehiclesPage = () => {
           initialState={{
             pagination: {
               paginationModel: { pageSize: 10, page: 0 },
+            },
+            sorting: {
+              sortModel: [{ field: "year", sort: "desc" }],
             },
           }}
           sx={{ border: "none" }}

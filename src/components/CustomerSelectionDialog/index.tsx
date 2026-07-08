@@ -21,7 +21,7 @@ import { formatAddress } from "@/utils/text";
 
 const CUSTOMER_SELECTION_BASE_COLUMNS: GridColDef<CustomerRecord>[] = [
   {
-    field: "name",
+    field: "full_name",
     headerName: "Name",
     flex: 1,
     minWidth: 90,
@@ -167,6 +167,9 @@ export const CustomerSelectionDialog = ({ onClose }: CustomerSelectionDialogProp
             initialState={{
               pagination: {
                 paginationModel: { pageSize: 10, page: 0 },
+              },
+              sorting: {
+                sortModel: [{ field: "full_name", sort: "asc" }],
               },
             }}
             disableRowSelectionOnClick

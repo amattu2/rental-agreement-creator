@@ -46,7 +46,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     ),
   },
   {
-    field: "rentee",
+    field: "full_name",
     headerName: "Rentee",
     flex: 1,
     minWidth: 120,
@@ -65,7 +65,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     },
   },
   {
-    field: "pickup_date",
+    field: "date_out",
     headerName: "Pickup Date",
     flex: 1,
     minWidth: 140,
@@ -75,7 +75,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
       formatDate(row.agreement.rental_agreement_info.date_out, "MM/DD/YYYY h:mma"),
   },
   {
-    field: "return_date",
+    field: "date_in",
     headerName: "Return Date",
     flex: 1,
     minWidth: 140,
@@ -85,7 +85,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
       formatDate(row.agreement.rental_agreement_info.date_in, "MM/DD/YYYY h:mma"),
   },
   {
-    field: "updated",
+    field: "updatedAt",
     headerName: "Updated",
     flex: 1,
     minWidth: 140,
@@ -95,7 +95,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
       formatDate(row.updatedAt, "MM/DD/YYYY h:mma"),
   },
   {
-    field: "created",
+    field: "createdAt",
     headerName: "Created",
     flex: 1,
     minWidth: 140,
@@ -276,6 +276,9 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
           initialState={{
             pagination: {
               paginationModel: { pageSize: 10, page: 0 },
+            },
+            sorting: {
+              sortModel: [{ field: "updatedAt", sort: "desc" }],
             },
           }}
           sx={{ border: "none" }}

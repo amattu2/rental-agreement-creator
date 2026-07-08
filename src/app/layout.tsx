@@ -8,7 +8,7 @@ import { Suspense } from "react";
 import { DatabaseApiProvider } from "@/database/provider";
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME,
+  title: `Agreements - ${process.env.NEXT_PUBLIC_APP_NAME}`,
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
 };
 
@@ -24,7 +24,7 @@ const RootLayout = ({ children }: Readonly<RootProps>) => (
           <ThemeProvider theme={theme}>
             <CssBaseline />
             <Header />
-            <main style={{ minHeight: "calc(100vh - 68.5px - 52.02px)" }}>
+            <main style={{ minHeight: "calc(100vh - 64px - 52.02px)" }}>
               <Suspense>{children}</Suspense>
             </main>
             <Suspense>
