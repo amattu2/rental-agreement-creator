@@ -70,8 +70,6 @@ const VEHICLE_SELECTION_BASE_COLUMNS: GridColDef<VehicleRecord>[] = [
   {
     field: "color",
     headerName: "Color",
-    flex: 1,
-    minWidth: 100,
     sortable: false,
     valueGetter: (_, row: VehicleRecord) => row.vehicle.color,
   },
