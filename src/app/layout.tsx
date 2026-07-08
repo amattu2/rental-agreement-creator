@@ -24,7 +24,7 @@ const RootLayout = ({ children }: Readonly<RootProps>) => (
           <ThemeProvider theme={theme}>
             <CssBaseline />
             <Header />
-            <main style={{ minHeight: "calc(100vh - 68.5px - 52.02px)" }}>
+            <main style={{ minHeight: "calc(100vh - 64px - 52.02px)" }}>
               <Suspense>{children}</Suspense>
             </main>
             <Suspense>

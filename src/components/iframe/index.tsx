@@ -4,7 +4,7 @@ import { CSSProperties } from "react";
 const BaseStyling: CSSProperties = {
   border: "none",
   borderRadius: "6px",
-  minHeight: "calc(100vh - 68.5px - 20px)",
+  minHeight: "calc(100vh - 64px - 20px)",
   position: "sticky",
   top: "10px",
   width: "calc(100% - 20px)",
