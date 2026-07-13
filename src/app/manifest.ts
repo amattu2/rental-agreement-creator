@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import Logo from "@/assets/logo.png"
 import HomeImage from "@/assets/home.png"
 import CustomersImage from "@/assets/customers.png"
 import VehiclesImage from "@/assets/vehicles.png"
@@ -15,7 +16,14 @@ export const manifest = (): MetadataRoute.Manifest => ({
   theme_color: "#fff",
   categories: ["productivity", "utilities", "automotive"],
   lang: "en",
-  icons: [],
+  icons: [
+    {
+      src: Logo.src,
+      sizes: `${Logo.width}x${Logo.height}`,
+      type: "image/png",
+      purpose: "any",
+    },
+  ],
   screenshots: [
     {
       src: HomeImage.src,
