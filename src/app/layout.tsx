@@ -6,10 +6,14 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Suspense } from "react";
 import { DatabaseApiProvider } from "@/database/provider";
+import Logo from "@/assets/logo.png";
 
 export const metadata: Metadata = {
   title: `Agreements - ${process.env.NEXT_PUBLIC_APP_NAME}`,
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION,
+  icons: {
+    icon: Logo.src,
+  },
 };
 
 type RootProps = {
