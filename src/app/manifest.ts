@@ -1,10 +1,13 @@
 import type { MetadataRoute } from "next";
+import HomeImage from "@/assets/home.png"
+import CustomersImage from "@/assets/customers.png"
+import VehiclesImage from "@/assets/vehicles.png"
 
 export const dynamic = "force-static";
 
 export const manifest = (): MetadataRoute.Manifest => ({
   name: process.env.NEXT_PUBLIC_APP_NAME || "",
-  short_name: process.env.NEXT_PUBLIC_APP_SHORT_NAME || "",
+  short_name: process.env.NEXT_PUBLIC_APP_NAME || "",
   description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "",
   start_url: process.env.NEXT_PUBLIC_DEPLOYMENT_URL || "",
   display: "standalone",
@@ -13,6 +16,26 @@ export const manifest = (): MetadataRoute.Manifest => ({
   categories: ["productivity", "utilities", "automotive"],
   lang: "en",
   icons: [],
+  screenshots: [
+    {
+      src: HomeImage.src,
+      sizes: `${HomeImage.width}x${HomeImage.height}`,
+      type: "image/png",
+      form_factor: "wide",
+    },
+    {
+      src: CustomersImage.src,
+      sizes: `${CustomersImage.width}x${CustomersImage.height}`,
+      type: "image/png",
+      form_factor: "wide",
+    },
+    {
+      src: VehiclesImage.src,
+      sizes: `${VehiclesImage.width}x${VehiclesImage.height}`,
+      type: "image/png",
+      form_factor: "wide",
+    }
+  ],
 });
 
 export default manifest;
