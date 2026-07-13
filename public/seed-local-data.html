@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Local Data Seeder</title>
+    <style>
+      :root {
+        --bg: #eef2f7;
+        --card: #ffffff;
+        --text: #1f2937;
+        --muted: #64748b;
+        --border: #dbe3ef;
+        --accent: #0f766e;
+        --accent-hover: #0f5f5a;
+        --secondary: #334155;
+        --secondary-hover: #1e293b;
+        --danger: #b91c1c;
+        --success: #166534;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 10% 0%, #c7f9e5 0%, rgba(199, 249, 229, 0) 35%),
+          radial-gradient(circle at 95% 10%, #dbeafe 0%, rgba(219, 234, 254, 0) 35%),
+          var(--bg);
+      }
+
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 30px;
+      }
+
+      .subtitle {
+        color: var(--muted);
+        margin-top: 10px;
+        line-height: 1.4;
+      }
+
+      .pill {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #f8fafc;
+        color: var(--secondary);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .grid {
+        display: grid;
+        gap: 14px;
+        margin-top: 24px;
+      }
+
+      @media (min-width: 720px) {
+        .grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      .field {
+        border: 1px solid var(--border);
+        background: #f8fafc;
+        border-radius: 10px;
+        padding: 14px;
+      }
+
+      .field label {
+        display: block;
+        font-size: 13px;
+        color: var(--secondary);
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      .field input[type="number"] {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px 12px;
+        font-size: 16px;
+      }
+
+      .toggle {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--secondary);
+        font-weight: 600;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 9px;
+        padding: 11px 16px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      .primary {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .secondary {
+        background: var(--secondary);
+        color: #fff;
+      }
+
+      .secondary:hover {
+        background: var(--secondary-hover);
+      }
+
+      .status {
+        margin-top: 18px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px;
+        background: #f8fafc;
+        white-space: pre-wrap;
+        line-height: 1.4;
+      }
+
+      .status.error {
+        border-color: #fecaca;
+        background: #fef2f2;
+        color: var(--danger);
+      }
+
+      .status.success {
+        border-color: #bbf7d0;
+        background: #f0fdf4;
+        color: var(--success);
+      }
+
+      .hint {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Local Application Seeder</h1>
+        <p class="subtitle">
+          Generate realistic customers, vehicles, and agreements directly into IndexedDB for local development.
+          Agreements are linked to customer and vehicle records, including existing records unless reset is selected.
+        </p>
+        <span class="pill">DB: rental-agreement-creator | stores: agreements, customers, vehicles</span>
+
+        <div class="grid">
+          <div class="field">
+            <label for="customerCount">Customers to import</label>
+            <input id="customerCount" type="number" min="0" max="500" value="25" />
+          </div>
+
+          <div class="field">
+            <label for="vehicleCount">Vehicles to import</label>
+            <input id="vehicleCount" type="number" min="0" max="500" value="20" />
+          </div>
+
+          <div class="field">
+            <label for="agreementCount">Agreements to import</label>
+            <input id="agreementCount" type="number" min="0" max="1000" value="75" />
+          </div>
+        </div>
+
+        <label class="toggle" for="resetFirst">
+          <input id="resetFirst" type="checkbox" />
+          Reset database before seeding
+        </label>
+
+        <div class="buttons">
+          <button id="seedButton" class="primary" type="button">Run Seeder</button>
+          <button id="clearButton" class="secondary" type="button">Clear Output</button>
+        </div>
+
+        <div id="status" class="status">Ready.</div>
+        <div class="hint">
+          Tip: open this page at /seed-local-data.html. Use reset to start clean, or leave unchecked to seed on top of existing data.
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { faker } from "https://cdn.jsdelivr.net/npm/@faker-js/faker@9.9.0/+esm";
+
+      const DB_NAME = "rental-agreement-creator";
+      const DB_VERSION = 4;
+      const AGREEMENTS_STORE = "agreements";
+      const VEHICLES_STORE = "vehicles";
+      const CUSTOMERS_STORE = "customers";
+
+      const FUEL_LEVEL_OPTIONS = ["E", "1/4", "1/2", "3/4", "F"];
+      const RATE_UNIT_OPTIONS = ["hours", "days", "weeks", "distance"];
+      const USAGE_TYPE_OPTIONS = ["gasoline", "diesel", "electricity", "cng", "propane", "hydrogen"];
+
+      const MAX_RENTAL_RATES = 4;
+      const MAX_USAGE_RATES = 6;
+
+      const statusEl = document.getElementById("status");
+      const seedButton = document.getElementById("seedButton");
+      const clearButton = document.getElementById("clearButton");
+      const resetFirstInput = document.getElementById("resetFirst");
+      const customerCountInput = document.getElementById("customerCount");
+      const vehicleCountInput = document.getElementById("vehicleCount");
+      const agreementCountInput = document.getElementById("agreementCount");
+
+      const AGREEMENT_TERMS = {
+        version: 1,
+        effective_date: new Date("2026-06-09T17:22:21.803Z"),
+        conditions: [
+          {
+            title: "DRIVERS",
+            description: "Only authorized and qualified drivers may operate the rental vehicle.",
+            sub_conditions: [],
+          },
+          {
+            title: "RETURN OF VEHICLE",
+            description:
+              "Vehicle must be returned by the agreed date and in substantially the same condition, normal wear excluded.",
+            sub_conditions: [],
+          },
+        ],
+      };
+
+      const setStatus = (message, level = "normal") => {
+        statusEl.textContent = message;
+        statusEl.classList.remove("error", "success");
+        if (level === "error") {
+          statusEl.classList.add("error");
+        }
+        if (level === "success") {
+          statusEl.classList.add("success");
+        }
+      };
+
+      const toSafeCount = (value, min = 0, max = 1000) => {
+        const parsed = Number.parseInt(String(value), 10);
+        if (!Number.isFinite(parsed)) {
+          return min;
+        }
+        return Math.max(min, Math.min(max, parsed));
+      };
+
+      const getUuid = () => {
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+          return crypto.randomUUID();
+        }
+
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+          const rand = Math.floor(Math.random() * 16);
+          const value = char === "x" ? rand : (rand & 0x3) | 0x8;
+          return value.toString(16);
+        });
+      };
+
+      const openDatabase = () =>
+        new Promise((resolve, reject) => {
+          if (typeof indexedDB === "undefined") {
+            reject(new Error("IndexedDB is not available in this browser."));
+            return;
+          }
+
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+          request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(AGREEMENTS_STORE)) {
+              db.createObjectStore(AGREEMENTS_STORE, { keyPath: "uuid" });
+            }
+            if (!db.objectStoreNames.contains(VEHICLES_STORE)) {
+              db.createObjectStore(VEHICLES_STORE, { keyPath: "uuid" });
+            }
+            if (!db.objectStoreNames.contains(CUSTOMERS_STORE)) {
+              db.createObjectStore(CUSTOMERS_STORE, { keyPath: "uuid" });
+            }
+          };
+
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error || new Error("Failed to open IndexedDB."));
+        });
+
+      const deleteDatabase = () =>
+        new Promise((resolve, reject) => {
+          const request = indexedDB.deleteDatabase(DB_NAME);
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error || new Error("Failed to delete IndexedDB."));
+          request.onblocked = () =>
+            reject(
+              new Error(
+                "Database reset is blocked by another open tab. Close app tabs using this database and try again."
+              )
+            );
+        });
+
+      const transactionDone = (transaction) =>
+        new Promise((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error || new Error("Transaction failed."));
+          transaction.onabort = () => reject(transaction.error || new Error("Transaction aborted."));
+        });
+
+      const getAllRecords = async (db, storeName) => {
+        const transaction = db.transaction(storeName, "readonly");
+        const store = transaction.objectStore(storeName);
+        const request = store.getAll();
+
+        const records = await new Promise((resolve, reject) => {
+          request.onsuccess = () => resolve(request.result || []);
+          request.onerror = () => reject(request.error || new Error("Failed to fetch records."));
+        });
+
+        await transactionDone(transaction);
+        return records;
+      };
+
+      const putRecords = async (db, storeName, records) => {
+        if (!records.length) {
+          return;
+        }
+
+        const transaction = db.transaction(storeName, "readwrite");
+        const store = transaction.objectStore(storeName);
+        records.forEach((record) => {
+          store.put(record);
+        });
+        await transactionDone(transaction);
+      };
+
+      const randomDateBetween = (from, to) => {
+        const start = from.getTime();
+        const end = to.getTime();
+        const time = faker.number.int({ min: start, max: end });
+        return new Date(time);
+      };
+
+      const asDate = (value, fallbackDate) => {
+        if (value instanceof Date && !Number.isNaN(value.getTime())) {
+          return value;
+        }
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+          return parsed;
+        }
+        return fallbackDate;
+      };
+
+      const trimTo = (text, maxLength) => String(text || "").trim().slice(0, maxLength);
+
+      const normalizePhone = (value) => trimTo(String(value || "").replace(/[^0-9+()\-\s]/g, ""), 20);
+
+      const uniqueFrom = (values, limit) => {
+        const result = [];
+        const seen = new Set();
+        values.forEach((value) => {
+          if (result.length >= limit) {
+            return;
+          }
+          if (!seen.has(value)) {
+            seen.add(value);
+            result.push(value);
+          }
+        });
+        return result;
+      };
+
+      const toTitleCase = (text) => {
+        const safe = String(text || "").toLowerCase();
+        return safe.charAt(0).toUpperCase() + safe.slice(1);
+      };
+
+      const buildRentalRates = () => {
+        const units = faker.helpers.arrayElements(RATE_UNIT_OPTIONS, faker.number.int({ min: 1, max: 3 }));
+        const uniqueUnits = uniqueFrom(units, MAX_RENTAL_RATES);
+        return uniqueUnits.map((rateUnit) => ({
+          rate_unit: rateUnit,
+          rate_cost: faker.number.float({ min: 19, max: 275, fractionDigits: 2 }),
+          rate_note: faker.datatype.boolean(0.4)
+            ? trimTo(faker.helpers.arrayElement(["WEEKEND", "PEAK", "LOCAL", "COMMERCIAL"]), 25)
+            : "",
+        }));
+      };
+
+      const buildUsageRates = () => {
+        const types = faker.helpers.arrayElements(USAGE_TYPE_OPTIONS, faker.number.int({ min: 0, max: 3 }));
+        const uniqueTypes = uniqueFrom(types, MAX_USAGE_RATES);
+        return uniqueTypes.map((usageType) => ({
+          usage_type: usageType,
+          usage_cost: faker.number.float({ min: 0.75, max: 12, fractionDigits: 2 }),
+          usage_note: faker.datatype.boolean(0.3)
+            ? trimTo(faker.helpers.arrayElement(["MARKET", "AFTER HOURS", "METERED"]), 25)
+            : "",
+        }));
+      };
+
+      const generateCustomerData = () => {
+        const expiration = faker.date.soon({ days: 1500 });
+        const dob = faker.date.birthdate({ min: 21, max: 78, mode: "age" });
+
+        return {
+          full_name: trimTo(faker.person.fullName(), 50),
+          address_street1: trimTo(faker.location.streetAddress(), 100),
+          address_city: trimTo(faker.location.city(), 50),
+          address_state: trimTo(faker.location.state({ abbreviated: true }), 50),
+          address_zip: trimTo(faker.location.zipCode("#####"), 20),
+          verified: faker.datatype.boolean(0.8),
+          driver_license_number: trimTo(faker.string.alphanumeric({ length: { min: 7, max: 12 }, casing: "upper" }), 50),
+          driver_license_state: trimTo(faker.location.state({ abbreviated: true }), 50),
+          driver_license_expiration: expiration,
+          date_of_birth: dob,
+          cell_phone: normalizePhone(faker.phone.number("(###) ###-####")) || "(000) 000-0000",
+          alternate_phone: faker.datatype.boolean(0.35)
+            ? normalizePhone(faker.phone.number("(###) ###-####"))
+            : "",
+          email: faker.datatype.boolean(0.7) ? trimTo(faker.internet.email().toLowerCase(), 100) : "",
+          employer: {
+            company: faker.datatype.boolean(0.6) ? trimTo(faker.company.name(), 100) : "",
+            position: faker.datatype.boolean(0.6) ? trimTo(faker.person.jobTitle(), 100) : "",
+            address_street1: faker.datatype.boolean(0.6) ? trimTo(faker.location.streetAddress(), 100) : "",
+            address_city: faker.datatype.boolean(0.6) ? trimTo(faker.location.city(), 50) : "",
+            address_state: faker.datatype.boolean(0.6)
+              ? trimTo(faker.location.state({ abbreviated: true }), 50)
+              : "",
+            address_zip: faker.datatype.boolean(0.6) ? trimTo(faker.location.zipCode("#####"), 20) : "",
+          },
+          insurance: {
+            company: trimTo(faker.company.name(), 100),
+            policy_number: faker.datatype.boolean(0.5)
+              ? trimTo(faker.string.alphanumeric({ length: { min: 8, max: 16 }, casing: "upper" }), 50)
+              : "",
+          },
+        };
+      };
+
+      const generateVehicleData = () => {
+        const currentYear = new Date().getFullYear();
+
+        return {
+          stock_number: trimTo(`STK-${faker.string.alphanumeric({ length: 6, casing: "upper" })}`, 50),
+          VIN: trimTo(
+            faker.vehicle.vin().replace(/[IOQ]/g, "A").toUpperCase().slice(0, 17),
+            17
+          ),
+          license_plate: trimTo(
+            faker.string.alphanumeric({ length: { min: 6, max: 8 }, casing: "upper" }),
+            15
+          ),
+          year: faker.number.int({ min: 2009, max: currentYear + 1 }),
+          make: trimTo(faker.vehicle.manufacturer(), 50),
+          model: trimTo(faker.vehicle.model(), 50),
+          color: trimTo(toTitleCase(faker.vehicle.color()), 50),
+          rental_rates: buildRentalRates(),
+          usage_rates: buildUsageRates(),
+        };
+      };
+
+      const normalizeCustomerFromRecord = (record) => {
+        const source = record?.customer || {};
+        const fullName = trimTo(source.full_name || faker.person.fullName(), 50) || trimTo(faker.person.fullName(), 50);
+        const city = trimTo(source.address_city || faker.location.city(), 50) || trimTo(faker.location.city(), 50);
+        const state = trimTo(source.address_state || faker.location.state({ abbreviated: true }), 50) || "CA";
+        const zip = trimTo(source.address_zip || faker.location.zipCode("#####"), 20) || "00000";
+        const cell = normalizePhone(source.cell_phone || faker.phone.number("(###) ###-####")) || "(000) 000-0000";
+        const expiration = asDate(source.driver_license_expiration, faker.date.soon({ days: 365 }));
+        const validExpiration = expiration > new Date() ? expiration : faker.date.soon({ days: 365 });
+        const birthDate = asDate(source.date_of_birth, faker.date.birthdate({ min: 21, max: 80, mode: "age" }));
+        const validDob = birthDate < new Date() ? birthDate : faker.date.birthdate({ min: 21, max: 80, mode: "age" });
+
+        return {
+          full_name: fullName,
+          address_street1: trimTo(source.address_street1 || faker.location.streetAddress(), 100),
+          address_city: city,
+          address_state: state,
+          address_zip: zip,
+          verified: Boolean(source.verified),
+          driver_license_number:
+            trimTo(source.driver_license_number || faker.string.alphanumeric({ length: { min: 7, max: 12 }, casing: "upper" }), 50) ||
+            "DL0000000",
+          driver_license_state: trimTo(source.driver_license_state || state, 50) || state,
+          driver_license_expiration: validExpiration,
+          date_of_birth: validDob,
+          cell_phone: cell,
+          alternate_phone: normalizePhone(source.alternate_phone || ""),
+          email: trimTo(source.email || "", 100),
+          employer: {
+            company: trimTo(source.employer?.company || "", 100),
+            position: trimTo(source.employer?.position || "", 100),
+            address_street1: trimTo(source.employer?.address_street1 || "", 100),
+            address_city: trimTo(source.employer?.address_city || "", 50),
+            address_state: trimTo(source.employer?.address_state || "", 50),
+            address_zip: trimTo(source.employer?.address_zip || "", 20),
+          },
+          insurance: {
+            company: trimTo(source.insurance?.company || faker.company.name(), 100),
+            policy_number: trimTo(source.insurance?.policy_number || "", 50),
+          },
+        };
+      };
+
+      const normalizeVehicleFromRecord = (record) => {
+        const source = record?.vehicle || {};
+        const currentYear = new Date().getFullYear();
+
+        const rentalRates = Array.isArray(source.rental_rates) ? source.rental_rates : [];
+        const usageRates = Array.isArray(source.usage_rates) ? source.usage_rates : [];
+
+        const normalizedRentalRates = uniqueFrom(
+          rentalRates
+            .map((entry) => ({
+              rate_unit: RATE_UNIT_OPTIONS.includes(entry?.rate_unit) ? entry.rate_unit : null,
+              rate_cost: Number(entry?.rate_cost),
+              rate_note: trimTo(entry?.rate_note || "", 25),
+            }))
+            .filter((entry) => entry.rate_unit && Number.isFinite(entry.rate_cost) && entry.rate_cost > 0)
+            .map((entry) => JSON.stringify(entry)),
+          MAX_RENTAL_RATES
+        ).map((serialized) => JSON.parse(serialized));
+
+        const normalizedUsageRates = uniqueFrom(
+          usageRates
+            .map((entry) => ({
+              usage_type: USAGE_TYPE_OPTIONS.includes(entry?.usage_type) ? entry.usage_type : null,
+              usage_cost: Number(entry?.usage_cost),
+              usage_note: trimTo(entry?.usage_note || "", 25),
+            }))
+            .filter((entry) => entry.usage_type && Number.isFinite(entry.usage_cost) && entry.usage_cost > 0)
+            .map((entry) => JSON.stringify(entry)),
+          MAX_USAGE_RATES
+        ).map((serialized) => JSON.parse(serialized));
+
+        return {
+          stock_number:
+            trimTo(source.stock_number || `STK-${faker.string.alphanumeric({ length: 6, casing: "upper" })}`, 50) ||
+            `STK-${faker.string.alphanumeric({ length: 6, casing: "upper" })}`,
+          VIN:
+            trimTo(String(source.VIN || faker.vehicle.vin()).replace(/[IOQ]/g, "A").toUpperCase().slice(0, 17), 17) ||
+            faker.string.alphanumeric({ length: 17, casing: "upper" }),
+          license_plate:
+            trimTo(source.license_plate || faker.string.alphanumeric({ length: { min: 6, max: 8 }, casing: "upper" }), 15) ||
+            faker.string.alphanumeric({ length: 7, casing: "upper" }),
+          year: Number.isInteger(source.year) ? Math.max(1900, Math.min(currentYear + 1, source.year)) : faker.number.int({ min: 2010, max: currentYear + 1 }),
+          make: trimTo(source.make || faker.vehicle.manufacturer(), 50) || trimTo(faker.vehicle.manufacturer(), 50),
+          model: trimTo(source.model || faker.vehicle.model(), 50) || trimTo(faker.vehicle.model(), 50),
+          color: trimTo(source.color || toTitleCase(faker.vehicle.color()), 50) || "White",
+          rental_rates: normalizedRentalRates.length ? normalizedRentalRates : buildRentalRates(),
+          usage_rates: normalizedUsageRates,
+        };
+      };
+
+      const computeBillingSignature = ({
+        currency,
+        rental_vehicle,
+        vehicle_damage_waiver,
+        personal_accident_insurance,
+      }) =>
+        JSON.stringify({
+          currency,
+          rental_rates: rental_vehicle.rental_rates || [],
+          usage_rates: rental_vehicle.usage_rates || [],
+          vehicle_damage_waiver: vehicle_damage_waiver || null,
+          personal_accident_insurance: personal_accident_insurance || null,
+        });
+
+      const roundCurrency = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+      const buildAgreementCharges = (vehicle, vdw, pai) => {
+        const lineItems = [];
+
+        (vehicle.rental_rates || []).forEach((rate) => {
+          const quantity = faker.number.int({ min: 1, max: 4 });
+          const total = roundCurrency(rate.rate_cost * quantity);
+          lineItems.push({
+            code: `rental_rate:${rate.rate_unit}`,
+            label: String(rate.rate_unit || "").toUpperCase(),
+            category: "rental_rates",
+            rate: rate.rate_cost,
+            quantity,
+            total,
+            note: rate.rate_note || "",
+          });
+        });
+
+        (vehicle.usage_rates || []).forEach((rate) => {
+          const quantity = faker.number.float({ min: 0, max: 40, fractionDigits: 2 });
+          const total = roundCurrency(rate.usage_cost * quantity);
+          lineItems.push({
+            code: `usage_rate:${rate.usage_type}`,
+            label: String(rate.usage_type || "").toUpperCase(),
+            category: "usage_charges",
+            rate: rate.usage_cost,
+            quantity,
+            total,
+            note: rate.usage_note || "",
+          });
+        });
+
+        if (vdw) {
+          const dayQty = faker.number.int({ min: 0, max: 6 });
+          const weekQty = faker.number.int({ min: 0, max: 1 });
+          lineItems.push({
+            code: "vehicle_damage_waiver:day",
+            label: "VDW",
+            category: "vehicle_protection",
+            note: "PER DAY",
+            rate: vdw.rate_per_day,
+            quantity: dayQty,
+            total: roundCurrency(vdw.rate_per_day * dayQty),
+          });
+          lineItems.push({
+            code: "vehicle_damage_waiver:week",
+            label: "VDW",
+            category: "vehicle_protection",
+            note: "PER WEEK",
+            rate: vdw.rate_per_week,
+            quantity: weekQty,
+            total: roundCurrency(vdw.rate_per_week * weekQty),
+          });
+        }
+
+        if (pai) {
+          const dayQty = faker.number.int({ min: 0, max: 6 });
+          lineItems.push({
+            code: "personal_accident_insurance:day",
+            label: "PAI",
+            category: "vehicle_protection",
+            rate: pai.rate_per_day,
+            quantity: dayQty,
+            total: roundCurrency(pai.rate_per_day * dayQty),
+            note: "",
+          });
+        }
+
+        const subtotal = roundCurrency(lineItems.reduce((sum, item) => sum + item.total, 0));
+        const salesTaxRate = faker.number.float({ min: 0, max: 11, fractionDigits: 2 });
+        const salesTaxAmount = roundCurrency(subtotal * (salesTaxRate / 100));
+        const depositAmount = roundCurrency(
+          subtotal > 0 ? faker.number.float({ min: 0, max: Math.min(500, subtotal), fractionDigits: 2 }) : 0
+        );
+        const totalDue = roundCurrency(subtotal + salesTaxAmount - depositAmount);
+
+        return {
+          line_items: lineItems,
+          sales_tax_rate: salesTaxRate,
+          deposit_amount: depositAmount,
+          subtotal,
+          sales_tax_amount: salesTaxAmount,
+          total_due: totalDue,
+        };
+      };
+
+      const buildAgreementData = (customerRecord, vehicleRecord, agreementNumber) => {
+        const customer = normalizeCustomerFromRecord(customerRecord);
+        const vehicle = normalizeVehicleFromRecord(vehicleRecord);
+
+        const pickupDate = randomDateBetween(
+          new Date(Date.now() - 1000 * 60 * 60 * 24 * 45),
+          new Date(Date.now() - 1000 * 60 * 60 * 24)
+        );
+        const returnDate = new Date(
+          pickupDate.getTime() + faker.number.int({ min: 1, max: 10 }) * 24 * 60 * 60 * 1000
+        );
+
+        const odometerOut = faker.number.int({ min: 9000, max: 195000 });
+        const maxDistance = faker.number.int({ min: 40, max: 900 });
+        const actualDriven = faker.number.int({ min: 0, max: maxDistance });
+        const odometerIn = odometerOut + actualDriven;
+
+        const vdw = faker.datatype.boolean(0.55)
+          ? {
+              rate_per_day: faker.number.float({ min: 8, max: 45, fractionDigits: 2 }),
+              rate_per_week: faker.number.float({ min: 45, max: 220, fractionDigits: 2 }),
+              damage_liability_limit: faker.number.int({ min: 500, max: 5000 }),
+            }
+          : undefined;
+
+        const pai = faker.datatype.boolean(0.45)
+          ? {
+              rate_per_day: faker.number.float({ min: 3, max: 16, fractionDigits: 2 }),
+            }
+          : undefined;
+
+        const charges = buildAgreementCharges(vehicle, vdw, pai);
+
+        const form = {
+          agreement_number: trimTo(agreementNumber, 50),
+          agreement_terms: {
+            ...AGREEMENT_TERMS,
+            effective_date: asDate(AGREEMENT_TERMS.effective_date, new Date("2026-06-09T17:22:21.803Z")),
+          },
+          customer_uuid: customerRecord.uuid,
+          vehicle_uuid: vehicleRecord.uuid,
+          rentee: customer,
+          additional_drivers: [],
+          vehicle_damage_waiver: vdw,
+          personal_accident_insurance: pai,
+          rental_vehicle: vehicle,
+          rental_agreement_info: {
+            odometer_in: odometerIn,
+            date_in: returnDate,
+            odometer_out: odometerOut,
+            date_out: pickupDate,
+            fuel_level_out: faker.helpers.arrayElement(FUEL_LEVEL_OPTIONS),
+            fuel_level_in: faker.helpers.arrayElement(FUEL_LEVEL_OPTIONS),
+            max_distance: maxDistance,
+            max_distance_measurement: faker.helpers.arrayElement(["MI", "KM"]),
+            max_payload: faker.number.int({ min: 500, max: 12000 }),
+            max_payload_measurement: faker.helpers.arrayElement(["LB", "KG"]),
+          },
+          agreement_charges: {
+            ...charges,
+            source_signature: "",
+            calculated_at: new Date(),
+          },
+          currency: "USD",
+          clerk_signature: "",
+        };
+
+        form.agreement_charges.source_signature = computeBillingSignature(form);
+        return form;
+      };
+
+      const generateCustomerRecords = (count) => {
+        const nowIso = new Date().toISOString();
+        return Array.from({ length: count }, () => ({
+          uuid: getUuid(),
+          status: "active",
+          customer: generateCustomerData(),
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        }));
+      };
+
+      const generateVehicleRecords = (count) => {
+        const nowIso = new Date().toISOString();
+        return Array.from({ length: count }, () => ({
+          uuid: getUuid(),
+          status: "active",
+          vehicle: generateVehicleData(),
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        }));
+      };
+
+      const generateAgreementRecords = (count, customerPool, vehiclePool, existingAgreementCount) => {
+        const records = [];
+
+        const deriveAgreementTimestamps = (agreement) => {
+          const pickup = asDate(agreement?.rental_agreement_info?.date_out, new Date());
+          const dropoff = asDate(agreement?.rental_agreement_info?.date_in, pickup);
+
+          const hasValidWindow = dropoff.getTime() >= pickup.getTime();
+          if (!hasValidWindow) {
+            const nowIso = new Date().toISOString();
+            return { createdAt: nowIso, updatedAt: nowIso };
+          }
+
+          const createdAtDate = randomDateBetween(pickup, dropoff);
+          const updatedAtDate = randomDateBetween(createdAtDate, dropoff);
+
+          return {
+            createdAt: createdAtDate.toISOString(),
+            updatedAt: updatedAtDate.toISOString(),
+          };
+        };
+
+        for (let i = 0; i < count; i += 1) {
+          const selectedCustomer = faker.helpers.arrayElement(customerPool);
+          const selectedVehicle = faker.helpers.arrayElement(vehiclePool);
+          const agreementNumber = `AGR-${new Date().getFullYear()}-${String(existingAgreementCount + i + 1).padStart(6, "0")}`;
+          const agreement = buildAgreementData(selectedCustomer, selectedVehicle, agreementNumber);
+          const { createdAt, updatedAt } = deriveAgreementTimestamps(agreement);
+
+          records.push({
+            uuid: getUuid(),
+            agreement,
+            status: "active",
+            createdAt,
+            updatedAt,
+          });
+        }
+
+        return records;
+      };
+
+      const runSeeder = async () => {
+        const shouldReset = Boolean(resetFirstInput.checked);
+        const customerCount = toSafeCount(customerCountInput.value, 0, 5_000);
+        const vehicleCount = toSafeCount(vehicleCountInput.value, 0, 5_000);
+        const agreementCount = toSafeCount(agreementCountInput.value, 0, 10_000);
+
+        seedButton.disabled = true;
+
+        try {
+          setStatus("Preparing seeding operation...");
+
+          if (shouldReset) {
+            setStatus("Resetting IndexedDB database...");
+            await deleteDatabase();
+          }
+
+          const db = await openDatabase();
+
+          const [existingCustomers, existingVehicles, existingAgreements] = await Promise.all([
+            getAllRecords(db, CUSTOMERS_STORE),
+            getAllRecords(db, VEHICLES_STORE),
+            getAllRecords(db, AGREEMENTS_STORE),
+          ]);
+
+          setStatus(
+            `Current counts before seeding:\nCustomers: ${existingCustomers.length}\nVehicles: ${existingVehicles.length}\nAgreements: ${existingAgreements.length}`
+          );
+
+          const newCustomers = generateCustomerRecords(customerCount);
+          const newVehicles = generateVehicleRecords(vehicleCount);
+
+          await putRecords(db, CUSTOMERS_STORE, newCustomers);
+          await putRecords(db, VEHICLES_STORE, newVehicles);
+
+          let customerPool = [...existingCustomers, ...newCustomers];
+          let vehiclePool = [...existingVehicles, ...newVehicles];
+
+          if (agreementCount > 0 && customerPool.length === 0) {
+            const fallbackCustomers = generateCustomerRecords(1);
+            await putRecords(db, CUSTOMERS_STORE, fallbackCustomers);
+            customerPool = fallbackCustomers;
+          }
+
+          if (agreementCount > 0 && vehiclePool.length === 0) {
+            const fallbackVehicles = generateVehicleRecords(1);
+            await putRecords(db, VEHICLES_STORE, fallbackVehicles);
+            vehiclePool = fallbackVehicles;
+          }
+
+          const newAgreements =
+            agreementCount > 0
+              ? generateAgreementRecords(agreementCount, customerPool, vehiclePool, existingAgreements.length)
+              : [];
+
+          await putRecords(db, AGREEMENTS_STORE, newAgreements);
+
+          const [finalCustomers, finalVehicles, finalAgreements] = await Promise.all([
+            getAllRecords(db, CUSTOMERS_STORE),
+            getAllRecords(db, VEHICLES_STORE),
+            getAllRecords(db, AGREEMENTS_STORE),
+          ]);
+
+          const customerAdded = finalCustomers.length - existingCustomers.length;
+          const vehicleAdded = finalVehicles.length - existingVehicles.length;
+          const agreementAdded = finalAgreements.length - existingAgreements.length;
+
+          setStatus(
+            [
+              "Seeding complete.",
+              "",
+              `Added customers: ${customerAdded}`,
+              `Added vehicles: ${vehicleAdded}`,
+              `Added agreements: ${agreementAdded}`,
+              "",
+              `Current totals: ${finalCustomers.length} customers, ${finalVehicles.length} vehicles, ${finalAgreements.length} agreements`,
+              shouldReset ? "Reset mode: enabled" : "Reset mode: disabled",
+            ].join("\n"),
+            "success"
+          );
+        } catch (error) {
+          const details = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+          setStatus(`Seeding failed.\n\n${details}`, "error");
+        } finally {
+          seedButton.disabled = false;
+        }
+      };
+
+      seedButton.addEventListener("click", runSeeder);
+      clearButton.addEventListener("click", () => {
+        setStatus("Ready.");
+      });
+    </script>
+  </body>
+</html>
