@@ -1,22 +1,44 @@
-import { IframeWrapper } from "./index";
 import { render } from "@testing-library/react";
+import IframeWrapper from "./index";
 
 describe("Basic Functionality", () => {
   it("should render placeholder when no src is provided", () => {
-    const { getByTestId } = render(<IframeWrapper src={null} />);
+    const { getByTestId } = render(<IframeWrapper src={null} isDirty={false} />);
 
     expect(getByTestId("iframe-placeholder")).toBeInTheDocument();
   });
 
   it("should render iframe when src is provided", () => {
-    const { getByTestId } = render(<IframeWrapper src="https://example.com" />);
+    const { getByTestId } = render(<IframeWrapper src="https://example.com" isDirty={false} />);
 
     expect(getByTestId("iframe")).toBeInTheDocument();
   });
 
+  it("should render stale overlay when isDirty is true", () => {
+    const { getByTestId } = render(<IframeWrapper src="https://example.com" isDirty={true} />);
+
+    expect(getByTestId("iframe")).toBeInTheDocument();
+    expect(getByTestId("stale-overlay")).toBeInTheDocument();
+  });
+
+  it("should not render stale overlay when isDirty is false", () => {
+    const { getByTestId, queryByTestId } = render(
+      <IframeWrapper src="https://example.com" isDirty={false} />
+    );
+
+    expect(getByTestId("iframe")).toBeInTheDocument();
+    expect(queryByTestId("stale-overlay")).toBeNull();
+  });
+
   it("should pass additional props to iframe", () => {
     const { getByTestId } = render(
-      <IframeWrapper src="https://example.com" title="Test Iframe" width="600" height="400" />
+      <IframeWrapper
+        src="https://example.com"
+        isDirty={false}
+        title="Test Iframe"
+        width="600"
+        height="400"
+      />
     );
 
     const iframe = getByTestId("iframe");
