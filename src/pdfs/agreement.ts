@@ -52,6 +52,10 @@ export const generateAgreement = async (
     creator: NEXT_PUBLIC_APP_NAME,
     keywords: `Automotive, Rental, Agreement, PDF, Form, ${NEXT_PUBLIC_APP_NAME}`,
   });
+  doc.viewerPreferences({
+    Duplex: "DuplexFlipLongEdge",
+    NumCopies: 2,
+  });
   doc.setLanguage("en-US");
 
   // Company Heading
