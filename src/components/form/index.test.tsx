@@ -35,6 +35,7 @@ const renderForm = () => {
     getCustomer: vi.fn(),
     getAllCustomers: vi.fn().mockResolvedValue([]),
     searchCustomers: vi.fn().mockResolvedValue([]),
+    searchAgreements: vi.fn().mockResolvedValue([]),
   };
 
   const Wrapper = () => {
@@ -166,6 +167,7 @@ describe("RentalAgreementForm", () => {
       getCustomer: vi.fn(),
       getAllCustomers: vi.fn().mockResolvedValue([]),
       searchCustomers: vi.fn().mockResolvedValue([]),
+      searchAgreements: vi.fn().mockResolvedValue([]),
     };
 
     const Wrapper = () => {
@@ -219,6 +221,7 @@ describe("RentalAgreementForm", () => {
       getCustomer: vi.fn(),
       getAllCustomers: vi.fn().mockResolvedValue([]),
       searchCustomers: vi.fn().mockResolvedValue([]),
+      searchAgreements: vi.fn().mockResolvedValue([]),
     };
 
     const Wrapper = () => {
@@ -327,6 +330,7 @@ describe("RentalAgreementForm", () => {
       getCustomer: vi.fn(),
       getAllCustomers: vi.fn().mockResolvedValue([]),
       searchCustomers: vi.fn().mockResolvedValue([]),
+      searchAgreements: vi.fn().mockResolvedValue([]),
     };
 
     const Wrapper = () => {

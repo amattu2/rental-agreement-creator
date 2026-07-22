@@ -7,7 +7,7 @@ import {
   INDEXED_DB_VERSION,
 } from "@/config/constants";
 import { FinalizationSchema } from "@/schemas/finalization";
-import { customerMatchesQuery, vehicleMatchesQuery } from "@/utils/search";
+import { agreementMatchesQuery, customerMatchesQuery, vehicleMatchesQuery } from "@/utils/search";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -214,6 +214,18 @@ const getAllAgreements = async (): Promise<AgreementRecord[]> => {
   return result;
 };
 
+const searchAgreements = async (
+  query: string,
+  status: AgreementStatus | "all"
+): Promise<AgreementRecord[]> => {
+  const agreements = await getAllAgreements();
+
+  return agreements
+    .filter((record) => (status === "all" ? true : record.status === status))
+    .filter((record) => agreementMatchesQuery(record, query))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+};
+
 const searchVehicles = async (query: string): Promise<VehicleRecord[]> => {
   const vehicles = await getAllVehicles();
 
@@ -335,6 +347,10 @@ export class IndexedDbDatabaseApi implements DatabaseApi {
 
   getAllAgreements(): Promise<AgreementRecord[]> {
     return getAllAgreements();
+  }
+
+  searchAgreements(query: string, status: AgreementStatus | "all"): Promise<AgreementRecord[]> {
+    return searchAgreements(query, status);
   }
 
   finalizeAgreement(

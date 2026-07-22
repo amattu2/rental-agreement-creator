@@ -1,4 +1,23 @@
-import { customerMatchesQuery, normalize, vehicleMatchesQuery } from "./search";
+import {
+  agreementMatchesQuery,
+  customerMatchesQuery,
+  normalize,
+  vehicleMatchesQuery,
+} from "./search";
+
+const makeAgreement = (overrides: Partial<AgreementRecord["agreement"]> = {}): AgreementRecord =>
+  ({
+    uuid: "agreement-1",
+    status: "active",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    agreement: {
+      agreement_number: "AGR-001",
+      rentee: { full_name: "  Jane Doe  " },
+      rental_vehicle: { year: 2024, make: "  Ford  ", model: "  Transit  " },
+      ...overrides,
+    },
+  }) as unknown as AgreementRecord;
 
 const makeCustomer = (overrides: Partial<CustomerRecord["customer"]> = {}): CustomerRecord =>
   ({
@@ -98,5 +117,44 @@ describe("vehicleMatchesQuery", () => {
     const vehicle = makeVehicle();
 
     expect(vehicleMatchesQuery(vehicle, "mka00001 abc-123")).toBe(true);
+  });
+});
+
+describe("agreementMatchesQuery", () => {
+  it("returns true for empty queries", () => {
+    const agreement = makeAgreement();
+
+    expect(agreementMatchesQuery(agreement, "")).toBe(true);
+    expect(agreementMatchesQuery(agreement, "    ")).toBe(true);
+  });
+
+  it("matches by agreement number case-insensitively", () => {
+    const agreement = makeAgreement();
+
+    expect(agreementMatchesQuery(agreement, "agr-001")).toBe(true);
+  });
+
+  it("matches by customer full name", () => {
+    const agreement = makeAgreement();
+
+    expect(agreementMatchesQuery(agreement, "jane doe")).toBe(true);
+  });
+
+  it("matches by vehicle year, make, and model", () => {
+    const agreement = makeAgreement();
+
+    expect(agreementMatchesQuery(agreement, "2024 ford transit")).toBe(true);
+  });
+
+  it("returns false when a term is not found in any field", () => {
+    const agreement = makeAgreement();
+
+    expect(agreementMatchesQuery(agreement, "AGR-001 missing-term")).toBe(false);
+  });
+
+  it("handles partial matches within fields", () => {
+    const agreement = makeAgreement();
+
+    expect(agreementMatchesQuery(agreement, "tran")).toBe(true);
   });
 });

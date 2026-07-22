@@ -37,6 +37,7 @@ type DatabaseApi = {
   updateAgreement(uuid: string, input: AgreementData): Promise<AgreementRecord>;
   getAgreement(uuid: string): Promise<AgreementRecord | undefined>;
   getAllAgreements(): Promise<AgreementRecord[]>;
+  searchAgreements(query: string, status: AgreementStatus | "all"): Promise<AgreementRecord[]>;
   finalizeAgreement(uuid: string, finalizationDetails: FinalizationData): Promise<AgreementRecord>;
   cancelAgreement(uuid: string): Promise<AgreementRecord>;
 

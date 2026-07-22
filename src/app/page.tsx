@@ -1,8 +1,17 @@
 "use client";
 
 import { useDatabaseApi } from "@/database/provider";
-import { Box, Button, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+} from "@mui/material";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AgreementTable from "@/components/AgreementTable";
 import { FinalizationSchema } from "@/schemas/finalization";
@@ -12,64 +21,49 @@ const AgreementListPage = () => {
   const databaseApi = useDatabaseApi();
   const [agreements, setAgreements] = useState<AgreementRecord[]>([]);
   const [statusFilter, setStatusFilter] = useState<AgreementStatus | "all">("active");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  const filteredAgreements = useMemo<AgreementRecord[]>(
-    () =>
-      agreements.filter((agreement) => {
-        if (statusFilter !== "all") {
-          return agreement.status === statusFilter;
-        }
-
-        return true;
-      }),
-    [agreements, statusFilter]
-  );
-
-  const handleFilterChange = (filter: AgreementStatus | "all") => {
-    setStatusFilter(filter);
-  };
 
   const handleCreateNew = () => {
     router.push("/agreement");
   };
 
-  const handleArchive = useCallback(
-    async (uuid: string, details: FinalizationSchema): Promise<AgreementRecord> => {
-      const record = await databaseApi.finalizeAgreement(uuid, details);
-      const data = await databaseApi.getAllAgreements();
-
-      setAgreements(data);
-      return record;
-    },
-    [databaseApi]
-  );
-
-  const handleCancel = useCallback(
-    async (uuid: string): Promise<AgreementRecord> => {
-      const record = await databaseApi.cancelAgreement(uuid);
-      const data = await databaseApi.getAllAgreements();
-
-      setAgreements(data);
-      return record;
-    },
-    [databaseApi]
-  );
-
-  useEffect(() => {
-    const loadAgreements = async () => {
+  const handleSearch = useCallback(
+    async (query: string, status: AgreementStatus | "all") => {
+      setIsLoading(true);
       try {
-        const data = await databaseApi.getAllAgreements();
+        const data = await databaseApi.searchAgreements(query, status);
         setAgreements(data);
       } catch (error) {
         console.error("Failed to load agreements", error);
       } finally {
         setIsLoading(false);
       }
-    };
+    },
+    [databaseApi]
+  );
 
-    loadAgreements();
-  }, [databaseApi]);
+  const handleArchive = useCallback(
+    async (uuid: string, details: FinalizationSchema): Promise<AgreementRecord> => {
+      const record = await databaseApi.finalizeAgreement(uuid, details);
+      await handleSearch(searchQuery, statusFilter);
+      return record;
+    },
+    [databaseApi, handleSearch, searchQuery, statusFilter]
+  );
+
+  const handleCancel = useCallback(
+    async (uuid: string): Promise<AgreementRecord> => {
+      const record = await databaseApi.cancelAgreement(uuid);
+      await handleSearch(searchQuery, statusFilter);
+      return record;
+    },
+    [databaseApi, handleSearch, searchQuery, statusFilter]
+  );
+
+  useEffect(() => {
+    handleSearch(searchQuery, statusFilter);
+  }, [handleSearch, searchQuery, statusFilter]);
 
   return (
     <Box sx={{ p: 4 }}>
@@ -87,22 +81,31 @@ const AgreementListPage = () => {
       </Box>
 
       <Box>
-        <FormControl sx={{ minWidth: 250, mb: 2 }}>
-          <InputLabel>Status</InputLabel>
-          <Select
-            value={statusFilter}
-            onChange={(e) => handleFilterChange(e.target.value as AgreementStatus | "all")}
-            label="Status"
+        <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
+          <TextField
             size="small"
-          >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="archived">Archived</MenuItem>
-            <MenuItem value="canceled">Canceled</MenuItem>
-          </Select>
-        </FormControl>
+            placeholder="Search agreements"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            sx={{ minWidth: 450 }}
+          />
+          <FormControl sx={{ minWidth: 250 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as AgreementStatus | "all")}
+              label="Status"
+              size="small"
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="archived">Archived</MenuItem>
+              <MenuItem value="canceled">Canceled</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
         <AgreementTable
-          agreements={filteredAgreements}
+          agreements={agreements}
           loading={isLoading}
           onArchive={handleArchive}
           onCancel={handleCancel}
