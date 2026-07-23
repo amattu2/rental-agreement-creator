@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
-import Logo from "@/assets/logo.png"
-import HomeImage from "@/assets/home.png"
-import CustomersImage from "@/assets/customers.png"
-import VehiclesImage from "@/assets/vehicles.png"
+import Logo from "@/assets/logo.png";
+import HomeImage from "@/assets/home.png";
+import CustomersImage from "@/assets/customers.png";
+import VehiclesImage from "@/assets/vehicles.png";
 
 export const dynamic = "force-static";
 
@@ -42,7 +42,7 @@ export const manifest = (): MetadataRoute.Manifest => ({
       sizes: `${VehiclesImage.width}x${VehiclesImage.height}`,
       type: "image/png",
       form_factor: "wide",
-    }
+    },
   ],
 });
 
