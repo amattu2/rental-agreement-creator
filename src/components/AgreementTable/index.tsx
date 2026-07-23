@@ -1,4 +1,4 @@
-import { formatDate } from "@/utils/text";
+import { formatDate, formatNumber } from "@/utils/text";
 import { ENV_SCHEMA } from "@/schemas/env";
 import { Tooltip, NoSsr } from "@mui/material";
 import {
@@ -28,6 +28,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     flex: 1,
     minWidth: 120,
     sortable: false,
+    hideable: false,
     renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) => {
       return (
         <Tooltip title={`Manage agreement - ${row.agreement.agreement_number}`}>
@@ -37,21 +38,21 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     },
   },
   {
-    field: "status",
-    headerName: "Status",
-    width: 100,
-    sortable: true,
-    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) => (
-      <StatusChip status={row.status} />
-    ),
-  },
-  {
     field: "full_name",
     headerName: "Rentee",
     flex: 1,
     minWidth: 120,
     sortable: true,
     valueGetter: (_, row: AgreementRecord) => row.agreement.rentee.full_name,
+  },
+  {
+    field: "license",
+    headerName: "Driver's license",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: AgreementRecord) =>
+      `${row.agreement.rentee.driver_license_number} (${row.agreement.rentee.driver_license_state})`,
   },
   {
     field: "vehicle",
@@ -65,6 +66,14 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     },
   },
   {
+    field: "VIN",
+    headerName: "VIN",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: AgreementRecord) => row.agreement.rental_vehicle.VIN,
+  },
+  {
     field: "date_out",
     headerName: "Pickup Date",
     flex: 1,
@@ -75,6 +84,15 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
       formatDate(row.agreement.rental_agreement_info.date_out, "MM/DD/YYYY h:mma"),
   },
   {
+    field: "odometer_out",
+    headerName: "Odometer Out",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: AgreementRecord) =>
+      `${formatNumber(row.agreement.rental_agreement_info.odometer_out)} ${row.agreement.rental_agreement_info.max_distance_measurement}`,
+  },
+  {
     field: "date_in",
     headerName: "Return Date",
     flex: 1,
@@ -83,6 +101,15 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     valueGetter: (_, row: AgreementRecord) => row.agreement.rental_agreement_info.date_in,
     renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) =>
       formatDate(row.agreement.rental_agreement_info.date_in, "MM/DD/YYYY h:mma"),
+  },
+  {
+    field: "odometer_in",
+    headerName: "Odometer In",
+    flex: 1,
+    minWidth: 150,
+    sortable: false,
+    valueGetter: (_, row: AgreementRecord) =>
+      `${formatNumber(row.agreement.rental_agreement_info.odometer_in)} ${row.agreement.rental_agreement_info.max_distance_measurement}`,
   },
   {
     field: "updatedAt",
@@ -103,6 +130,15 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     valueGetter: (_, row: AgreementRecord) => row.createdAt,
     renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) =>
       formatDate(row.createdAt, "MM/DD/YYYY h:mma"),
+  },
+  {
+    field: "status",
+    headerName: "Status",
+    width: 100,
+    sortable: true,
+    renderCell: ({ row }: GridRenderCellParams<AgreementRecord>) => (
+      <StatusChip status={row.status} />
+    ),
   },
 ];
 
@@ -213,6 +249,7 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
       {
         field: "actions",
         type: "actions",
+        hideable: false,
         getActions: (params: GridRowParams<AgreementRecord>) =>
           [
             <GridActionsCellItem
@@ -280,10 +317,18 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
             sorting: {
               sortModel: [{ field: "updatedAt", sort: "desc" }],
             },
+            columns: {
+              columnVisibilityModel: {
+                license: false,
+                VIN: false,
+                odometer_in: false,
+                createdAt: false,
+              },
+            },
           }}
           sx={{ border: "none" }}
           disableRowSelectionOnClick
-          disableColumnMenu
+          disableColumnFilter
         />
       </NoSsr>
 
