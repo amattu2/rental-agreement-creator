@@ -1,16 +1,7 @@
 "use client";
 
 import { useDatabaseApi } from "@/database/provider";
-import {
-  Box,
-  Button,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-} from "@mui/material";
+import { Box, Button, Typography, MenuItem, TextField } from "@mui/material";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AgreementTable from "@/components/AgreementTable";
@@ -85,25 +76,24 @@ const AgreementListPage = () => {
         <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
           <TextField
             size="small"
-            placeholder="Search agreements"
+            label="Search agreements"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             sx={{ minWidth: 450 }}
           />
-          <FormControl sx={{ minWidth: 250 }}>
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as AgreementStatus | "all")}
-              label="Status"
-              size="small"
-            >
-              <MenuItem value="all">All</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="archived">Archived</MenuItem>
-              <MenuItem value="canceled">Canceled</MenuItem>
-            </Select>
-          </FormControl>
+          <TextField
+            select
+            size="small"
+            label="Status"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value as AgreementStatus | "all")}
+            sx={{ minWidth: 250 }}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="archived">Archived</MenuItem>
+            <MenuItem value="canceled">Canceled</MenuItem>
+          </TextField>
         </Box>
         <AgreementTable
           agreements={agreements}
