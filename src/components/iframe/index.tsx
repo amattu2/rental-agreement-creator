@@ -6,6 +6,7 @@ const StyledContainer = styled(Box)(({ theme }) => ({
   border: "none",
   borderRadius: "6px",
   display: "flex",
+  flexDirection: "column",
   minHeight: "calc(100vh - 64px - 20px)",
   position: "sticky",
   top: "10px",
@@ -18,6 +19,7 @@ const BaseStyles: CSSProperties = {
   border: "none",
   borderRadius: "6px",
   width: "100%",
+  flex: 1,
   minHeight: "100%",
 };
 
