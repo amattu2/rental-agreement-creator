@@ -36,6 +36,7 @@ const AgreementListPage = () => {
         setAgreements(data);
       } catch (error) {
         console.error("Failed to load agreements", error);
+        setAgreements([]);
       } finally {
         setIsLoading(false);
       }
