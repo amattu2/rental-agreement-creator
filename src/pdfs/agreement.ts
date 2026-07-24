@@ -117,22 +117,16 @@ export const generateAgreement = async (
 
   currentY += 3;
   doc.drawField("HOME ADDRESS", 6, currentY, 95, form.rentee.address_street1);
-  doc.setFont("Cousine", "normal", 400);
-  doc.setFontSize(8);
-  doc.text("VERIFIED", 105.5, currentY);
-  doc.buildTextField("VERIFIED", 101.5, currentY, 23.5, 5, form.rentee.verified ? "YES" : "NO");
+  doc.drawField("VERIFIED", 102, currentY, 22.6, form.rentee.verified ? "YES" : "NO");
   doc.setDrawColor(0, 0, 0);
-  doc.line(101.5, currentY - 3, 101.5, currentY + 5);
+  doc.line(101.2, currentY - 3, 101.2, currentY + 5);
   doc.setDrawColor(59, 59, 59);
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3;
   doc.drawField("CITY", 6, currentY, 47.4, form.rentee.address_city);
   doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state, "RENTEE_STATE");
-  doc.buildTextField("RENTEE_ZIP_CODE", 102, currentY, 22.6, 5, form.rentee.address_zip);
-  doc.setFont("Cousine", "normal", 400);
-  doc.setFontSize(8);
-  doc.text("ZIP CODE", 105.5, currentY);
+  doc.drawField("ZIP CODE", 102, currentY, 22.6, form.rentee.address_zip, "RENTEE_ZIP_CODE");
 
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
@@ -146,17 +140,14 @@ export const generateAgreement = async (
     form.rentee.driver_license_state,
     "DRIVER_LICENSE_STATE"
   );
-  doc.buildTextField(
-    "DRIVER_LICENSE_EXPIRATION",
+  doc.drawField(
+    "EXP. DATE",
     102,
     currentY,
     22.6,
-    5,
-    formatDate(form.rentee.driver_license_expiration)
+    formatDate(form.rentee.driver_license_expiration),
+    "DRIVER_LICENSE_EXPIRATION"
   );
-  doc.setFont("Cousine", "normal", 400);
-  doc.setFontSize(8);
-  doc.text("EXP. DATE", 105.5, currentY);
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
