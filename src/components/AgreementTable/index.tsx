@@ -90,7 +90,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     minWidth: 150,
     sortable: false,
     valueGetter: (_, row: AgreementRecord) =>
-      `${formatNumber(row.agreement.rental_agreement_info.odometer_out)} ${row.agreement.rental_agreement_info.max_distance_measurement}`,
+      `${formatNumber(row.agreement.rental_agreement_info.odometer_out, false)} ${row.agreement.rental_agreement_info.max_distance_measurement}`,
   },
   {
     field: "date_in",
@@ -109,7 +109,7 @@ const AGREEMENT_TABLE_COLUMNS: GridColDef<AgreementRecord>[] = [
     minWidth: 150,
     sortable: false,
     valueGetter: (_, row: AgreementRecord) =>
-      `${formatNumber(row.agreement.rental_agreement_info.odometer_in)} ${row.agreement.rental_agreement_info.max_distance_measurement}`,
+      `${formatNumber(row.agreement.rental_agreement_info.odometer_in, false)} ${row.agreement.rental_agreement_info.max_distance_measurement}`,
   },
   {
     field: "updatedAt",
