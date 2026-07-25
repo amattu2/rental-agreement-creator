@@ -130,15 +130,14 @@ export const ChargeConfirmationDialog = ({ onClose, onConfirm }: ChargeConfirmat
               <Typography variant="caption" color="text.secondary">
                 Duration
               </Typography>
-              <Typography variant="body2">{durationHours.toFixed(1)} hours</Typography>
+              <Typography variant="body2">{durationHours.toFixed(1)} HOURS</Typography>
             </Box>
             <Box>
               <Typography variant="caption" color="text.secondary">
                 Distance
               </Typography>
               <Typography variant="body2">
-                {formatNumber(distance)}{" "}
-                {form.rental_agreement_info.max_distance_measurement?.toLowerCase()}
+                {`${formatNumber(distance, false)} ${form.rental_agreement_info.max_distance_measurement}`}
               </Typography>
             </Box>
           </Stack>

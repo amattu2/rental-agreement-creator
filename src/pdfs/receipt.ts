@@ -144,7 +144,7 @@ export const generateReceipt = async (
       items.forEach(({ label, quantity, rate, total, note }) => {
         doc.text(label, margin + 3, currentY);
         doc.text(
-          `${formatNumber(quantity)} @ ${formatCurrency(rate, agreement.currency)} ${note ?? ""}`,
+          `${formatNumber(quantity, true)} @ ${formatCurrency(rate, agreement.currency)} ${note ?? ""}`,
           margin + 20,
           currentY
         );
@@ -168,7 +168,7 @@ export const generateReceipt = async (
   });
   currentY += 3;
 
-  doc.text(`Tax (${formatNumber(charges.sales_tax_rate)}%):`, margin, currentY);
+  doc.text(`Tax (${formatNumber(charges.sales_tax_rate, true)}%):`, margin, currentY);
   doc.text(formatCurrency(charges.sales_tax_amount, agreement.currency), maxWidth, currentY, {
     align: "right",
   });
