@@ -22,9 +22,9 @@ export type BillingCtxState = {
 
 const BillingDescriptions: Record<BillingStatus, string> = {
   confirmed: "",
-  pending: "Charges have not been calculated yet.",
+  pending: "No charges have been calculated yet. Please calculate the charges before proceeding.",
   stale:
-    "Rate inputs changed since charges were last confirmed. Review and save charges again before generating the agreement.",
+    "The available charges have changed since they were last confirmed. Please review and save the charges again.",
 };
 
 /**
