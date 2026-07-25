@@ -250,6 +250,14 @@ export const RentalAgreementForm = () => {
     return <>{adornments}</>;
   }, [customerUuid, disabled, setCustomerSelectionOpen, handleClearCustomer]);
 
+  const tooltipText = useMemo<string>(() => {
+    if (disabled) {
+      return "";
+    }
+
+    return billingDescription;
+  }, [disabled, billingDescription]);
+
   const handleResetClick = () => setIsResetDialogOpen(true);
 
   const handleResetCancel = () => {
@@ -910,15 +918,19 @@ export const RentalAgreementForm = () => {
       <Divider sx={{ my: 3 }} />
 
       <Stack spacing={1}>
-        <Button
-          type="submit"
-          variant="contained"
-          loading={isSubmitting}
-          disabled={isSubmitting || billingStatus !== "confirmed" || disabled}
-          fullWidth
-        >
-          Generate Agreement
-        </Button>
+        <Tooltip title={tooltipText} placement="top" arrow>
+          <span>
+            <Button
+              type="submit"
+              variant="contained"
+              loading={isSubmitting}
+              disabled={isSubmitting || billingStatus !== "confirmed" || disabled}
+              fullWidth
+            >
+              Generate Agreement
+            </Button>
+          </span>
+        </Tooltip>
         <Button
           type="button"
           variant="outlined"
@@ -928,15 +940,6 @@ export const RentalAgreementForm = () => {
         >
           Edit Charges
         </Button>
-        {billingStatus !== "confirmed" && (
-          <Typography
-            variant="caption"
-            color={billingStatus === "stale" ? "warning.main" : "text.secondary"}
-            textAlign="center"
-          >
-            {billingDescription}
-          </Typography>
-        )}
         <Button
           type="button"
           variant="text"
