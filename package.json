@@ -10,8 +10,7 @@
     "test:ci": "vitest --reporter verbose --coverage --maxWorkers=2 --maxConcurrency=2",
     "lint": "eslint",
     "lint:ci": "eslint . --max-warnings 0",
-    "lint:fix": "eslint --fix",
-    "format": "prettier --write .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf .next node_modules out tsconfig.tsbuildinfo next-env.d.ts"
   },
