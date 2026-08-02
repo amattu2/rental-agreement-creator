@@ -1,10 +1,11 @@
 "use client";
 
-import { useDatabaseApi } from "@/database/provider";
 import { Box, Button, Typography, MenuItem, TextField } from "@mui/material";
-import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+
 import AgreementTable from "@/components/AgreementTable";
+import { useDatabaseApi } from "@/database/provider";
 import { FinalizationSchema } from "@/schemas/finalization";
 
 const AgreementListPage = () => {

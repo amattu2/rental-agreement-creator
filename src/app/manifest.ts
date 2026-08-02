@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
-import Logo from "@/assets/logo.png";
-import HomeImage from "@/assets/home.png";
+
 import CustomersImage from "@/assets/customers.png";
+import HomeImage from "@/assets/home.png";
+import Logo from "@/assets/logo.png";
 import VehiclesImage from "@/assets/vehicles.png";
 
 export const dynamic = "force-static";

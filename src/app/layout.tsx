@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
-import theme from "@/theme";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { DatabaseApiProvider } from "@/database/provider";
+
 import Logo from "@/assets/logo.png";
+import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
+import { DatabaseApiProvider } from "@/database/provider";
+import theme from "@/theme";
 
 export const metadata: Metadata = {
   title: `Agreements - ${process.env.NEXT_PUBLIC_APP_NAME}`,

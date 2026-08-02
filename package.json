@@ -10,7 +10,7 @@
     "test:ci": "vitest --reporter verbose --coverage --maxWorkers=2 --maxConcurrency=2",
     "lint": "eslint",
     "lint:ci": "eslint . --max-warnings 0",
-    "format": "prettier --write .",
+    "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf .next node_modules out tsconfig.tsbuildinfo next-env.d.ts"
   },
@@ -50,6 +50,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.2.6",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
     "jsdom": "^27.4.0",
     "prettier": "^3.7.4",
     "rimraf": "^6.1.3",

@@ -1,4 +1,5 @@
 import type { FormSchema, RenteeSchema, VehicleSchema } from "@/schemas/form";
+
 import { AGREEMENT_TERMS } from "./terms";
 
 /**

@@ -1,10 +1,13 @@
-import { FormProvider, useForm } from "react-hook-form";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { RentalAgreementForm } from "./index";
-import type { FormSchema } from "@/schemas/form";
+import { FormProvider, useForm } from "react-hook-form";
+
 import { DEFAULT_FORM } from "@/config/constants";
 import { DatabaseApiContext } from "@/database/provider";
+import type { FormSchema } from "@/schemas/form";
+
 import { BillingStateCtx } from "../BillingContext";
+
+import { RentalAgreementForm } from "./index";
 
 vi.mock("@mui/x-date-pickers/DatePicker", () => ({
   DatePicker: ({ label }: { label: string }) => (

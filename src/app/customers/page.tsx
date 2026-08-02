@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import EditIcon from "@mui/icons-material/Edit";
 import { Alert, Box, Button, Stack, TextField, Typography, NoSsr } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
-import EditIcon from "@mui/icons-material/Edit";
-import { useDatabaseApi } from "@/database/provider";
-import { DEFAULT_CUSTOMER } from "@/config/constants";
-import { CustomerEditorDialog } from "@/components/CustomerEditorDialog";
-import { RenteeSchema } from "@/schemas/form";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { useCallback, useEffect, useState, useMemo } from "react";
+
+import { CustomerEditorDialog } from "@/components/CustomerEditorDialog";
+import { DEFAULT_CUSTOMER } from "@/config/constants";
+import { useDatabaseApi } from "@/database/provider";
+import { RenteeSchema } from "@/schemas/form";
 import { formatAddress, formatDate } from "@/utils/text";
 
 const CUSTOMERS_TABLE_BASE_COLUMNS: GridColDef<CustomerRecord>[] = [

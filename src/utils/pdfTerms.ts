@@ -1,5 +1,6 @@
-import { AgreementTermsSchema } from "@/schemas/form";
 import jsPDF from "jspdf";
+
+import { AgreementTermsSchema } from "@/schemas/form";
 
 export type TermsLayoutConfig = {
   contentStartY: number;

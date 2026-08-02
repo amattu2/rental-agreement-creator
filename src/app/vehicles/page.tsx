@@ -1,8 +1,8 @@
 "use client";
 
 import EditIcon from "@mui/icons-material/Edit";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import {
   Alert,
   Box,
@@ -16,8 +16,9 @@ import {
 } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DEFAULT_VEHICLE } from "@/config/constants";
+
 import { VehicleEditorDialog } from "@/components/VehicleEditorDialog";
+import { DEFAULT_VEHICLE } from "@/config/constants";
 import { useDatabaseApi } from "@/database/provider";
 import type { VehicleSchema } from "@/schemas/form";
 import { formatDate } from "@/utils/text";

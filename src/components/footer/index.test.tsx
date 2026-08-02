@@ -1,5 +1,6 @@
-import { Footer } from "./index";
 import { render } from "@testing-library/react";
+
+import { Footer } from "./index";
 
 describe("Basic Functionality", () => {
   it("should render without crashing", () => {

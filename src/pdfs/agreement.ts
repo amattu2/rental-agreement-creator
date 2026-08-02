@@ -1,16 +1,18 @@
-import jsPDF from "./base";
 import { AcroFormTextField } from "jspdf";
-import { loadFont } from "@/utils/fonts";
-import { formatCurrency, formatDate, coerceNumber, formatNumber } from "@/utils/text";
-import { groupByCategory } from "@/utils/billing";
-import { PDF_FONTS } from "@/config/fonts";
-import { EnvSchema } from "@/schemas/env";
+
 import {
   CATEGORY_NAMES,
   DISTANCE_MEASUREMENT_OPTIONS,
   FUEL_LEVEL_OPTIONS,
   PAYLOAD_MEASUREMENT_OPTIONS,
 } from "@/config/constants";
+import { PDF_FONTS } from "@/config/fonts";
+import { EnvSchema } from "@/schemas/env";
+import { groupByCategory } from "@/utils/billing";
+import { loadFont } from "@/utils/fonts";
+import { formatCurrency, formatDate, coerceNumber, formatNumber } from "@/utils/text";
+
+import jsPDF from "./base";
 
 /**
  * A utility function to generate a rental agreement PDF from the provided form data.

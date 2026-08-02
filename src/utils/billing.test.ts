@@ -1,5 +1,6 @@
 import { DEFAULT_FORM } from "@/config/constants";
 import type { FormSchema } from "@/schemas/form";
+
 import { buildAgreementCharges, computeBillingSignature, groupByCategory } from "./billing";
 
 const makeForm = (overrides: Partial<FormSchema> = {}): FormSchema => {

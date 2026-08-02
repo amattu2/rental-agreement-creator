@@ -1,7 +1,8 @@
-import { Controller, Path, useFormContext } from "react-hook-form";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import type { FormSchema } from "@/schemas/form";
 import dayjs from "dayjs";
+import { Controller, Path, useFormContext } from "react-hook-form";
+
+import type { FormSchema } from "@/schemas/form";
 
 export const DateInput = ({ name, label }: { name: Path<FormSchema>; label: string }) => {
   const { control } = useFormContext<FormSchema>();

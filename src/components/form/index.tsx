@@ -1,7 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import AddIcon from "@mui/icons-material/Add";
+import CalculateIcon from "@mui/icons-material/Calculate";
+import DeleteIcon from "@mui/icons-material/Delete";
+import SearchIcon from "@mui/icons-material/Search";
 import {
   Box,
   Button,
@@ -18,25 +20,9 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import CalculateIcon from "@mui/icons-material/Calculate";
-import SearchIcon from "@mui/icons-material/Search";
-import { FormSchema } from "@/schemas/form";
-import { ChargeConfirmationDialog } from "../ChargeConfirmationDialog";
-import { CheckboxInput } from "../CheckboxInput";
-import { DateInput } from "../DateInput";
-import { DateTimeInput } from "../DateTimeInput";
-import { FieldCell } from "../FieldCell";
-import { FieldRow } from "../FieldRow";
-import { NumberInput } from "../NumberInput";
-import { Section } from "../Section";
-import { SelectInput } from "../SelectInput";
-import { SignatureInput } from "../SignatureInput";
-import { Subsection } from "../Subsection";
-import { TextInput } from "../TextInput";
-import { VehicleSelectionDialog } from "../VehicleSelectionDialog";
-import { CustomerSelectionDialog } from "../CustomerSelectionDialog";
+import { useCallback, useMemo, useState } from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
+
 import {
   MAX_ADDITIONAL_DRIVERS,
   FUEL_LEVEL_OPTIONS,
@@ -49,7 +35,23 @@ import {
   DEFAULT_CUSTOMER,
   DEFAULT_VEHICLE,
 } from "@/config/constants";
+import { FormSchema } from "@/schemas/form";
+
 import { useBillingState } from "../BillingContext";
+import { ChargeConfirmationDialog } from "../ChargeConfirmationDialog";
+import { CheckboxInput } from "../CheckboxInput";
+import { CustomerSelectionDialog } from "../CustomerSelectionDialog";
+import { DateInput } from "../DateInput";
+import { DateTimeInput } from "../DateTimeInput";
+import { FieldCell } from "../FieldCell";
+import { FieldRow } from "../FieldRow";
+import { NumberInput } from "../NumberInput";
+import { Section } from "../Section";
+import { SelectInput } from "../SelectInput";
+import { SignatureInput } from "../SignatureInput";
+import { Subsection } from "../Subsection";
+import { TextInput } from "../TextInput";
+import { VehicleSelectionDialog } from "../VehicleSelectionDialog";
 
 const StyledIconButton = styled(IconButton)({
   marginRight: "-5px",

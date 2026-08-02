@@ -1,5 +1,6 @@
-import { Controller, Path, useFormContext } from "react-hook-form";
 import { MenuItem, TextField } from "@mui/material";
+import { Controller, Path, useFormContext } from "react-hook-form";
+
 import type { FormSchema } from "@/schemas/form";
 
 export const SelectInput = ({
