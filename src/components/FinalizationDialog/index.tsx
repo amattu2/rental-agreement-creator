@@ -65,7 +65,7 @@ export const FinalizationDialog = ({ agreement, onClose, onConfirm }: Finalizati
                 onChange={(date) =>
                   field.onChange(date && date.isValid() ? date.toDate() : undefined)
                 }
-                label="Vehicle Returned Date/Time"
+                label="Return date"
                 slotProps={{
                   textField: {
                     fullWidth: true,
@@ -88,7 +88,7 @@ export const FinalizationDialog = ({ agreement, onClose, onConfirm }: Finalizati
                 onChange={(event) => {
                   field.onChange(event.target.value === "" ? "" : Number(event.target.value));
                 }}
-                label="Odometer In"
+                label="Odometer in"
                 type="number"
                 slotProps={{
                   htmlInput: {
@@ -112,7 +112,7 @@ export const FinalizationDialog = ({ agreement, onClose, onConfirm }: Finalizati
                 {...field}
                 select
                 value={field.value ?? ""}
-                label="Fuel Level In"
+                label="Fuel level in"
                 fullWidth
                 size="small"
                 error={!!error}
