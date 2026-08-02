@@ -1,12 +1,13 @@
 import jsPDF, { AcroFormTextField, AcroFormComboBox } from "jspdf";
 import QRCode from "qrcode";
+
+import type { AgreementTermsSchema } from "@/schemas/form";
 import {
   createTermsLayoutFlow,
   drawTermsListItem,
   getSubConditionPrefix,
   sanitizeTermsText,
 } from "@/utils/pdfTerms";
-import type { AgreementTermsSchema } from "@/schemas/form";
 
 jsPDF.API.getLineHeightMm = function (this: jsPDF): number {
   return (this.getFontSize() * this.getLineHeightFactor()) / this.internal.scaleFactor;

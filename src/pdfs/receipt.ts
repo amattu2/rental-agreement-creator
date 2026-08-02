@@ -1,9 +1,11 @@
 import QRCode from "qrcode";
-import { formatCurrency, formatDate, formatNumber } from "@/utils/text";
-import { computeReceiptHeight, groupByCategory } from "@/utils/billing";
+
 import { CATEGORY_NAMES } from "@/config/constants";
-import { EnvSchema } from "@/schemas/env";
 import { RECEIPT_TERMS } from "@/config/terms";
+import { EnvSchema } from "@/schemas/env";
+import { computeReceiptHeight, groupByCategory } from "@/utils/billing";
+import { formatCurrency, formatDate, formatNumber } from "@/utils/text";
+
 import jsPDF from "./base";
 
 /**

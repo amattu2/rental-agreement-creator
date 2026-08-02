@@ -1,5 +1,6 @@
-import { FUEL_LEVEL_OPTIONS } from "@/config/constants";
 import { z } from "zod";
+
+import { FUEL_LEVEL_OPTIONS } from "@/config/constants";
 
 export const FINALIZATION_SCHEMA = z.object({
   vehicle_returned_at: z.date(),

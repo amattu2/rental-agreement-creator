@@ -13,11 +13,13 @@ import {
   TextField,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { Controller, useForm } from "react-hook-form";
-import { RENTEE_SCHEMA, RenteeSchema } from "@/schemas/form";
 import dayjs from "dayjs";
-import { Subsection } from "../Subsection";
+import { Controller, useForm } from "react-hook-form";
+
+import { RENTEE_SCHEMA, RenteeSchema } from "@/schemas/form";
+
 import { FieldRow } from "../FieldRow";
+import { Subsection } from "../Subsection";
 
 type CustomerEditorDialogProps = {
   initialValue: RenteeSchema;

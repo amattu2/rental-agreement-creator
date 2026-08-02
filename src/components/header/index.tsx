@@ -2,6 +2,7 @@
 
 import { AppBar, Box, Button, styled, Toolbar, Typography } from "@mui/material";
 import Link, { LinkProps } from "next/link";
+
 import routes from "@/config/routes";
 
 const StyledTypography = styled(Typography)<{

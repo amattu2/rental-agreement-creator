@@ -1,9 +1,11 @@
-import { FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { FormProvider, useForm, useFormContext, useWatch } from "react-hook-form";
+
 import { DEFAULT_FORM } from "@/config/constants";
-import type { FormSchema } from "@/schemas/form";
-import { VehicleSelectionDialog } from "./index";
 import { DatabaseApiContext } from "@/database/provider";
+import type { FormSchema } from "@/schemas/form";
+
+import { VehicleSelectionDialog } from "./index";
 
 const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord => ({
   uuid: "vehicle-1",
