@@ -196,6 +196,9 @@ export class AgreementsPage extends BasePage {
 
     await this.page.getByRole("button", { name: "Generate Agreement" }).click();
     await this.page.waitForURL("**/agreement?uuid=*");
+
+    // Return to list page so callers can assert against the agreements table
+    await this.goto();
   }
 
   /**
