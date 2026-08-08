@@ -23,13 +23,13 @@ const Page = () => {
   const databaseApi = useDatabaseApi();
 
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const [isArchived, setIsArchived] = useState<boolean>(false);
+  const [isReadonly, setIsReadonly] = useState<boolean>(false);
   const agreementUuid = useMemo<string | null>(() => searchParams.get("uuid"), [searchParams]);
 
   const methods = useForm<FormSchema>({
     resolver: zodResolver(FORM_SCHEMA),
     defaultValues: DEFAULT_FORM,
-    disabled: isArchived,
+    disabled: isReadonly,
   });
 
   const renderPDF = async (record: AgreementRecord) => {
@@ -44,7 +44,7 @@ const Page = () => {
       NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
     });
 
-    setObjectUrl(URL.createObjectURL(await generateAgreement(envData, record)));
+    setObjectUrl(URL.createObjectURL(await generateAgreement(envData, record, record.status !== "active")));
   };
 
   const onSubmit: SubmitHandler<FormSchema> = async (data: FormSchema) => {
@@ -92,7 +92,7 @@ const Page = () => {
         .getAgreement(agreementUuid)
         .then((record) => {
           if (record) {
-            setIsArchived(record.status !== "active");
+            setIsReadonly(record.status !== "active");
             methods.reset(record.agreement);
             renderPDF(record);
           }
@@ -102,7 +102,7 @@ const Page = () => {
         });
     } else {
       methods.reset(DEFAULT_FORM);
-      setIsArchived(false);
+      setIsReadonly(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

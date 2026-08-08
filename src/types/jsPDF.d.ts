@@ -9,7 +9,8 @@ declare module "jspdf" {
       y: number,
       w: number,
       height?: number,
-      value?: string
+      value?: string,
+      readonly?: boolean
     ): void;
     buildComboField(
       name: string,
@@ -18,7 +19,8 @@ declare module "jspdf" {
       w: number,
       options: string[],
       height?: number,
-      selectedValue?: string
+      selectedValue?: string,
+      readonly?: boolean
     ): void;
     drawField(
       label: string,
@@ -26,7 +28,8 @@ declare module "jspdf" {
       y: number,
       w: number,
       value?: string,
-      fieldName?: string
+      fieldName?: string,
+      readonly?: boolean
     ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     drawAgreementTerms(terms: AgreementTermsSchema): void;
@@ -48,7 +51,8 @@ declare module "jspdf" {
       y: number,
       w: number,
       height?: number,
-      value?: string
+      value?: string,
+      readonly?: boolean
     ): void;
     buildComboField(
       name: string,
@@ -57,7 +61,8 @@ declare module "jspdf" {
       w: number,
       options: string[],
       height?: number,
-      selectedValue?: string
+      selectedValue?: string,
+      readonly?: boolean
     ): void;
     drawField(
       label: string,
@@ -65,7 +70,8 @@ declare module "jspdf" {
       y: number,
       w: number,
       value?: string,
-      fieldName?: string
+      fieldName?: string,
+      readonly?: boolean
     ): void;
     drawCompressedText(lines: string[], x: number, y: number, spaceScale?: number): void;
     drawAgreementTerms(terms: AgreementTermsSchema): void;

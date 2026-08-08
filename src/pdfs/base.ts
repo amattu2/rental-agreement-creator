@@ -20,7 +20,8 @@ jsPDF.API.buildTextField = function (
   y: number,
   w: number,
   height = 5,
-  value = ""
+  value = "",
+  readonly = false
 ): void {
   const field = new AcroFormTextField();
   field.value = value;
@@ -32,6 +33,7 @@ jsPDF.API.buildTextField = function (
   field.textAlign = "left";
   field.fieldName = name;
   field.multiline = false;
+  field.readOnly = readonly;
   field.x = x + 0.2;
   field.y = y;
   field.width = w;
@@ -48,7 +50,8 @@ jsPDF.API.buildComboField = function (
   w: number,
   options: string[],
   height = 5,
-  selectedValue = ""
+  selectedValue = "",
+  readonly = false
 ): void {
   const field = new AcroFormComboBox();
   field.fieldName = name;
@@ -58,6 +61,7 @@ jsPDF.API.buildComboField = function (
   field.fontSize = 8;
   field.maxFontSize = 8;
   field.textAlign = "left";
+  field.readOnly = readonly;
   field.x = x + 0.2;
   field.y = y;
   field.width = w;
@@ -80,7 +84,8 @@ jsPDF.API.drawField = function (
   y: number,
   w: number,
   value = "",
-  fieldName?: string
+  fieldName?: string,
+  readonly = false
 ): void {
   // Field Label
   this.setFont("Cousine", "normal", 400);
@@ -93,7 +98,7 @@ jsPDF.API.drawField = function (
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
-  this.buildTextField(normalizedName, x, y, w, 5, value);
+  this.buildTextField(normalizedName, x, y, w, 5, value, readonly);
 };
 
 jsPDF.API.drawCompressedText = function (
