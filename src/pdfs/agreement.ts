@@ -122,7 +122,15 @@ export const generateAgreement = async (
 
   currentY += 3;
   doc.drawField("HOME ADDRESS", 6, currentY, 95, form.rentee.address_street1, undefined, readonly);
-  doc.drawField("VERIFIED", 102, currentY, 22.6, form.rentee.verified ? "YES" : "NO", undefined, readonly);
+  doc.drawField(
+    "VERIFIED",
+    102,
+    currentY,
+    22.6,
+    form.rentee.verified ? "YES" : "NO",
+    undefined,
+    readonly
+  );
   doc.setDrawColor(0, 0, 0);
   doc.line(101.2, currentY - 3, 101.2, currentY + 5);
   doc.setDrawColor(59, 59, 59);
@@ -131,12 +139,28 @@ export const generateAgreement = async (
   currentY += 3;
   doc.drawField("CITY", 6, currentY, 47.4, form.rentee.address_city, undefined, readonly);
   doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state, "RENTEE_STATE", readonly);
-  doc.drawField("ZIP CODE", 102, currentY, 22.6, form.rentee.address_zip, "RENTEE_ZIP_CODE", readonly);
+  doc.drawField(
+    "ZIP CODE",
+    102,
+    currentY,
+    22.6,
+    form.rentee.address_zip,
+    "RENTEE_ZIP_CODE",
+    readonly
+  );
 
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3;
-  doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4, form.rentee.driver_license_number, undefined, readonly);
+  doc.drawField(
+    "DRIVER'S LICENSE #",
+    6,
+    currentY,
+    47.4,
+    form.rentee.driver_license_number,
+    undefined,
+    readonly
+  );
   doc.drawField(
     "STATE",
     54.2,
@@ -159,9 +183,25 @@ export const generateAgreement = async (
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("DATE OF BIRTH", 6, currentY, 47.4, formatDate(form.rentee.date_of_birth), undefined, readonly);
+  doc.drawField(
+    "DATE OF BIRTH",
+    6,
+    currentY,
+    47.4,
+    formatDate(form.rentee.date_of_birth),
+    undefined,
+    readonly
+  );
   doc.drawField("CELL PHONE #", 54.2, currentY, 47, form.rentee.cell_phone, undefined, readonly);
-  doc.drawField("ALT PHONE #", 102, currentY, 22.6, form.rentee.alternate_phone ?? "", undefined, readonly);
+  doc.drawField(
+    "ALT PHONE #",
+    102,
+    currentY,
+    22.6,
+    form.rentee.alternate_phone ?? "",
+    undefined,
+    readonly
+  );
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
@@ -171,8 +211,24 @@ export const generateAgreement = async (
   doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3;
-  doc.drawField("EMPLOYER", 6, currentY, 64, form.rentee.employer?.company ?? "", undefined, readonly);
-  doc.drawField("POSITION", 71, currentY, 54, form.rentee.employer?.position ?? "", undefined, readonly);
+  doc.drawField(
+    "EMPLOYER",
+    6,
+    currentY,
+    64,
+    form.rentee.employer?.company ?? "",
+    undefined,
+    readonly
+  );
+  doc.drawField(
+    "POSITION",
+    71,
+    currentY,
+    54,
+    form.rentee.employer?.position ?? "",
+    undefined,
+    readonly
+  );
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
@@ -221,8 +277,24 @@ export const generateAgreement = async (
   doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3;
-  doc.drawField("INSURANCE CO.", 6, currentY, 53, form.rentee.insurance?.company ?? "", undefined, readonly);
-  doc.drawField("POLICY #", 60, currentY, 54, form.rentee.insurance?.policy_number ?? "", undefined, readonly);
+  doc.drawField(
+    "INSURANCE CO.",
+    6,
+    currentY,
+    53,
+    form.rentee.insurance?.company ?? "",
+    undefined,
+    readonly
+  );
+  doc.drawField(
+    "POLICY #",
+    60,
+    currentY,
+    54,
+    form.rentee.insurance?.policy_number ?? "",
+    undefined,
+    readonly
+  );
   currentY += 5;
   doc.line(5, currentY, dividerX, currentY);
 
@@ -611,18 +683,42 @@ export const generateAgreement = async (
   // ---- COLUMN 2 ----
 
   currentY = 39.5;
-  doc.drawField("VEHICLE #", 126.5, currentY, 19.5, form.rental_vehicle.stock_number ?? "", undefined, readonly);
+  doc.drawField(
+    "VEHICLE #",
+    126.5,
+    currentY,
+    19.5,
+    form.rental_vehicle.stock_number ?? "",
+    undefined,
+    readonly
+  );
   doc.setDrawColor(0, 0, 0);
   doc.line(146.2, currentY - 3, 146.2, currentY + 5);
   doc.drawField("VIN", 147, currentY, 36.5, form.rental_vehicle.VIN, undefined, readonly);
   doc.line(184, currentY - 3, 184, currentY + 5);
-  doc.drawField("LICENSE #", 184.8, currentY, 26, form.rental_vehicle.license_plate, undefined, readonly);
+  doc.drawField(
+    "LICENSE #",
+    184.8,
+    currentY,
+    26,
+    form.rental_vehicle.license_plate,
+    undefined,
+    readonly
+  );
   currentY += 5;
   doc.setDrawColor(59, 59, 59);
   doc.line(dividerX, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("YEAR", 126.5, currentY, 15.5, coerceNumber(form.rental_vehicle.year), undefined, readonly);
+  doc.drawField(
+    "YEAR",
+    126.5,
+    currentY,
+    15.5,
+    coerceNumber(form.rental_vehicle.year),
+    undefined,
+    readonly
+  );
   doc.setDrawColor(0, 0, 0);
   doc.line(142.5, currentY - 3, 142.5, currentY + 5);
   doc.drawField("MAKE", 143, currentY, 33.2, form.rental_vehicle.make, undefined, readonly);
@@ -979,7 +1075,15 @@ export const generateAgreement = async (
   doc.text("×", dividerX + 0.8, currentY + 7);
   if (!doc.drawSignatureImage(form.clerk_signature, dividerX + 3.7, currentY + 0.3, 81.1, 5.8)) {
     // Create a text field if the signature image could not be drawn
-    doc.buildTextField("AUTHORIZED_CLERK_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6, "", readonly);
+    doc.buildTextField(
+      "AUTHORIZED_CLERK_SIGNATURE",
+      dividerX + 3.5,
+      currentY,
+      81.5,
+      6,
+      "",
+      readonly
+    );
   }
   doc.line(dividerX + 3.5, currentY + 6.5, dividerX + 85, currentY + 6.5);
   doc.setFontSize(7);
