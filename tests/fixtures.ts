@@ -1,17 +1,18 @@
-import { test as base, Page } from '@playwright/test';
+/* eslint-disable react-hooks/rules-of-hooks */
+import { test as base } from "@playwright/test";
 
-import { AgreementsPage } from './pages/agreements.page';
-import { CustomersPage } from './pages/customers.page';
-import { VehiclesPage } from './pages/vehicles.page';
-import { TEST_CUSTOMERS, TEST_VEHICLES } from './test-data';
+import { AgreementsPage } from "./pages/agreements.page";
+import { CustomersPage } from "./pages/customers.page";
+import { VehiclesPage } from "./pages/vehicles.page";
+import { TEST_CUSTOMERS, TEST_VEHICLES } from "./test-data";
 
 /**
  * Custom test fixtures for E2E testing
- * 
+ *
  * Provides:
  * - testDataContext: Contains unique test data for the current run
  * - Page objects: Initialized instances ready to use
- * 
+ *
  * Test data uses unique identifiers per run to avoid collisions
  * with existing data in any environment (DEV, QA, PROD)
  */
@@ -53,4 +54,4 @@ export const test = base.extend<TestFixtures>({
   },
 });
 
-export { expect } from '@playwright/test';
+export { expect } from "@playwright/test";

@@ -1,6 +1,8 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect } from "@playwright/test";
 
-import { BasePage } from './base.page';
+import type { RenteeSchema, VehicleSchema } from "@/schemas/form";
+
+import { BasePage } from "./base.page";
 
 /**
  * Page Object for Agreements list page (/) and create/edit agreement form
@@ -22,7 +24,7 @@ export class AgreementsPage extends BasePage {
     super(page);
     this.searchInput = page.getByLabel(/search agreements/i);
     this.statusFilter = page.getByLabel(/status/i);
-    this.createButton = page.getByRole('button', { name: /create agreement/i });
+    this.createButton = page.getByRole("button", { name: /create agreement/i });
     this.agreementsTable = page.locator('[role="grid"]');
     this.agreementDialog = page.locator('[role="dialog"]');
     this.customerSelect = page.getByLabel(/customer|rentee/i);
@@ -33,7 +35,7 @@ export class AgreementsPage extends BasePage {
    * Navigate to agreements list page
    */
   async goto(): Promise<void> {
-    await this.navigate('/');
+    await this.navigate("/");
     await this.waitForPageLoad();
   }
 
@@ -41,7 +43,7 @@ export class AgreementsPage extends BasePage {
    * Navigate to create new agreement form
    */
   async gotoCreateAgreement(): Promise<void> {
-    await this.navigate('/agreement');
+    await this.navigate("/agreement");
     await this.waitForPageLoad();
   }
 
@@ -61,10 +63,10 @@ export class AgreementsPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
-  async filterByStatus(status: 'all' | 'active' | 'archived' | 'canceled'): Promise<void> {
+  async filterByStatus(status: "all" | "active" | "archived" | "canceled"): Promise<void> {
     await this.statusFilter.click();
     // MUI Select renders options in a listbox outside the main DOM
-    await this.page.getByRole('option', { name: new RegExp(`^${status}$`, 'i') }).click();
+    await this.page.getByRole("option", { name: new RegExp(`^${status}$`, "i") }).click();
     await this.page.waitForTimeout(1000);
   }
 
@@ -74,7 +76,7 @@ export class AgreementsPage extends BasePage {
   async clickCreateAgreement(): Promise<void> {
     await this.createButton.click();
     // Wait for navigation to create form
-    await this.page.waitForURL('**/agreement');
+    await this.page.waitForURL("**/agreement");
   }
 
   /**
@@ -85,67 +87,95 @@ export class AgreementsPage extends BasePage {
   }
 
   /**
-   * Create a new agreement via the form.
+   * Create a new agreement by filling the form fields directly.
    *
-   * Flow: select customer → select vehicle → fill required fields → confirm billing → generate
+   * Avoids the selection dialogs (whose GridActionsCellItem onClick is unreliable under force:true)
+   * and instead fills rentee/vehicle fields in-place. The form's onSubmit handler then upserts
+   * those records into the database automatically.
    */
-  async createAgreement(agreementData: {
-    customerName: string;
-    vehicleVin: string;
-    startDate: string; // YYYY-MM-DD
-    endDate: string;   // YYYY-MM-DD
-    dailyRate: string;
-  }): Promise<void> {
+  async createAgreement(data: { customer: RenteeSchema; vehicle: VehicleSchema }): Promise<void> {
     await this.gotoCreateAgreement();
+    await this.page
+      .getByRole("button", { name: "Generate Agreement" })
+      .waitFor({ state: "visible" });
 
-    await this.page.getByLabel('Agreement number').fill(`AGR-${Date.now()}`);
+    await this.page.getByLabel("Agreement number").fill(`AGR-${Date.now()}`);
 
-    // Open customer selection dialog and pick by name
-    await this.page.getByRole('button', { name: 'Select an existing customer' }).click();
-    // Scope by title to avoid strict mode violation if a second dialog mounts during transition
-    const customerDialog = this.page.locator('[role="dialog"]').filter({ hasText: 'Select Customer' });
-    await customerDialog.waitFor({ state: 'visible' });
-    await customerDialog.getByLabel('Search').fill(agreementData.customerName);
-    await this.page.waitForTimeout(1000);
-    // MUI DataGrid action buttons need force:true to bypass actionability checks
-    await this.page.locator('[aria-label="Select"]').click({ force: true });
-    await customerDialog.waitFor({ state: 'hidden' });
+    // Use name-attribute selectors throughout — getByLabel is unreliable on this form because
+    // MUI DatePicker section spans (Month/Day/Year) share aria-labels with text input labels
+    await this.page.locator('input[name="rentee.full_name"]').fill(data.customer.full_name);
+    await this.page
+      .locator('input[name="rentee.address_street1"]')
+      .fill(data.customer.address_street1);
+    await this.page.locator('input[name="rentee.address_city"]').fill(data.customer.address_city);
+    await this.page.locator('input[name="rentee.address_state"]').fill(data.customer.address_state);
+    await this.page.locator('input[name="rentee.address_zip"]').fill(data.customer.address_zip);
+    await this.page.locator('input[name="rentee.cell_phone"]').fill(data.customer.cell_phone);
+    await this.page
+      .locator('input[name="rentee.driver_license_number"]')
+      .fill(data.customer.driver_license_number);
+    await this.page
+      .locator('input[name="rentee.driver_license_state"]')
+      .fill(data.customer.driver_license_state);
 
-    // Open vehicle selection dialog and pick by VIN
-    await this.page.getByRole('button', { name: 'Select an existing vehicle' }).click();
-    const vehicleDialog = this.page.locator('[role="dialog"]').filter({ hasText: 'Select Vehicle' });
-    await vehicleDialog.waitFor({ state: 'visible' });
-    await vehicleDialog.getByLabel('Search').fill(agreementData.vehicleVin);
-    await this.page.waitForTimeout(1000);
-    await this.page.locator('[aria-label="Select"]').click({ force: true });
-    await vehicleDialog.waitFor({ state: 'hidden' });
+    const licenseExpiry = data.customer.driver_license_expiration;
+    // Click the first editable section span directly — clicking the group fires React onClick async,
+    // which can leave focus on the previous field when keyboard.press() is called
+    await this.page
+      .getByRole("group", { name: "Driver's license expiration" })
+      .locator('[data-sectionindex="0"]')
+      .click();
+    for (const char of `${String(licenseExpiry.getMonth() + 1).padStart(2, "0")}${String(licenseExpiry.getDate()).padStart(2, "0")}${licenseExpiry.getFullYear()}`) {
+      await this.page.keyboard.press(char);
+    }
 
-    // exact: true avoids substring match on "Calculate odometer at return" tooltip aria-label
-    await this.page.getByLabel('Odometer at pickup', { exact: true }).fill('1000');
-    await this.page.getByLabel('Odometer at return', { exact: true }).fill('1000');
+    const dob = data.customer.date_of_birth;
+    await this.page
+      .getByRole("group", { name: "Date of birth" })
+      .locator('[data-sectionindex="0"]')
+      .click();
+    for (const char of `${String(dob.getMonth() + 1).padStart(2, "0")}${String(dob.getDate()).padStart(2, "0")}${dob.getFullYear()}`) {
+      await this.page.keyboard.press(char);
+    }
 
-    // MUI v7 DateTimePicker: click the group element then type digits
-    const pickup = new Date(`${agreementData.startDate}T12:00:00`);
-    const returnD = new Date(`${agreementData.endDate}T12:00:00`);
-    const fmt = (d: Date) =>
-      `${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}${d.getFullYear()}1200PM`;
+    await this.page
+      .locator('input[name="rental_vehicle.stock_number"]')
+      .fill(data.vehicle.stock_number);
+    await this.page.locator('input[name="rental_vehicle.VIN"]').fill(data.vehicle.VIN);
+    await this.page
+      .locator('input[name="rental_vehicle.license_plate"]')
+      .fill(data.vehicle.license_plate);
+    await this.page.locator('input[name="rental_vehicle.year"]').fill(data.vehicle.year.toString());
+    await this.page.locator('input[name="rental_vehicle.make"]').fill(data.vehicle.make);
+    await this.page.locator('input[name="rental_vehicle.model"]').fill(data.vehicle.model);
+    await this.page.locator('input[name="rental_vehicle.color"]').fill(data.vehicle.color);
 
-    await this.page.getByRole('group', { name: 'Pickup date' }).click();
-    await this.page.keyboard.type(fmt(pickup));
-    await this.page.getByRole('group', { name: 'Return date' }).click();
-    await this.page.keyboard.type(fmt(returnD));
+    // Rental agreement info — use name-attribute selectors, exact labels share substrings with DatePicker sections
+    await this.page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1000");
+    await this.page.locator('input[name="rental_agreement_info.odometer_in"]').fill("1000");
 
-    // Billing must be confirmed before "Generate Agreement" is enabled
-    await this.page.getByRole('button', { name: 'Edit Charges' }).click();
-    const chargesDialog = this.page.locator('[role="dialog"]').filter({ hasText: 'Edit Charges' });
-    await chargesDialog.waitFor({ state: 'visible' });
-    // Use locator('button').filter() — getByRole { name } can fail on '&' in button text
-    await chargesDialog.locator('button').filter({ hasText: /save.*close/i }).click({ force: true });
-    await chargesDialog.waitFor({ state: 'hidden' });
+    const returnDate = new Date();
+    returnDate.setDate(returnDate.getDate() + 7);
+    await this.page
+      .getByRole("group", { name: "Return date" })
+      .locator('[data-sectionindex="0"]')
+      .click();
+    for (const char of `${String(returnDate.getMonth() + 1).padStart(2, "0")}${String(returnDate.getDate()).padStart(2, "0")}${returnDate.getFullYear()}`) {
+      await this.page.keyboard.press(char);
+    }
 
-    // Submit — button label is "Generate Agreement"
-    await this.page.getByRole('button', { name: 'Generate Agreement' }).click();
-    await this.page.waitForURL('**/agreement?uuid=*');
+    // Confirm billing (required before Generate Agreement becomes clickable)
+    await this.page.getByRole("button", { name: "Edit Charges" }).click();
+    const chargesDialog = this.page.locator('[role="dialog"]').filter({ hasText: "Edit Charges" });
+    await chargesDialog.waitFor({ state: "visible" });
+    await chargesDialog
+      .locator("button")
+      .filter({ hasText: /save.*close/i })
+      .click({ force: true });
+    await chargesDialog.waitFor({ state: "hidden" });
+
+    await this.page.getByRole("button", { name: "Generate Agreement" }).click();
+    await this.page.waitForURL("**/agreement?uuid=*");
   }
 
   /**
@@ -171,10 +201,10 @@ export class AgreementsPage extends BasePage {
     }
 
     // Save
-    await this.page.getByRole('button', { name: /save|submit/i }).click();
+    await this.page.getByRole("button", { name: /save|submit/i }).click();
 
     // Wait for navigation
-    await this.page.waitForURL('**/');
+    await this.page.waitForURL("**/");
   }
 
   /**
@@ -193,22 +223,26 @@ export class AgreementsPage extends BasePage {
     const row = this.getAgreementRow(customerName);
 
     // Click finalize/archive button
-    await row.getByRole('button', { name: /finalize|archive/i }).click();
+    await row.getByRole("button", { name: /finalize|archive/i }).click();
 
     // Wait for finalization dialog
     const dialog = this.page.locator('[role="dialog"]');
-    await dialog.waitFor({ state: 'visible' });
+    await dialog.waitFor({ state: "visible" });
 
     // Fill finalization form
-    await this.page.getByLabel(/vehicle returned|return date/i).fill(finalizationData.vehicleReturnedAt);
-    await this.page.getByLabel(/odometer|mileage.*in/i).fill(finalizationData.actualOdometerIn.toString());
+    await this.page
+      .getByLabel(/vehicle returned|return date/i)
+      .fill(finalizationData.vehicleReturnedAt);
+    await this.page
+      .getByLabel(/odometer|mileage.*in/i)
+      .fill(finalizationData.actualOdometerIn.toString());
     await this.page.getByLabel(/fuel level|fuel/i).selectOption(finalizationData.actualFuelLevel);
 
     // Confirm finalization
-    await this.page.getByRole('button', { name: /confirm|finalize|save/i }).click();
+    await this.page.getByRole("button", { name: /confirm|finalize|save/i }).click();
 
     // Wait for dialog to close
-    await dialog.waitFor({ state: 'hidden' });
+    await dialog.waitFor({ state: "hidden" });
   }
 
   /**
@@ -218,10 +252,10 @@ export class AgreementsPage extends BasePage {
     const row = this.getAgreementRow(customerName);
 
     // Click cancel button
-    await row.getByRole('button', { name: /cancel/i }).click();
+    await row.getByRole("button", { name: /cancel/i }).click();
 
     // Handle confirmation dialog if present
-    const confirmButton = this.page.getByRole('button', { name: /confirm|yes|cancel/i });
+    const confirmButton = this.page.getByRole("button", { name: /confirm|yes|cancel/i });
     if (await confirmButton.isVisible()) {
       await confirmButton.click();
     }
@@ -234,8 +268,8 @@ export class AgreementsPage extends BasePage {
     const row = this.getAgreementRow(customerName);
 
     // Start download
-    const downloadPromise = this.page.context().waitForEvent('download');
-    await row.getByRole('button', { name: /pdf|download|view/i }).click();
+    const downloadPromise = this.page.context().waitForEvent("download");
+    await row.getByRole("button", { name: /pdf|download|view/i }).click();
 
     const download = await downloadPromise;
     await download.path();

@@ -257,7 +257,7 @@ export const RentalAgreementForm = () => {
     const messages: string[] = [...flattenValidationErrors(errors), billingDescription].filter(
       Boolean
     );
-    
+
     if (disabled || !messages.length) {
       return "";
     }

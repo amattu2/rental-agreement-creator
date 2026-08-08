@@ -1,13 +1,13 @@
-import { expect } from '@playwright/test';
+import { expect } from "@playwright/test";
 
-import { test } from '../../fixtures';
+import { test } from "../../fixtures";
 
-test.describe('Customers', () => {
+test.describe("Customers", () => {
   test.beforeEach(async ({ customersPage }) => {
     await customersPage.goto();
   });
 
-  test('should list customers @smoke', async ({ customersPage, testDataContext }) => {
+  test("should list customers @smoke", async ({ customersPage }) => {
     // Navigate to customers page
     await customersPage.goto();
 
@@ -16,7 +16,7 @@ test.describe('Customers', () => {
     await expect(searchField).toBeVisible();
   });
 
-  test('should create a new customer @smoke', async ({ customersPage, testDataContext }) => {
+  test("should create a new customer @smoke", async ({ customersPage, testDataContext }) => {
     const testCustomer = testDataContext.customers[0];
 
     await customersPage.createCustomer(testCustomer);
@@ -24,7 +24,7 @@ test.describe('Customers', () => {
     await customersPage.expectCustomerExists(testCustomer.full_name);
   });
 
-  test('should edit an existing customer @smoke', async ({ customersPage, testDataContext }) => {
+  test("should edit an existing customer @smoke", async ({ customersPage, testDataContext }) => {
     const testCustomer = testDataContext.customers[0];
     const updatedName = `${testCustomer.full_name}-UPDATED`;
 
@@ -34,7 +34,7 @@ test.describe('Customers', () => {
     await customersPage.expectCustomerExists(updatedName);
   });
 
-  test('should search for customers by name', async ({ customersPage, testDataContext }) => {
+  test("should search for customers by name", async ({ customersPage, testDataContext }) => {
     const testCustomer1 = testDataContext.customers[0];
     const testCustomer2 = testDataContext.customers[1];
 
@@ -46,33 +46,33 @@ test.describe('Customers', () => {
     await customersPage.expectCustomerExists(testCustomer1.full_name);
   });
 
-  test('should validate customer name is required', async ({ customersPage, page }) => {
-    await page.getByRole('button', { name: 'Create' }).click();
+  test("should validate customer name is required", async ({ page }) => {
+    await page.getByRole("button", { name: "Create" }).click();
 
     const dialog = page.locator('[role="dialog"]');
-    await dialog.waitFor({ state: 'visible' });
+    await dialog.waitFor({ state: "visible" });
 
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await dialog.getByRole("button", { name: "Save" }).click();
 
     // Zod validation message for empty full_name
-    await expect(dialog.getByText('Rentee name is required')).toBeVisible();
+    await expect(dialog.getByText("Rentee name is required")).toBeVisible();
   });
 
-  test('should validate email format', async ({ customersPage, page }) => {
-    await page.getByRole('button', { name: 'Create' }).click();
+  test("should validate email format", async ({ page }) => {
+    await page.getByRole("button", { name: "Create" }).click();
 
     const dialog = page.locator('[role="dialog"]');
-    await dialog.waitFor({ state: 'visible' });
+    await dialog.waitFor({ state: "visible" });
 
-    await dialog.getByLabel('Full name').fill('Test Customer');
-    await dialog.getByLabel('Email address').fill('invalid-email');
+    await dialog.getByLabel("Full name").fill("Test Customer");
+    await dialog.getByLabel("Email address").fill("invalid-email");
 
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await dialog.getByRole("button", { name: "Save" }).click();
 
     await expect(dialog).toBeVisible();
   });
 
-  test('should create multiple distinct customers', async ({ customersPage, testDataContext }) => {
+  test("should create multiple distinct customers", async ({ customersPage, testDataContext }) => {
     await customersPage.createCustomer(testDataContext.customers[0]);
     await customersPage.createCustomer(testDataContext.customers[1]);
 

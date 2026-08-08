@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator } from "@playwright/test";
 
 /**
  * Base Page class for all page objects.
@@ -14,7 +14,7 @@ export abstract class BasePage {
   /**
    * Navigate to a relative path
    */
-  async navigate(path: string = '/'): Promise<void> {
+  async navigate(path: string = "/"): Promise<void> {
     await this.page.goto(path);
   }
 
@@ -22,14 +22,14 @@ export abstract class BasePage {
    * Wait for the page to fully load (network idle)
    */
   async waitForPageLoad(): Promise<void> {
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForLoadState("networkidle");
   }
 
   /**
    * Wait for a specific locator to be visible
    */
   async waitForElement(locator: Locator): Promise<void> {
-    await locator.waitFor({ state: 'visible' });
+    await locator.waitFor({ state: "visible" });
   }
 
   /**
@@ -72,7 +72,7 @@ export abstract class BasePage {
    * Click a button by name
    */
   async clickButton(name: string): Promise<void> {
-    await this.page.getByRole('button', { name }).click();
+    await this.page.getByRole("button", { name }).click();
   }
 
   /**
