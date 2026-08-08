@@ -17,8 +17,8 @@ export class VehiclesPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.searchInput = page.getByPlaceholder('Search vehicles');
-    this.createButton = page.getByRole('button', { name: /add|create|new/i });
+    this.searchInput = page.getByLabel('Search vehicles');
+    this.createButton = page.getByRole('button', { name: 'Create' });
     this.vehiclesTable = page.locator('[role="grid"]');
     this.editorDialog = page.locator('[role="dialog"]');
   }
@@ -36,8 +36,7 @@ export class VehiclesPage extends BasePage {
    */
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
-    // Wait for search results
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -48,50 +47,49 @@ export class VehiclesPage extends BasePage {
   }
 
   async createVehicle(vehicleData: VehicleSchema): Promise<void> {
-    const createButtons = this.page.getByRole('button').filter({ hasText: /add|create|new/i });
-    await createButtons.first().click();
+    await this.createButton.click();
     await this.editorDialog.waitFor({ state: 'visible' });
 
-    await this.page.getByLabel(/VIN/i).fill(vehicleData.VIN);
-    await this.page.getByLabel(/stock number/i).fill(vehicleData.stock_number);
-    await this.page.getByLabel(/license plate/i).fill(vehicleData.license_plate);
-    await this.page.getByLabel(/year/i).fill(vehicleData.year.toString());
-    await this.page.getByLabel(/make/i).fill(vehicleData.make);
-    await this.page.getByLabel(/model/i).fill(vehicleData.model);
-    await this.page.getByLabel(/color/i).fill(vehicleData.color);
+    await this.editorDialog.getByLabel('VIN').fill(vehicleData.VIN);
+    await this.editorDialog.getByLabel('Stock number').fill(vehicleData.stock_number);
+    await this.editorDialog.getByLabel('License plate').fill(vehicleData.license_plate);
+    await this.editorDialog.getByLabel('Year').fill(vehicleData.year.toString());
+    await this.editorDialog.getByLabel('Make').fill(vehicleData.make);
+    await this.editorDialog.getByLabel('Model').fill(vehicleData.model);
+    await this.editorDialog.getByLabel('Color').fill(vehicleData.color);
 
-    await this.page.getByRole('button', { name: /save|submit/i }).click();
+    await this.editorDialog.getByRole('button', { name: 'Save' }).click();
     await this.editorDialog.waitFor({ state: 'hidden' });
   }
 
   async editVehicle(vin: string, updates: Partial<VehicleSchema>): Promise<void> {
     await this.search(vin);
-    const row = this.getVehicleRow(vin);
-    await row.getByRole('button', { name: /edit/i }).click();
+    // Use page-level lookup — after search only one Edit button exists
+    await this.page.getByRole('button', { name: 'Edit' }).click();
     await this.editorDialog.waitFor({ state: 'visible' });
 
     if (updates.make) {
-      const makeField = this.page.getByLabel(/make/i);
+      const makeField = this.editorDialog.getByLabel('Make');
       await makeField.clear();
       await makeField.fill(updates.make);
     }
     if (updates.model) {
-      const modelField = this.page.getByLabel(/model/i);
+      const modelField = this.editorDialog.getByLabel('Model');
       await modelField.clear();
       await modelField.fill(updates.model);
     }
     if (updates.year) {
-      const yearField = this.page.getByLabel(/year/i);
+      const yearField = this.editorDialog.getByLabel('Year');
       await yearField.clear();
       await yearField.fill(updates.year.toString());
     }
     if (updates.color) {
-      const colorField = this.page.getByLabel(/color/i);
+      const colorField = this.editorDialog.getByLabel('Color');
       await colorField.clear();
       await colorField.fill(updates.color);
     }
 
-    await this.page.getByRole('button', { name: /save|submit/i }).click();
+    await this.editorDialog.getByRole('button', { name: 'Save' }).click();
     await this.editorDialog.waitFor({ state: 'hidden' });
   }
 

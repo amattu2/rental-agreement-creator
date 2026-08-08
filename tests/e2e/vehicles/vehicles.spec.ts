@@ -54,17 +54,15 @@ test.describe('Vehicles', () => {
   });
 
   test('should validate VIN is required', async ({ page, vehiclesPage }) => {
-    // Try to create vehicle without VIN
-    const createButtons = page.getByRole('button').filter({ hasText: /add|create|new/i });
-    await createButtons.first().click();
+    await page.getByRole('button', { name: 'Create' }).click();
 
-    // Wait for dialog
     const dialog = page.locator('[role="dialog"]');
     await dialog.waitFor({ state: 'visible' });
 
-    // VIN field should be required
-    const vinField = page.getByLabel(/VIN|vin/i);
-    await expect(vinField).toHaveAttribute('required', '');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+
+    // Zod validation message for empty VIN
+    await expect(dialog.getByText('Vehicle VIN is required')).toBeVisible();
   });
 
   test('should create multiple distinct vehicles', async ({ vehiclesPage, testDataContext }) => {

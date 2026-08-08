@@ -58,18 +58,14 @@ export class AgreementsPage extends BasePage {
    */
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
-    // Wait for search results
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(1000);
   }
 
-  /**
-   * Filter agreements by status
-   */
   async filterByStatus(status: 'all' | 'active' | 'archived' | 'canceled'): Promise<void> {
     await this.statusFilter.click();
-    await this.page.getByRole('option', { name: status }).click();
-    // Wait for filter to apply
-    await this.page.waitForTimeout(500);
+    // MUI Select renders options in a listbox outside the main DOM
+    await this.page.getByRole('option', { name: new RegExp(`^${status}$`, 'i') }).click();
+    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -89,36 +85,72 @@ export class AgreementsPage extends BasePage {
   }
 
   /**
-   * Create a new agreement via the form
+   * Create a new agreement via the form.
+   *
+   * Flow: select customer → select vehicle → fill required fields → confirm billing → generate
    */
   async createAgreement(agreementData: {
     customerName: string;
     vehicleVin: string;
-    startDate: string;
-    endDate: string;
+    startDate: string; // YYYY-MM-DD
+    endDate: string;   // YYYY-MM-DD
     dailyRate: string;
   }): Promise<void> {
-    // Navigate to create form
     await this.gotoCreateAgreement();
 
-    // Select customer
-    await this.customerSelect.click();
-    await this.page.getByRole('option').filter({ hasText: agreementData.customerName }).click();
+    await this.page.getByLabel('Agreement number').fill(`AGR-${Date.now()}`);
 
-    // Select vehicle
-    await this.vehicleSelect.click();
-    await this.page.getByRole('option').filter({ hasText: agreementData.vehicleVin }).click();
+    // Open customer selection dialog and pick by name
+    await this.page.getByRole('button', { name: 'Select an existing customer' }).click();
+    const customerDialog = this.page.locator('[role="dialog"]');
+    await customerDialog.waitFor({ state: 'visible' });
+    await customerDialog.getByLabel('Search').fill(agreementData.customerName);
+    await this.page.waitForTimeout(1000);
+    await customerDialog
+      .locator('[role="row"]')
+      .filter({ hasText: agreementData.customerName })
+      .first()
+      .getByRole('button', { name: 'Select' })
+      .click();
+    await customerDialog.waitFor({ state: 'hidden' });
 
-    // Fill dates and rate
-    await this.page.getByLabel(/start date/i).fill(agreementData.startDate);
-    await this.page.getByLabel(/end date/i).fill(agreementData.endDate);
-    await this.page.getByLabel(/daily rate|rate/i).fill(agreementData.dailyRate);
+    // Open vehicle selection dialog and pick by VIN
+    await this.page.getByRole('button', { name: 'Select an existing vehicle' }).click();
+    const vehicleDialog = this.page.locator('[role="dialog"]');
+    await vehicleDialog.waitFor({ state: 'visible' });
+    await vehicleDialog.getByLabel('Search').fill(agreementData.vehicleVin);
+    await this.page.waitForTimeout(1000);
+    await vehicleDialog
+      .locator('[role="row"]')
+      .filter({ hasText: agreementData.vehicleVin })
+      .first()
+      .getByRole('button', { name: 'Select' })
+      .click();
+    await vehicleDialog.waitFor({ state: 'hidden' });
 
-    // Save agreement
-    await this.page.getByRole('button', { name: /save|submit/i }).click();
+    // Fill odometer fields (schema requires min 1)
+    await this.page.getByLabel('Odometer at pickup').fill('1000');
+    await this.page.getByLabel('Odometer at return').fill('1000');
 
-    // Wait for navigation back to list
-    await this.page.waitForURL('**/');
+    // Fill pickup and return dates — MUI v7 DateTimePicker uses section-based input
+    const pickup = new Date(`${agreementData.startDate}T12:00:00`);
+    const returnD = new Date(`${agreementData.endDate}T12:00:00`);
+    const fmt = (d: Date) =>
+      `${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}${d.getFullYear()}1200PM`;
+
+    await this.page.getByLabel('Pickup date').pressSequentially(fmt(pickup));
+    await this.page.getByLabel('Return date').pressSequentially(fmt(returnD));
+
+    // Billing must be confirmed before "Generate Agreement" is enabled
+    await this.page.getByRole('button', { name: 'Edit Charges' }).click();
+    const chargesDialog = this.page.locator('[role="dialog"]');
+    await chargesDialog.waitFor({ state: 'visible' });
+    await this.page.getByRole('button', { name: 'Save & Close' }).click();
+    await chargesDialog.waitFor({ state: 'hidden' });
+
+    // Submit — button label is "Generate Agreement"
+    await this.page.getByRole('button', { name: 'Generate Agreement' }).click();
+    await this.page.waitForURL('**/agreement?uuid=*');
   }
 
   /**

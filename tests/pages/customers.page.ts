@@ -17,8 +17,8 @@ export class CustomersPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.searchInput = page.getByPlaceholder('Search customers');
-    this.createButton = page.getByRole('button', { name: /add|create|new/i });
+    this.searchInput = page.getByLabel('Search customers');
+    this.createButton = page.getByRole('button', { name: 'Create' });
     this.customersTable = page.locator('[role="grid"]');
     this.editorDialog = page.locator('[role="dialog"]');
   }
@@ -36,8 +36,7 @@ export class CustomersPage extends BasePage {
    */
   async searchByName(name: string): Promise<void> {
     await this.searchInput.fill(name);
-    // Wait for search results
-    await this.page.waitForTimeout(500);
+    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -48,41 +47,41 @@ export class CustomersPage extends BasePage {
   }
 
   async createCustomer(customerData: RenteeSchema): Promise<void> {
-    const createButtons = this.page.getByRole('button').filter({ hasText: /add|create|new/i });
-    await createButtons.first().click();
+    await this.createButton.click();
     await this.editorDialog.waitFor({ state: 'visible' });
 
-    await this.page.getByLabel(/full name/i).fill(customerData.full_name);
-    await this.page.getByLabel(/street address/i).fill(customerData.address_street1);
-    await this.page.getByLabel(/city/i).fill(customerData.address_city);
-    await this.page.getByLabel(/state/i).first().fill(customerData.address_state);
-    await this.page.getByLabel(/zip/i).fill(customerData.address_zip);
-    await this.page.getByLabel(/cell phone|phone/i).first().fill(customerData.cell_phone);
-    await this.page.getByLabel(/driver.?s license number/i).fill(customerData.driver_license_number);
-    await this.page.getByLabel(/driver.?s license state/i).fill(customerData.driver_license_state);
+    await this.editorDialog.getByLabel('Full name').fill(customerData.full_name);
+    // Use .first() — "Street address", "City", "State", "Zip code" also appear in the employer section
+    await this.editorDialog.getByLabel('Street address').first().fill(customerData.address_street1);
+    await this.editorDialog.getByLabel('City').first().fill(customerData.address_city);
+    await this.editorDialog.getByLabel('State').first().fill(customerData.address_state);
+    await this.editorDialog.getByLabel('Zip code').first().fill(customerData.address_zip);
+    await this.editorDialog.getByLabel('Email address').fill(customerData.email ?? '');
+    await this.editorDialog.getByLabel('Cell phone').fill(customerData.cell_phone);
+    await this.editorDialog.getByLabel("Driver's license number").fill(customerData.driver_license_number);
+    await this.editorDialog.getByLabel("Driver's license state").fill(customerData.driver_license_state);
 
+    // MUI v7 DatePicker uses section-based inputs — click the group then type digits
     const licenseExpiry = customerData.driver_license_expiration;
-    await this.page.getByLabel(/license.*expir/i).fill(
-      `${String(licenseExpiry.getMonth() + 1).padStart(2, '0')}/${String(licenseExpiry.getDate()).padStart(2, '0')}/${licenseExpiry.getFullYear()}`
+    await this.editorDialog.getByRole('group', { name: "Driver's license expiration" }).click();
+    await this.page.keyboard.type(
+      `${String(licenseExpiry.getMonth() + 1).padStart(2, '0')}${String(licenseExpiry.getDate()).padStart(2, '0')}${licenseExpiry.getFullYear()}`
     );
 
     const dob = customerData.date_of_birth;
-    await this.page.getByLabel(/date of birth/i).fill(
-      `${String(dob.getMonth() + 1).padStart(2, '0')}/${String(dob.getDate()).padStart(2, '0')}/${dob.getFullYear()}`
+    await this.editorDialog.getByRole('group', { name: 'Date of birth' }).click();
+    await this.page.keyboard.type(
+      `${String(dob.getMonth() + 1).padStart(2, '0')}${String(dob.getDate()).padStart(2, '0')}${dob.getFullYear()}`
     );
 
-    if (customerData.email) {
-      await this.page.getByLabel(/email/i).fill(customerData.email);
-    }
-
-    await this.page.getByRole('button', { name: /save|submit/i }).click();
+    await this.editorDialog.getByRole('button', { name: 'Save' }).click();
     await this.editorDialog.waitFor({ state: 'hidden' });
   }
 
   async editCustomer(customerName: string, updates: Partial<RenteeSchema>): Promise<void> {
     await this.searchByName(customerName);
-    const row = this.getCustomerRow(customerName);
-    await row.getByRole('button', { name: /edit/i }).click();
+    // Use page-level lookup — after search only one Edit button exists
+    await this.page.getByRole('button', { name: 'Edit' }).click();
     await this.editorDialog.waitFor({ state: 'visible' });
 
     if (updates.full_name) {
@@ -101,7 +100,7 @@ export class CustomersPage extends BasePage {
       await emailField.fill(updates.email);
     }
 
-    await this.page.getByRole('button', { name: /save|submit/i }).click();
+    await this.page.getByRole('button', { name: 'Save' }).click();
     await this.editorDialog.waitFor({ state: 'hidden' });
   }
 

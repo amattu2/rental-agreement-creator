@@ -47,38 +47,28 @@ test.describe('Customers', () => {
   });
 
   test('should validate customer name is required', async ({ customersPage, page }) => {
-    // Try to create customer without name
-    const createButtons = page.getByRole('button').filter({ hasText: /add|create|new/i });
-    await createButtons.first().click();
+    await page.getByRole('button', { name: 'Create' }).click();
 
-    // Wait for dialog
     const dialog = page.locator('[role="dialog"]');
     await dialog.waitFor({ state: 'visible' });
 
-    // Try to submit without filling name
-    const saveButton = page.getByRole('button', { name: /save|submit/i });
-    
-    // Name field should be required
-    const nameField = page.getByLabel(/full name/i);
-    await expect(nameField).toHaveAttribute('required', '');
+    await dialog.getByRole('button', { name: 'Save' }).click();
+
+    // Zod validation message for empty full_name
+    await expect(dialog.getByText('Rentee name is required')).toBeVisible();
   });
 
   test('should validate email format', async ({ customersPage, page }) => {
-    const createButtons = page.getByRole('button').filter({ hasText: /add|create|new/i });
-    await createButtons.first().click();
+    await page.getByRole('button', { name: 'Create' }).click();
 
     const dialog = page.locator('[role="dialog"]');
     await dialog.waitFor({ state: 'visible' });
 
-    // Fill name and invalid email
-    await page.getByLabel(/full name/i).fill('Test Customer');
-    await page.getByLabel(/email/i).fill('invalid-email');
+    await dialog.getByLabel('Full name').fill('Test Customer');
+    await dialog.getByLabel('Email address').fill('invalid-email');
 
-    // Try to submit
-    const saveButton = page.getByRole('button', { name: /save|submit/i });
-    await saveButton.click();
+    await dialog.getByRole('button', { name: 'Save' }).click();
 
-    // Should still have dialog open if validation fails
     await expect(dialog).toBeVisible();
   });
 
