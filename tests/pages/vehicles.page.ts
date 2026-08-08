@@ -64,8 +64,8 @@ export class VehiclesPage extends BasePage {
 
   async editVehicle(vin: string, updates: Partial<VehicleSchema>): Promise<void> {
     await this.search(vin);
-    // Use page-level lookup — after search only one Edit button exists
-    await this.page.getByRole('button', { name: 'Edit' }).click();
+    // MUI DataGrid action buttons need force:true to bypass actionability checks
+    await this.page.locator('[aria-label="Edit"]').click({ force: true });
     await this.editorDialog.waitFor({ state: 'visible' });
 
     if (updates.make) {

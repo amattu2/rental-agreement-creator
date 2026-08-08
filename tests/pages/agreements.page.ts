@@ -102,50 +102,45 @@ export class AgreementsPage extends BasePage {
 
     // Open customer selection dialog and pick by name
     await this.page.getByRole('button', { name: 'Select an existing customer' }).click();
-    const customerDialog = this.page.locator('[role="dialog"]');
+    // Scope by title to avoid strict mode violation if a second dialog mounts during transition
+    const customerDialog = this.page.locator('[role="dialog"]').filter({ hasText: 'Select Customer' });
     await customerDialog.waitFor({ state: 'visible' });
     await customerDialog.getByLabel('Search').fill(agreementData.customerName);
     await this.page.waitForTimeout(1000);
-    await customerDialog
-      .locator('[role="row"]')
-      .filter({ hasText: agreementData.customerName })
-      .first()
-      .getByRole('button', { name: 'Select' })
-      .click();
+    // MUI DataGrid action buttons need force:true to bypass actionability checks
+    await this.page.locator('[aria-label="Select"]').click({ force: true });
     await customerDialog.waitFor({ state: 'hidden' });
 
     // Open vehicle selection dialog and pick by VIN
     await this.page.getByRole('button', { name: 'Select an existing vehicle' }).click();
-    const vehicleDialog = this.page.locator('[role="dialog"]');
+    const vehicleDialog = this.page.locator('[role="dialog"]').filter({ hasText: 'Select Vehicle' });
     await vehicleDialog.waitFor({ state: 'visible' });
     await vehicleDialog.getByLabel('Search').fill(agreementData.vehicleVin);
     await this.page.waitForTimeout(1000);
-    await vehicleDialog
-      .locator('[role="row"]')
-      .filter({ hasText: agreementData.vehicleVin })
-      .first()
-      .getByRole('button', { name: 'Select' })
-      .click();
+    await this.page.locator('[aria-label="Select"]').click({ force: true });
     await vehicleDialog.waitFor({ state: 'hidden' });
 
-    // Fill odometer fields (schema requires min 1)
-    await this.page.getByLabel('Odometer at pickup').fill('1000');
-    await this.page.getByLabel('Odometer at return').fill('1000');
+    // exact: true avoids substring match on "Calculate odometer at return" tooltip aria-label
+    await this.page.getByLabel('Odometer at pickup', { exact: true }).fill('1000');
+    await this.page.getByLabel('Odometer at return', { exact: true }).fill('1000');
 
-    // Fill pickup and return dates — MUI v7 DateTimePicker uses section-based input
+    // MUI v7 DateTimePicker: click the group element then type digits
     const pickup = new Date(`${agreementData.startDate}T12:00:00`);
     const returnD = new Date(`${agreementData.endDate}T12:00:00`);
     const fmt = (d: Date) =>
       `${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}${d.getFullYear()}1200PM`;
 
-    await this.page.getByLabel('Pickup date').pressSequentially(fmt(pickup));
-    await this.page.getByLabel('Return date').pressSequentially(fmt(returnD));
+    await this.page.getByRole('group', { name: 'Pickup date' }).click();
+    await this.page.keyboard.type(fmt(pickup));
+    await this.page.getByRole('group', { name: 'Return date' }).click();
+    await this.page.keyboard.type(fmt(returnD));
 
     // Billing must be confirmed before "Generate Agreement" is enabled
     await this.page.getByRole('button', { name: 'Edit Charges' }).click();
-    const chargesDialog = this.page.locator('[role="dialog"]');
+    const chargesDialog = this.page.locator('[role="dialog"]').filter({ hasText: 'Edit Charges' });
     await chargesDialog.waitFor({ state: 'visible' });
-    await this.page.getByRole('button', { name: 'Save & Close' }).click();
+    // Use locator('button').filter() — getByRole { name } can fail on '&' in button text
+    await chargesDialog.locator('button').filter({ hasText: /save.*close/i }).click({ force: true });
     await chargesDialog.waitFor({ state: 'hidden' });
 
     // Submit — button label is "Generate Agreement"

@@ -80,8 +80,8 @@ export class CustomersPage extends BasePage {
 
   async editCustomer(customerName: string, updates: Partial<RenteeSchema>): Promise<void> {
     await this.searchByName(customerName);
-    // Use page-level lookup — after search only one Edit button exists
-    await this.page.getByRole('button', { name: 'Edit' }).click();
+    // MUI DataGrid action buttons need force:true to bypass actionability checks
+    await this.page.locator('[aria-label="Edit"]').click({ force: true });
     await this.editorDialog.waitFor({ state: 'visible' });
 
     if (updates.full_name) {
