@@ -11,6 +11,7 @@
     "lint": "eslint",
     "lint:ci": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf .next node_modules out tsconfig.tsbuildinfo next-env.d.ts"
   },

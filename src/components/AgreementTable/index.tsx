@@ -190,7 +190,9 @@ const AgreementTable = ({ agreements, loading, onArchive, onCancel }: AgreementT
 
     const { generateAgreement } = await import("@/pdfs/agreement");
 
-    const pdfUrl = URL.createObjectURL(await generateAgreement(envData, record, record.status !== "active"));
+    const pdfUrl = URL.createObjectURL(
+      await generateAgreement(envData, record, record.status !== "active")
+    );
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
 
     setTimeout(() => {

@@ -44,7 +44,9 @@ const Page = () => {
       NEXT_PUBLIC_DEPLOYMENT_URL: process.env.NEXT_PUBLIC_DEPLOYMENT_URL,
     });
 
-    setObjectUrl(URL.createObjectURL(await generateAgreement(envData, record, record.status !== "active")));
+    setObjectUrl(
+      URL.createObjectURL(await generateAgreement(envData, record, record.status !== "active"))
+    );
   };
 
   const onSubmit: SubmitHandler<FormSchema> = async (data: FormSchema) => {
