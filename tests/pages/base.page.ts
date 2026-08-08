@@ -81,4 +81,23 @@ export abstract class BasePage {
   async getCurrentUrl(): Promise<string> {
     return this.page.url();
   }
+
+  // Types a date+time value into a MUI DateTimePicker field group by keyboard
+  protected async typeDateTime(label: string, date: Date): Promise<void> {
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const hours24 = date.getHours();
+    const meridiem = hours24 >= 12 ? "PM" : "AM";
+    const hours12 = String(((hours24 + 11) % 12) + 1).padStart(2, "0");
+
+    await this.page.getByRole("group", { name: label }).locator("[data-sectionindex='0']").click();
+
+    for (const char of `${month}${day}${year}${hours12}${minutes}${meridiem[0]}`) {
+      await this.page.keyboard.press(char);
+    }
+
+    await this.page.keyboard.press("Tab");
+  }
 }
