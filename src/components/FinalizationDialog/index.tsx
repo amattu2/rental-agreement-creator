@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import dayjs from "dayjs";
+import { useMemo } from "react";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 
 import { FUEL_LEVEL_OPTIONS } from "@/config/constants";
@@ -34,16 +35,33 @@ type FinalizationDialogProps = {
  * @returns The FinalizationDialog component
  */
 export const FinalizationDialog = ({ agreement, onClose, onConfirm }: FinalizationDialogProps) => {
+  const minOdometerIn = agreement.rental_agreement_info.odometer_out ?? 0;
+
+  const finalizationSchema = useMemo<typeof FINALIZATION_SCHEMA>(
+    () =>
+      FINALIZATION_SCHEMA.extend({
+        vehicle_returned_at: FINALIZATION_SCHEMA.shape.vehicle_returned_at.refine(
+          (value) => dayjs(value).isAfter(dayjs(agreement.rental_agreement_info.date_out)),
+          `Return date and time must be after pickup date and time`
+        ),
+        actual_odometer_in: FINALIZATION_SCHEMA.shape.actual_odometer_in.refine(
+          (value) => value >= minOdometerIn,
+          `Odometer at return must be greater than or equal to odometer at pickup`
+        ),
+      }),
+    [agreement.rental_agreement_info.date_out, minOdometerIn]
+  );
+
   const {
     control,
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<FinalizationSchema>({
-    resolver: zodResolver(FINALIZATION_SCHEMA),
+    resolver: zodResolver(finalizationSchema),
     defaultValues: {
       vehicle_returned_at: new Date(),
-      actual_odometer_in: agreement.rental_agreement_info.odometer_out ?? 0,
-      actual_fuel_level_in: "F",
+      actual_odometer_in: 0,
+      actual_fuel_level_in: "",
       finalized_at: new Date(),
     },
   });
@@ -93,7 +111,6 @@ export const FinalizationDialog = ({ agreement, onClose, onConfirm }: Finalizati
                 slotProps={{
                   htmlInput: {
                     step: 1,
-                    min: agreement.rental_agreement_info.odometer_out ?? 0,
                   },
                 }}
                 fullWidth
