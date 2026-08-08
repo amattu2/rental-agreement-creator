@@ -17,6 +17,13 @@ jobs:
     name: End-to-End Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_APP_NAME: Rental Agreement Creator
+      NEXT_PUBLIC_APP_DESCRIPTION: End-to-end CI test build
+      NEXT_PUBLIC_COMPANY_NAME: CI Test Company
+      NEXT_PUBLIC_ADDRESS_LINE1: 123 CI Test Street
+      NEXT_PUBLIC_ADDRESS_LINE2: Suite 100
+      NEXT_PUBLIC_DEPLOYMENT_URL: https://example.com
 
     steps:
       - name: "Checkout Repository"
