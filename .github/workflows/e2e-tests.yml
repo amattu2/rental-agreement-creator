@@ -1,0 +1,83 @@
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  e2e:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start static server
+        run: npx serve out --port 3000 &
+        env:
+          CI: true
+
+      - name: Wait for server to be ready
+        run: |
+          max_attempts=30
+          attempt=0
+          until curl --silent http://localhost:3000 > /dev/null 2>&1 || [ $attempt -eq $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Waiting for server... (attempt $attempt/$max_attempts)"
+            sleep 2
+          done
+          if [ $attempt -eq $max_attempts ]; then
+            echo "Server failed to start"
+            exit 1
+          fi
+
+      - name: Run Playwright tests
+        run: npm run test:e2e -- --reporter=html,json,github
+        env:
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload test results JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+      - name: Publish test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: E2E Test Results
+          path: 'test-results/results.json'
+          reporter: 'json'
+          fail-on-error: false

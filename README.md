@@ -61,6 +61,49 @@ Open <http://localhost:3000> to view the app.
 - React Hook Form + Zod validation
 - jsPDF
 - Vitest + Testing Library
+- Playwright (E2E testing)
+
+## Testing
+
+### Unit & Component Tests
+
+Run Vitest unit tests:
+
+```bash
+npm test
+```
+
+### End-to-End Tests
+
+Run Playwright E2E tests:
+
+```bash
+# Run all tests
+npm run test:e2e
+
+# Run smoke tests (quick validation)
+npm run test:e2e:smoke
+
+# Debug tests interactively
+npm run test:e2e:debug
+
+# View last test report
+npm run test:e2e:report
+```
+
+**E2E Tests** cover complete user workflows:
+- Customer CRUD (create, read, update, search)
+- Vehicle CRUD (create, read, update, search)
+- Agreement lifecycle (create, edit, finalize, cancel, search)
+
+**Key features:**
+- ✅ Data-agnostic design (work with any database/environment)
+- ✅ Unique test identifiers per run (no data collisions)
+- ✅ 20+ comprehensive tests with smoke test suite
+- ✅ HTML reports, screenshots, and videos on failure
+- ✅ Automatic CI/CD integration (runs on every PR)
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
 
 # Previews
 
