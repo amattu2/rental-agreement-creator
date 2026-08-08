@@ -19,11 +19,13 @@ import jsPDF from "./base";
  *
  * @param env - The environment variables used for PDF generation
  * @param record - The agreement record used to generate the rental agreement PDF
+ * @param readonly - Whether the PDF should be read-only (fields cannot be edited)
  * @returns A Blob representing the generated PDF
  */
 export const generateAgreement = async (
   env: EnvSchema,
-  record: AgreementRecord
+  record: AgreementRecord,
+  readonly = false
 ): Promise<Readonly<Blob>> => {
   const {
     NEXT_PUBLIC_APP_NAME,
@@ -100,6 +102,7 @@ export const generateAgreement = async (
   roField.y = 31.5;
   roField.width = 44;
   roField.height = 5;
+  roField.readOnly = readonly;
   doc.addField(roField);
 
   let currentY = 36.5;
@@ -110,7 +113,7 @@ export const generateAgreement = async (
   currentY += 3;
 
   // ---- COLUMN 1 ----
-  doc.drawField("RENTEE NAME", 6, currentY, 119, form.rentee.full_name);
+  doc.drawField("RENTEE NAME", 6, currentY, 119, form.rentee.full_name, undefined, readonly);
 
   doc.setDrawColor(59, 59, 59);
   doc.setLineWidth(0.2);
@@ -118,29 +121,30 @@ export const generateAgreement = async (
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("HOME ADDRESS", 6, currentY, 95, form.rentee.address_street1);
-  doc.drawField("VERIFIED", 102, currentY, 22.6, form.rentee.verified ? "YES" : "NO");
+  doc.drawField("HOME ADDRESS", 6, currentY, 95, form.rentee.address_street1, undefined, readonly);
+  doc.drawField("VERIFIED", 102, currentY, 22.6, form.rentee.verified ? "YES" : "NO", undefined, readonly);
   doc.setDrawColor(0, 0, 0);
   doc.line(101.2, currentY - 3, 101.2, currentY + 5);
   doc.setDrawColor(59, 59, 59);
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3;
-  doc.drawField("CITY", 6, currentY, 47.4, form.rentee.address_city);
-  doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state, "RENTEE_STATE");
-  doc.drawField("ZIP CODE", 102, currentY, 22.6, form.rentee.address_zip, "RENTEE_ZIP_CODE");
+  doc.drawField("CITY", 6, currentY, 47.4, form.rentee.address_city, undefined, readonly);
+  doc.drawField("STATE", 54.2, currentY, 47, form.rentee.address_state, "RENTEE_STATE", readonly);
+  doc.drawField("ZIP CODE", 102, currentY, 22.6, form.rentee.address_zip, "RENTEE_ZIP_CODE", readonly);
 
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
   currentY += 3;
-  doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4, form.rentee.driver_license_number);
+  doc.drawField("DRIVER'S LICENSE #", 6, currentY, 47.4, form.rentee.driver_license_number, undefined, readonly);
   doc.drawField(
     "STATE",
     54.2,
     currentY,
     47,
     form.rentee.driver_license_state,
-    "DRIVER_LICENSE_STATE"
+    "DRIVER_LICENSE_STATE",
+    readonly
   );
   doc.drawField(
     "EXP. DATE",
@@ -148,26 +152,27 @@ export const generateAgreement = async (
     currentY,
     22.6,
     formatDate(form.rentee.driver_license_expiration),
-    "DRIVER_LICENSE_EXPIRATION"
+    "DRIVER_LICENSE_EXPIRATION",
+    readonly
   );
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("DATE OF BIRTH", 6, currentY, 47.4, formatDate(form.rentee.date_of_birth));
-  doc.drawField("CELL PHONE #", 54.2, currentY, 47, form.rentee.cell_phone);
-  doc.drawField("ALT PHONE #", 102, currentY, 22.6, form.rentee.alternate_phone ?? "");
+  doc.drawField("DATE OF BIRTH", 6, currentY, 47.4, formatDate(form.rentee.date_of_birth), undefined, readonly);
+  doc.drawField("CELL PHONE #", 54.2, currentY, 47, form.rentee.cell_phone, undefined, readonly);
+  doc.drawField("ALT PHONE #", 102, currentY, 22.6, form.rentee.alternate_phone ?? "", undefined, readonly);
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("EMAIL ADDRESS", 6, currentY, 119, form.rentee.email ?? "");
+  doc.drawField("EMAIL ADDRESS", 6, currentY, 119, form.rentee.email ?? "", undefined, readonly);
   currentY += 5;
   doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3;
-  doc.drawField("EMPLOYER", 6, currentY, 64, form.rentee.employer?.company ?? "");
-  doc.drawField("POSITION", 71, currentY, 54, form.rentee.employer?.position ?? "");
+  doc.drawField("EMPLOYER", 6, currentY, 64, form.rentee.employer?.company ?? "", undefined, readonly);
+  doc.drawField("POSITION", 71, currentY, 54, form.rentee.employer?.position ?? "", undefined, readonly);
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
 
@@ -177,7 +182,9 @@ export const generateAgreement = async (
     6,
     currentY,
     119,
-    form.rentee.employer?.address_street1 ?? ""
+    form.rentee.employer?.address_street1 ?? "",
+    undefined,
+    readonly
   );
   currentY += 5;
   doc.line(5, currentY, pageWidth - 5, currentY);
@@ -189,7 +196,8 @@ export const generateAgreement = async (
     currentY,
     47.4,
     form.rentee.employer?.address_city ?? "",
-    "EMPLOYER_CITY"
+    "EMPLOYER_CITY",
+    readonly
   );
   doc.drawField(
     "STATE",
@@ -197,7 +205,8 @@ export const generateAgreement = async (
     currentY,
     47,
     form.rentee.employer?.address_state ?? "",
-    "EMPLOYER_STATE"
+    "EMPLOYER_STATE",
+    readonly
   );
   doc.drawField(
     "ZIP CODE",
@@ -205,14 +214,15 @@ export const generateAgreement = async (
     currentY,
     22.6,
     form.rentee.employer?.address_zip ?? "",
-    "EMPLOYER_ZIP_CODE"
+    "EMPLOYER_ZIP_CODE",
+    readonly
   );
   currentY += 5;
   doc.line(5, currentY, dividerX, currentY);
 
   currentY += 3;
-  doc.drawField("INSURANCE CO.", 6, currentY, 53, form.rentee.insurance?.company ?? "");
-  doc.drawField("POLICY #", 60, currentY, 54, form.rentee.insurance?.policy_number ?? "");
+  doc.drawField("INSURANCE CO.", 6, currentY, 53, form.rentee.insurance?.company ?? "", undefined, readonly);
+  doc.drawField("POLICY #", 60, currentY, 54, form.rentee.insurance?.policy_number ?? "", undefined, readonly);
   currentY += 5;
   doc.line(5, currentY, dividerX, currentY);
 
@@ -299,7 +309,8 @@ export const generateAgreement = async (
     currentY,
     59,
     4,
-    form.additional_drivers?.[0]?.full_name ?? ""
+    form.additional_drivers?.[0]?.full_name ?? "",
+    readonly
   );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("NAME", 6, currentY + 7.5);
@@ -309,7 +320,8 @@ export const generateAgreement = async (
     currentY,
     28,
     4,
-    formatDate(form.additional_drivers?.[0]?.date_of_birth)
+    formatDate(form.additional_drivers?.[0]?.date_of_birth),
+    readonly
   );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("DATE OF BIRTH", 68, currentY + 7.5);
@@ -321,7 +333,8 @@ export const generateAgreement = async (
     currentY,
     59,
     4,
-    form.additional_drivers?.[0]?.driver_license_number ?? ""
+    form.additional_drivers?.[0]?.driver_license_number ?? "",
+    readonly
   );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("DRIVER'S LICENSE #", 6, currentY + 7.5);
@@ -331,7 +344,8 @@ export const generateAgreement = async (
     currentY,
     28,
     4,
-    formatDate(form.additional_drivers?.[0]?.driver_license_expiration)
+    formatDate(form.additional_drivers?.[0]?.driver_license_expiration),
+    readonly
   );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("EXPIRES", 68, currentY + 7.5);
@@ -343,7 +357,8 @@ export const generateAgreement = async (
     currentY,
     59,
     4,
-    form.additional_drivers?.[1]?.full_name ?? ""
+    form.additional_drivers?.[1]?.full_name ?? "",
+    readonly
   );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("NAME", 6, currentY + 7.5);
@@ -353,7 +368,8 @@ export const generateAgreement = async (
     currentY,
     28,
     4,
-    formatDate(form.additional_drivers?.[1]?.date_of_birth)
+    formatDate(form.additional_drivers?.[1]?.date_of_birth),
+    readonly
   );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("DATE OF BIRTH", 68, currentY + 7.5);
@@ -365,7 +381,8 @@ export const generateAgreement = async (
     currentY,
     59,
     4,
-    form.additional_drivers?.[1]?.driver_license_number ?? ""
+    form.additional_drivers?.[1]?.driver_license_number ?? "",
+    readonly
   );
   doc.line(6, currentY + 4.5, 65, currentY + 4.5);
   doc.text("DRIVER'S LICENSE #", 6, currentY + 7.5);
@@ -375,7 +392,8 @@ export const generateAgreement = async (
     currentY,
     28,
     4,
-    formatDate(form.additional_drivers?.[1]?.driver_license_expiration)
+    formatDate(form.additional_drivers?.[1]?.driver_license_expiration),
+    readonly
   );
   doc.line(68, currentY + 4.5, 96, currentY + 4.5);
   doc.text("EXPIRES", 68, currentY + 7.5);
@@ -415,7 +433,8 @@ export const generateAgreement = async (
     4,
     hasVehicleDamageWaiver
       ? formatCurrency(form.vehicle_damage_waiver?.rate_per_day, form.currency)
-      : "N/A"
+      : "N/A",
+    readonly
   );
   doc.line(16, currentY + 1, 31, currentY + 1);
   doc.text("PER DAY", 32, currentY);
@@ -427,7 +446,8 @@ export const generateAgreement = async (
     4,
     hasVehicleDamageWaiver
       ? formatCurrency(form.vehicle_damage_waiver?.rate_per_week, form.currency)
-      : "N/A"
+      : "N/A",
+    readonly
   );
   doc.line(45, currentY + 1, 60, currentY + 1);
   doc.text("PER WEEK", 61, currentY);
@@ -457,7 +477,8 @@ export const generateAgreement = async (
     3.8,
     hasVehicleDamageWaiver
       ? formatCurrency(form.vehicle_damage_waiver?.damage_liability_limit, form.currency)
-      : "N/A"
+      : "N/A",
+    readonly
   );
   doc.line(75, currentY + 6, 101, currentY + 6);
   doc.setFont("Cousine", "normal", 700);
@@ -475,9 +496,9 @@ export const generateAgreement = async (
   if (hasVehicleDamageWaiver) {
     doc.setFontSize(10);
     doc.text("×", 109, currentY - 3);
-    doc.buildTextField("VDW_ACCEPT_INITIAL", 110.5, currentY - 7.5, 12.5, 5);
+    doc.buildTextField("VDW_ACCEPT_INITIAL", 110.5, currentY - 7.5, 12.5, 5, "", readonly);
     doc.text("×", 109, currentY + 19.5);
-    doc.buildTextField("VDW_DECLINE_INITIAL", 110.5, currentY + 15, 12.5, 5);
+    doc.buildTextField("VDW_DECLINE_INITIAL", 110.5, currentY + 15, 12.5, 5, "", readonly);
   } else {
     doc.setFontSize(6);
     doc.setFont("Cousine", "italic", 700);
@@ -522,7 +543,8 @@ export const generateAgreement = async (
     3.8,
     hasPersonalAccidentInsurance
       ? formatCurrency(form.personal_accident_insurance?.rate_per_day, form.currency)
-      : "N/A"
+      : "N/A",
+    readonly
   );
   doc.line(25.5, currentY + 6, 51.5, currentY + 6);
   doc.setDrawColor(0, 0, 0);
@@ -534,9 +556,9 @@ export const generateAgreement = async (
   if (hasPersonalAccidentInsurance) {
     doc.setFontSize(10);
     doc.text("×", 92, currentY + 3.5);
-    doc.buildTextField("PAI_ACCEPT_INITIAL", 93.5, currentY - 1, 12.5, 5);
+    doc.buildTextField("PAI_ACCEPT_INITIAL", 93.5, currentY - 1, 12.5, 5, "", readonly);
     doc.text("×", 109, currentY + 3.5);
-    doc.buildTextField("PAI_DECLINE_INITIAL", 110.5, currentY - 1, 12.5, 5);
+    doc.buildTextField("PAI_DECLINE_INITIAL", 110.5, currentY - 1, 12.5, 5, "", readonly);
   } else {
     doc.setFontSize(6);
     doc.setFont("Cousine", "italic", 700);
@@ -589,28 +611,30 @@ export const generateAgreement = async (
   // ---- COLUMN 2 ----
 
   currentY = 39.5;
-  doc.drawField("VEHICLE #", 126.5, currentY, 19.5, form.rental_vehicle.stock_number ?? "");
+  doc.drawField("VEHICLE #", 126.5, currentY, 19.5, form.rental_vehicle.stock_number ?? "", undefined, readonly);
   doc.setDrawColor(0, 0, 0);
   doc.line(146.2, currentY - 3, 146.2, currentY + 5);
-  doc.drawField("VIN", 147, currentY, 36.5, form.rental_vehicle.VIN);
+  doc.drawField("VIN", 147, currentY, 36.5, form.rental_vehicle.VIN, undefined, readonly);
   doc.line(184, currentY - 3, 184, currentY + 5);
-  doc.drawField("LICENSE #", 184.8, currentY, 26, form.rental_vehicle.license_plate);
+  doc.drawField("LICENSE #", 184.8, currentY, 26, form.rental_vehicle.license_plate, undefined, readonly);
   currentY += 5;
   doc.setDrawColor(59, 59, 59);
   doc.line(dividerX, currentY, pageWidth - 5, currentY);
 
   currentY += 3;
-  doc.drawField("YEAR", 126.5, currentY, 15.5, coerceNumber(form.rental_vehicle.year));
+  doc.drawField("YEAR", 126.5, currentY, 15.5, coerceNumber(form.rental_vehicle.year), undefined, readonly);
   doc.setDrawColor(0, 0, 0);
   doc.line(142.5, currentY - 3, 142.5, currentY + 5);
-  doc.drawField("MAKE", 143, currentY, 33.2, form.rental_vehicle.make);
+  doc.drawField("MAKE", 143, currentY, 33.2, form.rental_vehicle.make, undefined, readonly);
   doc.line(176.5, currentY - 3, 176.5, currentY + 5);
   doc.drawField(
     "MODEL/COLOR",
     177.3,
     currentY,
     33.5,
-    `${form.rental_vehicle.model} / ${form.rental_vehicle.color}`
+    `${form.rental_vehicle.model} / ${form.rental_vehicle.color}`,
+    undefined,
+    readonly
   );
   currentY += 5;
   doc.setDrawColor(59, 59, 59);
@@ -630,7 +654,8 @@ export const generateAgreement = async (
     currentY - 2.6,
     14.5,
     7.5,
-    formatNumber(form.rental_agreement_info.odometer_in, false)
+    formatNumber(form.rental_agreement_info.odometer_in, false),
+    readonly
   );
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
@@ -639,7 +664,9 @@ export const generateAgreement = async (
     158.8,
     currentY,
     32,
-    formatDate(form.rental_agreement_info.date_in)
+    formatDate(form.rental_agreement_info.date_in),
+    undefined,
+    readonly
   );
   doc.buildTextField(
     "DATE_TIME_IN",
@@ -647,7 +674,8 @@ export const generateAgreement = async (
     currentY,
     19,
     5,
-    formatDate(form.rental_agreement_info.date_in, "hh:mm A")
+    formatDate(form.rental_agreement_info.date_in, "hh:mm A"),
+    readonly
   );
 
   currentY += 8;
@@ -664,7 +692,8 @@ export const generateAgreement = async (
     currentY - 2.6,
     14.5,
     7.5,
-    formatNumber(form.rental_agreement_info.odometer_out, false)
+    formatNumber(form.rental_agreement_info.odometer_out, false),
+    readonly
   );
   doc.setDrawColor(59, 59, 59);
   doc.line(158, currentY - 3, 158, currentY + 5);
@@ -673,7 +702,9 @@ export const generateAgreement = async (
     158.8,
     currentY,
     32,
-    formatDate(form.rental_agreement_info.date_out)
+    formatDate(form.rental_agreement_info.date_out),
+    undefined,
+    readonly
   );
   doc.buildTextField(
     "DATE_TIME_OUT",
@@ -681,7 +712,8 @@ export const generateAgreement = async (
     currentY,
     19,
     5,
-    formatDate(form.rental_agreement_info.date_out, "hh:mm A")
+    formatDate(form.rental_agreement_info.date_out, "hh:mm A"),
+    readonly
   );
 
   currentY += 8;
@@ -690,7 +722,9 @@ export const generateAgreement = async (
     126.5,
     currentY,
     32,
-    formatNumber(form.rental_agreement_info.max_distance, true)
+    formatNumber(form.rental_agreement_info.max_distance, true),
+    undefined,
+    readonly
   );
   doc.buildComboField(
     "MAX_DISTANCE_MEASUREMENT",
@@ -699,7 +733,8 @@ export const generateAgreement = async (
     11,
     DISTANCE_MEASUREMENT_OPTIONS.map((option) => option.value),
     5,
-    form.rental_agreement_info.max_distance_measurement
+    form.rental_agreement_info.max_distance_measurement,
+    readonly
   );
   doc.setDrawColor(59, 59, 59);
   doc.line(171.5, currentY - 3, 171.5, currentY + 5);
@@ -708,7 +743,9 @@ export const generateAgreement = async (
     172,
     currentY,
     28,
-    formatNumber(form.rental_agreement_info.max_payload, true)
+    formatNumber(form.rental_agreement_info.max_payload, true),
+    undefined,
+    readonly
   );
   doc.buildComboField(
     "MAX_PAYLOAD_MEASUREMENT",
@@ -717,7 +754,8 @@ export const generateAgreement = async (
     9.5,
     PAYLOAD_MEASUREMENT_OPTIONS.map((option) => option.value),
     5,
-    form.rental_agreement_info.max_payload_measurement
+    form.rental_agreement_info.max_payload_measurement,
+    readonly
   );
 
   currentY += 8.5;
@@ -782,7 +820,8 @@ export const generateAgreement = async (
         currentY + 1.2,
         13,
         4,
-        formatCurrency(rate, form.currency)
+        formatCurrency(rate, form.currency),
+        readonly
       );
 
       if (note) {
@@ -795,7 +834,8 @@ export const generateAgreement = async (
         currentY + 1.2,
         25,
         4,
-        formatCurrency(total, form.currency)
+        formatCurrency(total, form.currency),
+        readonly
       );
       doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
       currentY += 5;
@@ -822,7 +862,8 @@ export const generateAgreement = async (
     currentY + 1.2,
     25,
     4,
-    formatCurrency(form.agreement_charges?.subtotal, form.currency)
+    formatCurrency(form.agreement_charges?.subtotal, form.currency),
+    readonly
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
@@ -834,7 +875,8 @@ export const generateAgreement = async (
     currentY + 1.2,
     25,
     4,
-    formatCurrency(form.agreement_charges?.sales_tax_amount, form.currency)
+    formatCurrency(form.agreement_charges?.sales_tax_amount, form.currency),
+    readonly
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
@@ -846,7 +888,8 @@ export const generateAgreement = async (
     currentY + 1.2,
     25,
     4,
-    formatCurrency(-form.agreement_charges?.deposit_amount, form.currency)
+    formatCurrency(-form.agreement_charges?.deposit_amount, form.currency),
+    readonly
   );
   doc.line(dividerX, currentY + 5, dividerX + 85.4, currentY + 5);
   currentY += 5;
@@ -860,7 +903,8 @@ export const generateAgreement = async (
     currentY + 1.2,
     25,
     4,
-    formatCurrency(form.agreement_charges?.total_due, form.currency)
+    formatCurrency(form.agreement_charges?.total_due, form.currency),
+    readonly
   );
 
   doc.setLineWidth(0.4);
@@ -923,7 +967,7 @@ export const generateAgreement = async (
   doc.setFontSize(10);
   doc.setTextColor(0, 0, 0);
   doc.text("×", dividerX + 0.8, currentY + 7);
-  doc.buildTextField("RENTEE_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6);
+  doc.buildTextField("RENTEE_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6, "", readonly);
   doc.line(dividerX + 3.5, currentY + 6.5, dividerX + 85, currentY + 6.5);
   doc.setFontSize(7);
   doc.setTextColor(59, 59, 59);
@@ -935,7 +979,7 @@ export const generateAgreement = async (
   doc.text("×", dividerX + 0.8, currentY + 7);
   if (!doc.drawSignatureImage(form.clerk_signature, dividerX + 3.7, currentY + 0.3, 81.1, 5.8)) {
     // Create a text field if the signature image could not be drawn
-    doc.buildTextField("AUTHORIZED_CLERK_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6);
+    doc.buildTextField("AUTHORIZED_CLERK_SIGNATURE", dividerX + 3.5, currentY, 81.5, 6, "", readonly);
   }
   doc.line(dividerX + 3.5, currentY + 6.5, dividerX + 85, currentY + 6.5);
   doc.setFontSize(7);
