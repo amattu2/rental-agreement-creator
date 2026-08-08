@@ -284,16 +284,18 @@ test.describe("Complete Agreement Lifecycle", () => {
     const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
     await expect(dialog).toBeVisible();
 
+    const finalizationReceiptPopupPromise = page.waitForEvent("popup");
     await dialog.getByRole("button", { name: /^confirm$/i }).click();
-    const finalizationReceiptPopup = await page.waitForEvent("popup");
+    const finalizationReceiptPopup = await finalizationReceiptPopupPromise;
     await expectPopupOpened(finalizationReceiptPopup);
     await finalizationReceiptPopup.close();
 
     await agreementsPage.filterByStatus("archived");
     await openAgreementActions(agreementsPage, agreementNumber);
 
+    const archivedReceiptPopupPromise = page.waitForEvent("popup");
     await page.getByRole("menuitem", { name: "View Receipt" }).click();
-    const archivedReceiptPopup = await page.waitForEvent("popup");
+    const archivedReceiptPopup = await archivedReceiptPopupPromise;
     await expectPopupOpened(archivedReceiptPopup);
     await archivedReceiptPopup.close();
   });
@@ -311,8 +313,9 @@ test.describe("Complete Agreement Lifecycle", () => {
     await agreementsPage.filterByStatus("active");
     await openAgreementActions(agreementsPage, agreementNumber);
 
+    const agreementPopupPromise = page.waitForEvent("popup");
     await page.getByRole("menuitem", { name: "View Agreement" }).click();
-    const agreementPopup = await page.waitForEvent("popup");
+    const agreementPopup = await agreementPopupPromise;
     await expectPopupOpened(agreementPopup);
     await agreementPopup.close();
   });
@@ -336,8 +339,9 @@ test.describe("Complete Agreement Lifecycle", () => {
     await agreementsPage.filterByStatus("archived");
     await openAgreementActions(agreementsPage, agreementNumber);
 
+    const receiptPopupPromise = page.waitForEvent("popup");
     await page.getByRole("menuitem", { name: "View Receipt" }).click();
-    const receiptPopup = await page.waitForEvent("popup");
+    const receiptPopup = await receiptPopupPromise;
     await expectPopupOpened(receiptPopup);
     await receiptPopup.close();
   });
