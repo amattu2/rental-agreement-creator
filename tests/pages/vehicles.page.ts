@@ -13,11 +13,13 @@ export class VehiclesPage extends BasePage {
   readonly searchInput: Locator;
   readonly createButton: Locator;
   readonly vehiclesTable: Locator;
+  readonly statusFilter: Locator;
   readonly editorDialog: Locator;
 
   constructor(page: Page) {
     super(page);
     this.searchInput = page.getByLabel("Search vehicles");
+    this.statusFilter = page.getByLabel("Status", { exact: true });
     this.createButton = page.getByRole("button", { name: "Create" });
     this.vehiclesTable = page.locator('[role="grid"]');
     this.editorDialog = page.locator('[role="dialog"]');
@@ -36,6 +38,12 @@ export class VehiclesPage extends BasePage {
    */
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
+    await this.page.waitForTimeout(1000);
+  }
+
+  async filterByStatus(status: BaseStatus): Promise<void> {
+    await this.statusFilter.click();
+    await this.page.getByRole("option", { name: new RegExp(`^${status}$`, "i") }).click();
     await this.page.waitForTimeout(1000);
   }
 
@@ -91,6 +99,16 @@ export class VehiclesPage extends BasePage {
 
     await this.editorDialog.getByRole("button", { name: "Save" }).click();
     await this.editorDialog.waitFor({ state: "hidden" });
+  }
+
+  async toggleVehicleStatus(vin: string): Promise<void> {
+    await this.search(vin);
+    const row = this.getVehicleRow(vin);
+    await row
+      .locator('[aria-label="Deactivate"], [aria-label="Activate"]')
+      .first()
+      .click({ force: true });
+    await this.page.waitForTimeout(1000);
   }
 
   /**

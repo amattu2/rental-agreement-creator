@@ -63,7 +63,7 @@ export class AgreementsPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
-  async filterByStatus(status: "all" | "active" | "archived" | "canceled"): Promise<void> {
+  async filterByStatus(status: "all" | AgreementStatus): Promise<void> {
     await this.statusFilter.click();
     // MUI Select renders options in a listbox outside the main DOM
     await this.page.getByRole("option", { name: new RegExp(`^${status}$`, "i") }).click();
@@ -102,6 +102,16 @@ export class AgreementsPage extends BasePage {
    * those records into the database automatically.
    */
   async createAgreement(data: { customer: RenteeSchema; vehicle: VehicleSchema }): Promise<string> {
+    return this.createAgreementWithOptions(data, { chargesAction: "save-close" });
+  }
+
+  /**
+   * Create a new agreement and choose how charges are confirmed.
+   */
+  async createAgreementWithOptions(
+    data: { customer: RenteeSchema; vehicle: VehicleSchema },
+    options: { chargesAction: "save-close" | "save-generate" }
+  ): Promise<string> {
     await this.gotoCreateAgreement();
     await this.page
       .getByRole("button", { name: "Generate Agreement" })
@@ -176,19 +186,34 @@ export class AgreementsPage extends BasePage {
     await this.page.getByRole("button", { name: "Edit Charges" }).click();
     const chargesDialog = this.page.locator('[role="dialog"]').filter({ hasText: "Edit Charges" });
     await chargesDialog.waitFor({ state: "visible" });
-    await chargesDialog
-      .locator("button")
-      .filter({ hasText: /save.*close/i })
-      .click({ force: true });
+    if (options.chargesAction === "save-generate") {
+      await chargesDialog
+        .locator("button")
+        .filter({ hasText: /save.*generate/i })
+        .click({ force: true });
+    } else {
+      await chargesDialog
+        .locator("button")
+        .filter({ hasText: /save.*close/i })
+        .click({ force: true });
+      await this.page.getByRole("button", { name: "Generate Agreement" }).click();
+    }
     await chargesDialog.waitFor({ state: "hidden" });
-
-    await this.page.getByRole("button", { name: "Generate Agreement" }).click();
     await this.page.waitForURL("**/agreement?uuid=*");
 
     // Return to list page so callers can assert against the agreements table
     await this.goto();
 
     return agreementNumber;
+  }
+
+  /**
+   * Open an agreement details page from the list by clicking its agreement number link.
+   */
+  async openAgreementDetails(identifier: string): Promise<void> {
+    const row = this.getAgreementRow(identifier);
+    await row.getByRole("link").click();
+    await this.page.waitForURL("**/agreement?uuid=*");
   }
 
   /**
@@ -276,7 +301,7 @@ export class AgreementsPage extends BasePage {
   /**
    * Assert agreement exists with given status
    */
-  async expectAgreementExists(identifier: string, status?: string): Promise<void> {
+  async expectAgreementExists(identifier: string, status?: AgreementStatus): Promise<void> {
     await this.search(identifier);
     const row = this.getAgreementRow(identifier);
     await expect(row).toBeVisible();
