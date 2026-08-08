@@ -17,7 +17,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "clean": "rimraf .next node_modules out tsconfig.tsbuildinfo next-env.d.ts"
+    "clean": "rimraf .next node_modules out playwright-report test-results tsconfig.tsbuildinfo next-env.d.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

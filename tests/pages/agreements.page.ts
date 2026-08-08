@@ -99,6 +99,27 @@ export class AgreementsPage extends BasePage {
       .getByRole("button", { name: "Generate Agreement" })
       .waitFor({ state: "visible" });
 
+    const typeDateTime = async (label: "Pickup date" | "Return date", date: Date): Promise<void> => {
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const year = date.getFullYear();
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const hours24 = date.getHours();
+      const meridiem = hours24 >= 12 ? "PM" : "AM";
+      const hours12 = String(((hours24 + 11) % 12) + 1).padStart(2, "0");
+
+      await this.page
+        .getByRole("group", { name: label })
+        .locator('[data-sectionindex="0"]')
+        .click();
+
+      for (const char of `${month}${day}${year}${hours12}${minutes}${meridiem[0]}`) {
+        await this.page.keyboard.press(char);
+      }
+
+      await this.page.keyboard.press("Tab");
+    };
+
     await this.page.getByLabel("Agreement number").fill(`AGR-${Date.now()}`);
 
     // Use name-attribute selectors throughout — getByLabel is unreliable on this form because
@@ -151,18 +172,17 @@ export class AgreementsPage extends BasePage {
     await this.page.locator('input[name="rental_vehicle.color"]').fill(data.vehicle.color);
 
     // Rental agreement info — use name-attribute selectors, exact labels share substrings with DatePicker sections
+    const pickupDate = new Date();
+    pickupDate.setHours(9, 0, 0, 0);
+    await typeDateTime("Pickup date", pickupDate);
+
     await this.page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1000");
     await this.page.locator('input[name="rental_agreement_info.odometer_in"]').fill("1000");
 
-    const returnDate = new Date();
+    const returnDate = new Date(pickupDate);
     returnDate.setDate(returnDate.getDate() + 7);
-    await this.page
-      .getByRole("group", { name: "Return date" })
-      .locator('[data-sectionindex="0"]')
-      .click();
-    for (const char of `${String(returnDate.getMonth() + 1).padStart(2, "0")}${String(returnDate.getDate()).padStart(2, "0")}${returnDate.getFullYear()}`) {
-      await this.page.keyboard.press(char);
-    }
+    returnDate.setHours(10, 0, 0, 0);
+    await typeDateTime("Return date", returnDate);
 
     // Confirm billing (required before Generate Agreement becomes clickable)
     await this.page.getByRole("button", { name: "Edit Charges" }).click();
