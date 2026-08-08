@@ -1,4 +1,4 @@
-import { expect } from "@playwright/test";
+import { expect, Page } from "@playwright/test";
 
 import { test } from "../../fixtures";
 
@@ -8,6 +8,11 @@ const openAgreementActions = async (
 ) => {
   const row = agreementsPage.getAgreementRow(identifier);
   await row.getByRole("menuitem", { name: /^more$/i }).click();
+};
+
+const expectPopupOpened = async (popup: Page) => {
+  expect(popup).toBeTruthy();
+  await expect.poll(() => popup.isClosed()).toBe(false);
 };
 
 test.describe("Complete Agreement Lifecycle", () => {
@@ -196,5 +201,144 @@ test.describe("Complete Agreement Lifecycle", () => {
     await expect(
       activeSelectionDialog.locator(`[role="row"]:has-text("${vehicle.VIN}")`)
     ).toBeVisible();
+  });
+
+  test("should render archived and canceled agreements as readonly in detail view", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const archivedAgreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+    await agreementsPage.finalizeAgreement(archivedAgreementNumber, {
+      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      actualOdometerIn: 1100,
+      actualFuelLevel: "F",
+    });
+
+    await agreementsPage.filterByStatus("archived");
+    await agreementsPage.openAgreementDetails(archivedAgreementNumber);
+
+    await expect(page.getByRole("button", { name: "Generate Agreement" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Edit Charges" })).toBeDisabled();
+    await expect(page.locator('input[name="rentee.full_name"]')).toBeDisabled();
+
+    await agreementsPage.goto();
+
+    const canceledAgreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[1],
+      vehicle: testDataContext.vehicles[1],
+    });
+    await agreementsPage.cancelAgreement(canceledAgreementNumber);
+
+    await agreementsPage.filterByStatus("canceled");
+    await agreementsPage.openAgreementDetails(canceledAgreementNumber);
+
+    await expect(page.getByRole("button", { name: "Generate Agreement" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Edit Charges" })).toBeDisabled();
+    await expect(page.locator('input[name="rentee.full_name"]')).toBeDisabled();
+  });
+
+  test("should prevent finalization when odometer in is invalid", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.filterByStatus("active");
+    await openAgreementActions(agreementsPage, agreementNumber);
+    await page.getByRole("menuitem", { name: /^finalize$/i }).click();
+
+    const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByLabel(/^odometer in$/i).fill("-1");
+    await dialog.getByRole("button", { name: /^confirm$/i }).click();
+
+    await expect(dialog.getByText("Odometer reading cannot be negative")).toBeVisible();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: /^cancel$/i }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test("should open receipt PDF after finalization and from archived row action", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[2],
+      vehicle: testDataContext.vehicles[2],
+    });
+
+    await agreementsPage.filterByStatus("active");
+    await openAgreementActions(agreementsPage, agreementNumber);
+    await page.getByRole("menuitem", { name: /^finalize$/i }).click();
+
+    const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByRole("button", { name: /^confirm$/i }).click();
+    const finalizationReceiptPopup = await page.waitForEvent("popup");
+    await expectPopupOpened(finalizationReceiptPopup);
+    await finalizationReceiptPopup.close();
+
+    await agreementsPage.filterByStatus("archived");
+    await openAgreementActions(agreementsPage, agreementNumber);
+
+    await page.getByRole("menuitem", { name: "View Receipt" }).click();
+    const archivedReceiptPopup = await page.waitForEvent("popup");
+    await expectPopupOpened(archivedReceiptPopup);
+    await archivedReceiptPopup.close();
+  });
+
+  test("should open agreement PDF from 'View Agreement' row action", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.filterByStatus("active");
+    await openAgreementActions(agreementsPage, agreementNumber);
+
+    await page.getByRole("menuitem", { name: "View Agreement" }).click();
+    const agreementPopup = await page.waitForEvent("popup");
+    await expectPopupOpened(agreementPopup);
+    await agreementPopup.close();
+  });
+
+  test("should open receipt PDF from 'View Receipt' row action", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[1],
+      vehicle: testDataContext.vehicles[1],
+    });
+
+    await agreementsPage.finalizeAgreement(agreementNumber, {
+      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      actualOdometerIn: 1100,
+      actualFuelLevel: "F",
+    });
+
+    await agreementsPage.filterByStatus("archived");
+    await openAgreementActions(agreementsPage, agreementNumber);
+
+    await page.getByRole("menuitem", { name: "View Receipt" }).click();
+    const receiptPopup = await page.waitForEvent("popup");
+    await expectPopupOpened(receiptPopup);
+    await receiptPopup.close();
   });
 });

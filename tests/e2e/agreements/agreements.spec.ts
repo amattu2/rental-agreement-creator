@@ -238,4 +238,204 @@ test.describe("Agreements", () => {
     await expect(page.getByTestId("stale-overlay")).toHaveCount(0);
     await expect(page.getByTestId("iframe")).toBeVisible();
   });
+
+  test("should bind selected existing customer and vehicle data into the agreement form", async ({
+    agreementsPage,
+    customersPage,
+    vehiclesPage,
+    testDataContext,
+    page,
+  }) => {
+    const uniqueToken = Date.now().toString(36).toUpperCase();
+    const customer = {
+      ...testDataContext.customers[2],
+      full_name: `SELECT-CUSTOMER-${uniqueToken}`,
+      email: `select-${uniqueToken}@test.com`,
+      driver_license_number: `DL-SEL-${uniqueToken}`,
+    };
+    const vehicle = {
+      ...testDataContext.vehicles[2],
+      VIN: `S${uniqueToken}AAA`.slice(0, 17),
+      stock_number: `STK-SEL-${uniqueToken}`,
+      license_plate: `SEL${uniqueToken.slice(-5)}`,
+    };
+
+    await customersPage.goto();
+    await customersPage.createCustomer(customer);
+
+    await vehiclesPage.goto();
+    await vehiclesPage.createVehicle(vehicle);
+
+    await agreementsPage.gotoCreateAgreement();
+
+    await page.getByRole("button", { name: "Select an existing customer" }).click();
+    const customerDialog = page.getByRole("dialog", { name: /select customer/i });
+    await customerDialog.getByLabel("Search").fill(customer.full_name);
+    await customerDialog
+      .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    await expect(page.getByText("Existing Customer")).toBeVisible();
+    await expect(page.locator('input[name="rentee.full_name"]')).toHaveValue(customer.full_name);
+    await expect(page.locator('input[name="rentee.cell_phone"]')).toHaveValue(customer.cell_phone);
+
+    await page.getByRole("button", { name: "Select an existing vehicle" }).click();
+    const vehicleDialog = page.getByRole("dialog", { name: /select vehicle/i });
+    await vehicleDialog.getByLabel("Search").fill(vehicle.VIN);
+    await vehicleDialog
+      .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    await expect(page.getByText("Existing Vehicle")).toBeVisible();
+    await expect(page.locator('input[name="rental_vehicle.stock_number"]')).toHaveValue(
+      vehicle.stock_number
+    );
+    await expect(page.locator('input[name="rental_vehicle.VIN"]')).toHaveValue(vehicle.VIN);
+  });
+
+  test("should clear selected existing customer and vehicle from the agreement form", async ({
+    agreementsPage,
+    customersPage,
+    vehiclesPage,
+    testDataContext,
+    page,
+  }) => {
+    const uniqueToken = Date.now().toString(36).toUpperCase();
+    const customer = {
+      ...testDataContext.customers[1],
+      full_name: `CLEAR-CUSTOMER-${uniqueToken}`,
+      email: `clear-${uniqueToken}@test.com`,
+      driver_license_number: `DL-CLR-${uniqueToken}`,
+    };
+    const vehicle = {
+      ...testDataContext.vehicles[1],
+      VIN: `C${uniqueToken}AAA`.slice(0, 17),
+      stock_number: `STK-CLR-${uniqueToken}`,
+      license_plate: `CLR${uniqueToken.slice(-5)}`,
+    };
+
+    await customersPage.goto();
+    await customersPage.createCustomer(customer);
+    await vehiclesPage.goto();
+    await vehiclesPage.createVehicle(vehicle);
+
+    await agreementsPage.gotoCreateAgreement();
+
+    await page.getByRole("button", { name: "Select an existing customer" }).click();
+    const customerDialog = page.getByRole("dialog", { name: /select customer/i });
+    await customerDialog.getByLabel("Search").fill(customer.full_name);
+    await customerDialog
+      .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    await page.getByRole("button", { name: "Select an existing vehicle" }).click();
+    const vehicleDialog = page.getByRole("dialog", { name: /select vehicle/i });
+    await vehicleDialog.getByLabel("Search").fill(vehicle.VIN);
+    await vehicleDialog
+      .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    await expect(page.getByText("Existing Customer")).toBeVisible();
+    await expect(page.getByText("Existing Vehicle")).toBeVisible();
+
+    await page
+      .locator('[aria-label="Clear customer selection"] .MuiChip-deleteIcon')
+      .click({ force: true });
+    await page
+      .locator('[aria-label="Clear vehicle selection"] .MuiChip-deleteIcon')
+      .click({ force: true });
+
+    await expect(page.getByText("Existing Customer")).toHaveCount(0);
+    await expect(page.getByText("Existing Vehicle")).toHaveCount(0);
+    await expect(page.locator('input[name="rentee.full_name"]')).toHaveValue("");
+    await expect(page.locator('input[name="rental_vehicle.stock_number"]')).toHaveValue("");
+    await expect(page.locator('input[name="rental_vehicle.VIN"]')).toHaveValue("");
+  });
+
+  test("should support writing and saving a clerk signature", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    const signatureCanvas = page.getByLabel("Authorized Rental Clerk Signature");
+    await expect(signatureCanvas).toBeVisible();
+
+    const canvasHasInk = async () =>
+      signatureCanvas.evaluate((canvasElement: HTMLCanvasElement) => {
+        const context = canvasElement.getContext("2d");
+        if (!context) {
+          return false;
+        }
+
+        const imageData = context.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        for (let index = 3; index < imageData.data.length; index += 4) {
+          if (imageData.data[index] !== 0) {
+            return true;
+          }
+        }
+        return false;
+      });
+
+    expect(await canvasHasInk()).toBe(false);
+
+    await signatureCanvas.evaluate((canvasElement) => {
+      const rect = canvasElement.getBoundingClientRect();
+      const fire = (type: string, x: number, y: number, buttons: number) => {
+        canvasElement.dispatchEvent(
+          new PointerEvent(type, {
+            pointerId: 1,
+            bubbles: true,
+            clientX: rect.left + x,
+            clientY: rect.top + y,
+            buttons,
+          })
+        );
+      };
+
+      fire("pointerdown", 20, 20, 1);
+      fire("pointermove", 170, 55, 1);
+      fire("pointerup", 170, 55, 0);
+    });
+
+    expect(await canvasHasInk()).toBe(true);
+
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expect(page).toHaveURL(/\/agreement\?uuid=/);
+
+    await agreementsPage.goto();
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    const persistedSignatureCanvas = page.getByLabel("Authorized Rental Clerk Signature");
+    await expect(persistedSignatureCanvas).toBeVisible();
+
+    const persistedCanvasHasInk = await persistedSignatureCanvas.evaluate(
+      (canvasElement: HTMLCanvasElement) => {
+        const context = canvasElement.getContext("2d");
+        if (!context) {
+          return false;
+        }
+
+        const imageData = context.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        for (let index = 3; index < imageData.data.length; index += 4) {
+          if (imageData.data[index] !== 0) {
+            return true;
+          }
+        }
+        return false;
+      }
+    );
+
+    expect(persistedCanvasHasInk).toBe(true);
+  });
 });
