@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 import { test } from "../../fixtures";
 
 test.describe("Complete Agreement Lifecycle", () => {
-  test("should complete full workflow: create customer, vehicle, and agreement", async ({
+  test("should support the complete agreement lifecycle", async ({
     page,
     agreementsPage,
     testDataContext,
@@ -11,7 +11,6 @@ test.describe("Complete Agreement Lifecycle", () => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
-    // createAgreement fills the form directly and internally upserts customer + vehicle records
     await agreementsPage.createAgreement({ customer, vehicle });
 
     await agreementsPage.expectAgreementExists(customer.full_name, "active");
@@ -32,7 +31,6 @@ test.describe("Complete Agreement Lifecycle", () => {
     const vehicle1 = testDataContext.vehicles[0];
     const vehicle2 = testDataContext.vehicles[1];
 
-    // Agreement creation upserts the customer and vehicle records as part of onSubmit
     await agreementsPage.createAgreement({ customer: customer1, vehicle: vehicle1 });
     await agreementsPage.createAgreement({ customer: customer2, vehicle: vehicle2 });
 
