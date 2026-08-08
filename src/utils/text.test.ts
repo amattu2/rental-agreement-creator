@@ -1,4 +1,10 @@
-import { coerceNumber, formatAddress, formatCurrency, formatNumber } from "./text";
+import {
+  coerceNumber,
+  flattenValidationErrors,
+  formatAddress,
+  formatCurrency,
+  formatNumber,
+} from "./text";
 
 describe("coerceNumber", () => {
   it("returns the number as a plain string", () => {
@@ -114,5 +120,36 @@ describe("formatAddress", () => {
         address_zip: " 78701 ",
       })
     ).toBe("123 Main St, Austin, TX 78701");
+  });
+});
+
+describe("flattenValidationErrors", () => {
+  it("returns resolved nested messages", () => {
+    const errors = {
+      agreement_number: { message: "Agreement number is required" },
+      rental_vehicle: {
+        rental_rates: [{ rate_cost: { message: "Rate cost must be greater than or equal to 0" } }],
+      },
+    };
+
+    expect(flattenValidationErrors(errors)).toEqual([
+      "Agreement number is required",
+      "Rate cost must be greater than or equal to 0",
+    ]);
+  });
+
+  it("deduplicates and trims messages", () => {
+    const errors = {
+      first: { message: "  Duplicate message  " },
+      second: { nested: { message: "Duplicate message" } },
+    };
+
+    expect(flattenValidationErrors(errors)).toEqual(["Duplicate message"]);
+  });
+
+  it("returns an empty array for non-object input", () => {
+    expect(flattenValidationErrors(undefined)).toEqual([]);
+    expect(flattenValidationErrors(null)).toEqual([]);
+    expect(flattenValidationErrors("message")).toEqual([]);
   });
 });
