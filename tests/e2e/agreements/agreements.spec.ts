@@ -19,19 +19,19 @@ test.describe("Agreements", () => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
-    await agreementsPage.createAgreement({ customer, vehicle });
+    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
 
-    await agreementsPage.expectAgreementExists(customer.full_name, "active");
+    await agreementsPage.expectAgreementExists(agreementNumber, "active");
   });
 
   test("should filter agreements by status", async ({ agreementsPage, testDataContext }) => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
-    await agreementsPage.createAgreement({ customer, vehicle });
+    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
 
     await agreementsPage.filterByStatus("active");
-    await agreementsPage.expectAgreementExists(customer.full_name);
+    await agreementsPage.expectAgreementExists(agreementNumber);
   });
 
   test("should search agreements by customer name", async ({ agreementsPage, testDataContext }) => {
@@ -40,11 +40,14 @@ test.describe("Agreements", () => {
     const vehicle1 = testDataContext.vehicles[0];
     const vehicle2 = testDataContext.vehicles[1];
 
-    await agreementsPage.createAgreement({ customer: customer1, vehicle: vehicle1 });
+    const agreementNumber1 = await agreementsPage.createAgreement({
+      customer: customer1,
+      vehicle: vehicle1,
+    });
     await agreementsPage.createAgreement({ customer: customer2, vehicle: vehicle2 });
 
     await agreementsPage.search(customer1.full_name);
-    await agreementsPage.expectAgreementExists(customer1.full_name);
+    await expect(agreementsPage.getAgreementRow(agreementNumber1)).toBeVisible();
   });
 
   test("should create multiple distinct agreements", async ({
@@ -56,21 +59,27 @@ test.describe("Agreements", () => {
     const vehicle1 = testDataContext.vehicles[0];
     const vehicle2 = testDataContext.vehicles[1];
 
-    await agreementsPage.createAgreement({ customer: customer1, vehicle: vehicle1 });
-    await agreementsPage.createAgreement({ customer: customer2, vehicle: vehicle2 });
+    const agreementNumber1 = await agreementsPage.createAgreement({
+      customer: customer1,
+      vehicle: vehicle1,
+    });
+    const agreementNumber2 = await agreementsPage.createAgreement({
+      customer: customer2,
+      vehicle: vehicle2,
+    });
 
-    await agreementsPage.expectAgreementExists(customer1.full_name);
-    await agreementsPage.search(customer2.full_name);
-    await agreementsPage.expectAgreementExists(customer2.full_name);
+    await agreementsPage.expectAgreementExists(agreementNumber1);
+    await agreementsPage.search(agreementNumber2);
+    await agreementsPage.expectAgreementExists(agreementNumber2);
   });
 
   test("should view agreement details", async ({ agreementsPage, testDataContext, page }) => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
-    await agreementsPage.createAgreement({ customer, vehicle });
+    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
 
-    const row = agreementsPage.getAgreementRow(customer.full_name);
+    const row = agreementsPage.getAgreementRow(agreementNumber);
     await row.getByRole("link").click();
     await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
@@ -87,9 +96,9 @@ test.describe("Agreements", () => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
-    await agreementsPage.createAgreement({ customer, vehicle });
+    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
 
-    const row = agreementsPage.getAgreementRow(customer.full_name);
+    const row = agreementsPage.getAgreementRow(agreementNumber);
     await row.getByRole("link").click();
     await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });

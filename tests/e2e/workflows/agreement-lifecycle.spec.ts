@@ -11,11 +11,11 @@ test.describe("Complete Agreement Lifecycle", () => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
-    await agreementsPage.createAgreement({ customer, vehicle });
+    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
 
-    await agreementsPage.expectAgreementExists(customer.full_name, "active");
+    await agreementsPage.expectAgreementExists(agreementNumber, "active");
 
-    const row = agreementsPage.getAgreementRow(customer.full_name);
+    const row = agreementsPage.getAgreementRow(agreementNumber);
     await row.getByRole("link").click();
     await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
@@ -31,12 +31,18 @@ test.describe("Complete Agreement Lifecycle", () => {
     const vehicle1 = testDataContext.vehicles[0];
     const vehicle2 = testDataContext.vehicles[1];
 
-    await agreementsPage.createAgreement({ customer: customer1, vehicle: vehicle1 });
-    await agreementsPage.createAgreement({ customer: customer2, vehicle: vehicle2 });
+    const agreementNumber1 = await agreementsPage.createAgreement({
+      customer: customer1,
+      vehicle: vehicle1,
+    });
+    const agreementNumber2 = await agreementsPage.createAgreement({
+      customer: customer2,
+      vehicle: vehicle2,
+    });
 
-    await agreementsPage.expectAgreementExists(customer1.full_name);
-    await agreementsPage.search(customer2.full_name);
-    await agreementsPage.expectAgreementExists(customer2.full_name);
+    await agreementsPage.expectAgreementExists(agreementNumber1);
+    await agreementsPage.search(agreementNumber2);
+    await agreementsPage.expectAgreementExists(agreementNumber2);
 
     // Records created by agreement submission are visible in the respective list pages
     await customersPage.goto();
@@ -55,20 +61,20 @@ test.describe("Complete Agreement Lifecycle", () => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
-    await agreementsPage.createAgreement({ customer, vehicle });
-    await agreementsPage.expectAgreementExists(customer.full_name, "active");
+    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
+    await agreementsPage.expectAgreementExists(agreementNumber, "active");
 
-    await agreementsPage.finalizeAgreement(customer.full_name, {
+    await agreementsPage.finalizeAgreement(agreementNumber, {
       vehicleReturnedAt: "08/01/2026 10:15 AM",
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
 
     await agreementsPage.filterByStatus("active");
-    await agreementsPage.expectAgreementNotExists(customer.full_name);
+    await agreementsPage.expectAgreementNotExists(agreementNumber);
 
     await agreementsPage.filterByStatus("archived");
-    await agreementsPage.expectAgreementExists(customer.full_name, "archived");
+    await agreementsPage.expectAgreementExists(agreementNumber, "archived");
   });
 
   test("should cancel agreement and move it out of active workflow", async ({
@@ -78,15 +84,15 @@ test.describe("Complete Agreement Lifecycle", () => {
     const customer = testDataContext.customers[1];
     const vehicle = testDataContext.vehicles[1];
 
-    await agreementsPage.createAgreement({ customer, vehicle });
-    await agreementsPage.expectAgreementExists(customer.full_name, "active");
+    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
+    await agreementsPage.expectAgreementExists(agreementNumber, "active");
 
-    await agreementsPage.cancelAgreement(customer.full_name);
+    await agreementsPage.cancelAgreement(agreementNumber);
 
     await agreementsPage.filterByStatus("active");
-    await agreementsPage.expectAgreementNotExists(customer.full_name);
+    await agreementsPage.expectAgreementNotExists(agreementNumber);
 
     await agreementsPage.filterByStatus("canceled");
-    await agreementsPage.expectAgreementExists(customer.full_name, "canceled");
+    await agreementsPage.expectAgreementExists(agreementNumber, "canceled");
   });
 });

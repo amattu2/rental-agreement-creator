@@ -89,8 +89,8 @@ export class AgreementsPage extends BasePage {
   /**
    * Open the row actions menu for the specified agreement row.
    */
-  private async openAgreementActions(customerName: string): Promise<void> {
-    const row = this.getAgreementRow(customerName);
+  private async openAgreementActions(identifier: string): Promise<void> {
+    const row = this.getAgreementRow(identifier);
     await row.getByRole("menuitem", { name: /^more$/i }).click();
   }
 
@@ -101,13 +101,14 @@ export class AgreementsPage extends BasePage {
    * and instead fills rentee/vehicle fields in-place. The form's onSubmit handler then upserts
    * those records into the database automatically.
    */
-  async createAgreement(data: { customer: RenteeSchema; vehicle: VehicleSchema }): Promise<void> {
+  async createAgreement(data: { customer: RenteeSchema; vehicle: VehicleSchema }): Promise<string> {
     await this.gotoCreateAgreement();
     await this.page
       .getByRole("button", { name: "Generate Agreement" })
       .waitFor({ state: "visible" });
 
-    await this.page.getByLabel("Agreement number").fill(`AGR-${Date.now()}`);
+    const agreementNumber = `AGR-${Date.now()}`;
+    await this.page.getByLabel("Agreement number").fill(agreementNumber);
 
     // Use name-attribute selectors throughout — getByLabel is unreliable on this form because
     // MUI DatePicker section spans (Month/Day/Year) share aria-labels with text input labels
@@ -186,6 +187,8 @@ export class AgreementsPage extends BasePage {
 
     // Return to list page so callers can assert against the agreements table
     await this.goto();
+
+    return agreementNumber;
   }
 
   /**
@@ -222,14 +225,14 @@ export class AgreementsPage extends BasePage {
    * Opens the finalization dialog and fills it
    */
   async finalizeAgreement(
-    customerName: string,
+    identifier: string,
     finalizationData: {
       vehicleReturnedAt: string;
       actualOdometerIn: number;
       actualFuelLevel: string;
     }
   ): Promise<void> {
-    await this.openAgreementActions(customerName);
+    await this.openAgreementActions(identifier);
     await this.page.getByRole("menuitem", { name: /^finalize$/i }).click();
 
     const dialog = this.page.getByRole("dialog", { name: /finalize agreement/i });
@@ -246,8 +249,8 @@ export class AgreementsPage extends BasePage {
   /**
    * Cancel an agreement
    */
-  async cancelAgreement(customerName: string): Promise<void> {
-    await this.openAgreementActions(customerName);
+  async cancelAgreement(identifier: string): Promise<void> {
+    await this.openAgreementActions(identifier);
     await this.page.getByRole("menuitem", { name: /^cancel$/i }).click();
 
     const dialog = this.page.getByRole("dialog", { name: /cancel agreement/i });
@@ -259,8 +262,8 @@ export class AgreementsPage extends BasePage {
   /**
    * Download agreement PDF
    */
-  async downloadAgreementPDF(customerName: string): Promise<void> {
-    const row = this.getAgreementRow(customerName);
+  async downloadAgreementPDF(identifier: string): Promise<void> {
+    const row = this.getAgreementRow(identifier);
 
     // Start download
     const downloadPromise = this.page.context().waitForEvent("download");
@@ -273,9 +276,9 @@ export class AgreementsPage extends BasePage {
   /**
    * Assert agreement exists with given status
    */
-  async expectAgreementExists(customerName: string, status?: string): Promise<void> {
-    await this.search(customerName);
-    const row = this.getAgreementRow(customerName);
+  async expectAgreementExists(identifier: string, status?: string): Promise<void> {
+    await this.search(identifier);
+    const row = this.getAgreementRow(identifier);
     await expect(row).toBeVisible();
 
     if (status) {
@@ -286,9 +289,9 @@ export class AgreementsPage extends BasePage {
   /**
    * Assert agreement does not exist
    */
-  async expectAgreementNotExists(customerName: string): Promise<void> {
-    await this.search(customerName);
-    const row = this.getAgreementRow(customerName);
+  async expectAgreementNotExists(identifier: string): Promise<void> {
+    await this.search(identifier);
+    const row = this.getAgreementRow(identifier);
     await expect(row).toHaveCount(0);
   }
 
