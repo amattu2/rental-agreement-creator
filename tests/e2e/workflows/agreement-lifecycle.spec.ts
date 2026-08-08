@@ -47,4 +47,46 @@ test.describe("Complete Agreement Lifecycle", () => {
     await vehiclesPage.expectVehicleExists(vehicle1.VIN);
     await vehiclesPage.expectVehicleExists(vehicle2.VIN);
   });
+
+  test("should archive agreement through finalization flow", async ({
+    agreementsPage,
+    testDataContext,
+  }) => {
+    const customer = testDataContext.customers[0];
+    const vehicle = testDataContext.vehicles[0];
+
+    await agreementsPage.createAgreement({ customer, vehicle });
+    await agreementsPage.expectAgreementExists(customer.full_name, "active");
+
+    await agreementsPage.finalizeAgreement(customer.full_name, {
+      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      actualOdometerIn: 1100,
+      actualFuelLevel: "F",
+    });
+
+    await agreementsPage.filterByStatus("active");
+    await agreementsPage.expectAgreementNotExists(customer.full_name);
+
+    await agreementsPage.filterByStatus("archived");
+    await agreementsPage.expectAgreementExists(customer.full_name, "archived");
+  });
+
+  test("should cancel agreement and move it out of active workflow", async ({
+    agreementsPage,
+    testDataContext,
+  }) => {
+    const customer = testDataContext.customers[1];
+    const vehicle = testDataContext.vehicles[1];
+
+    await agreementsPage.createAgreement({ customer, vehicle });
+    await agreementsPage.expectAgreementExists(customer.full_name, "active");
+
+    await agreementsPage.cancelAgreement(customer.full_name);
+
+    await agreementsPage.filterByStatus("active");
+    await agreementsPage.expectAgreementNotExists(customer.full_name);
+
+    await agreementsPage.filterByStatus("canceled");
+    await agreementsPage.expectAgreementExists(customer.full_name, "canceled");
+  });
 });

@@ -87,6 +87,14 @@ export class AgreementsPage extends BasePage {
   }
 
   /**
+   * Open the row actions menu for the specified agreement row.
+   */
+  private async openAgreementActions(customerName: string): Promise<void> {
+    const row = this.getAgreementRow(customerName);
+    await row.getByRole("menuitem", { name: /^more$/i }).click();
+  }
+
+  /**
    * Create a new agreement by filling the form fields directly.
    *
    * Avoids the selection dialogs (whose GridActionsCellItem onClick is unreliable under force:true)
@@ -221,29 +229,17 @@ export class AgreementsPage extends BasePage {
       actualFuelLevel: string;
     }
   ): Promise<void> {
-    // Find the agreement row
-    const row = this.getAgreementRow(customerName);
+    await this.openAgreementActions(customerName);
+    await this.page.getByRole("menuitem", { name: /^finalize$/i }).click();
 
-    // Click finalize/archive button
-    await row.getByRole("button", { name: /finalize|archive/i }).click();
-
-    // Wait for finalization dialog
-    const dialog = this.page.locator('[role="dialog"]');
+    const dialog = this.page.getByRole("dialog", { name: /finalize agreement/i });
     await dialog.waitFor({ state: "visible" });
 
-    // Fill finalization form
-    await this.page
-      .getByLabel(/vehicle returned|return date/i)
-      .fill(finalizationData.vehicleReturnedAt);
-    await this.page
-      .getByLabel(/odometer|mileage.*in/i)
-      .fill(finalizationData.actualOdometerIn.toString());
-    await this.page.getByLabel(/fuel level|fuel/i).selectOption(finalizationData.actualFuelLevel);
+    await dialog.getByLabel(/^odometer in$/i).fill(finalizationData.actualOdometerIn.toString());
+    await dialog.getByLabel(/^fuel level in$/i).click();
+    await this.page.getByRole("option", { name: finalizationData.actualFuelLevel }).click();
 
-    // Confirm finalization
-    await this.page.getByRole("button", { name: /confirm|finalize|save/i }).click();
-
-    // Wait for dialog to close
+    await dialog.getByRole("button", { name: /^confirm$/i }).click();
     await dialog.waitFor({ state: "hidden" });
   }
 
@@ -251,16 +247,13 @@ export class AgreementsPage extends BasePage {
    * Cancel an agreement
    */
   async cancelAgreement(customerName: string): Promise<void> {
-    const row = this.getAgreementRow(customerName);
+    await this.openAgreementActions(customerName);
+    await this.page.getByRole("menuitem", { name: /^cancel$/i }).click();
 
-    // Click cancel button
-    await row.getByRole("button", { name: /cancel/i }).click();
-
-    // Handle confirmation dialog if present
-    const confirmButton = this.page.getByRole("button", { name: /confirm|yes|cancel/i });
-    if (await confirmButton.isVisible()) {
-      await confirmButton.click();
-    }
+    const dialog = this.page.getByRole("dialog", { name: /cancel agreement/i });
+    await dialog.waitFor({ state: "visible" });
+    await dialog.getByRole("button", { name: /^confirm$/i }).click();
+    await dialog.waitFor({ state: "hidden" });
   }
 
   /**
