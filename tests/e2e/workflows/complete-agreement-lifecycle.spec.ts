@@ -17,7 +17,7 @@ test.describe("Complete Agreement Lifecycle", () => {
     await agreementsPage.expectAgreementExists(customer.full_name, "active");
 
     const row = agreementsPage.getAgreementRow(customer.full_name);
-    await row.click();
+    await row.getByRole("link").click();
     await expect(page).toHaveURL("**/agreement*");
   });
 

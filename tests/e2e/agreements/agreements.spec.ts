@@ -71,7 +71,7 @@ test.describe("Agreements", () => {
     await agreementsPage.createAgreement({ customer, vehicle });
 
     const row = agreementsPage.getAgreementRow(customer.full_name);
-    await row.click();
+    await row.getByRole("link").click();
     await expect(page).toHaveURL("**/agreement*");
   });
 
@@ -90,7 +90,7 @@ test.describe("Agreements", () => {
     await agreementsPage.createAgreement({ customer, vehicle });
 
     const row = agreementsPage.getAgreementRow(customer.full_name);
-    await row.click();
+    await row.getByRole("link").click();
     await expect(page).toHaveURL("**/agreement*");
   });
 });

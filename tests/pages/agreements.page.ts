@@ -23,7 +23,7 @@ export class AgreementsPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.searchInput = page.getByLabel(/search agreements/i);
-    this.statusFilter = page.getByLabel(/status/i);
+    this.statusFilter = page.getByLabel("Status", { exact: true });
     this.createButton = page.getByRole("button", { name: /create agreement/i });
     this.agreementsTable = page.locator('[role="grid"]');
     this.agreementDialog = page.locator('[role="dialog"]');
@@ -307,7 +307,7 @@ export class AgreementsPage extends BasePage {
     await expect(row).toBeVisible();
 
     if (status) {
-      await expect(row.locator(`text="${status}"`)).toBeVisible();
+      await expect(row.getByText(new RegExp(`^${status}$`, "i"))).toBeVisible();
     }
   }
 
