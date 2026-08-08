@@ -1,44 +1,60 @@
-name: E2E Tests
+name: Playwright
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - main
+      - "main"
   pull_request:
     branches:
-      - main
+      - "*"
+
+permissions:
+  contents: read
 
 jobs:
   e2e:
-    name: Playwright E2E Tests
+    name: E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
-      - name: Checkout code
+      - name: "Checkout Repository"
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "24.x"
           cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci
+      - name: "Install Dependencies"
+        run: npm i
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
 
-      - name: Build application
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Build Application
         run: npm run build
 
-      - name: Start static server
+      - name: Start Static Server
         run: npx serve out -p 3000 &
         env:
           CI: true
 
-      - name: Wait for server to be ready
+      - name: Wait for Server
         run: |
           max_attempts=30
           attempt=0
@@ -52,12 +68,12 @@ jobs:
             exit 1
           fi
 
-      - name: Run Playwright tests
+      - name: Run Playwright
         run: npm run test:e2e
         env:
           CI: true
 
-      - name: Upload test results
+      - name: Upload Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -65,7 +81,7 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
-      - name: Upload test results JSON
+      - name: Upload Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -73,11 +89,11 @@ jobs:
           path: test-results/
           retention-days: 30
 
-      - name: Publish test report
+      - name: Publish Test Report
         if: always()
         uses: dorny/test-reporter@v1
         with:
           name: E2E Test Results
-          path: 'test-results/results.json'
-          reporter: 'json'
+          path: "test-results/junit.xml"
+          reporter: "java-junit"
           fail-on-error: false
