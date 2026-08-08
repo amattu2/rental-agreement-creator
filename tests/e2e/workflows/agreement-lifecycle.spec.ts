@@ -10,9 +10,42 @@ const openAgreementActions = async (
   await row.getByRole("menuitem", { name: /^more$/i }).click();
 };
 
-const expectPopupOpened = async (popup: Page) => {
-  expect(popup).toBeTruthy();
-  await expect.poll(() => popup.isClosed()).toBe(false);
+const installWindowOpenSpy = async (page: Page) => {
+  await page.evaluate(() => {
+    const target = window as unknown as {
+      __openCalls?: Array<Array<unknown>>;
+      __originalOpen?: Window["open"];
+    };
+
+    target.__openCalls = [];
+
+    if (!target.__originalOpen) {
+      target.__originalOpen = window.open;
+    }
+
+    window.open = (...args: Array<unknown>) => {
+      target.__openCalls?.push(args);
+      return null;
+    };
+  });
+};
+
+const expectWindowOpenCalledWithBlobUrl = async (page: Page) => {
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const target = window as unknown as { __openCalls?: Array<Array<unknown>> };
+        return target.__openCalls?.length ?? 0;
+      })
+    )
+    .toBeGreaterThan(0);
+
+  const firstUrl = await page.evaluate(() => {
+    const target = window as unknown as { __openCalls?: Array<Array<unknown>> };
+    return String(target.__openCalls?.[0]?.[0] ?? "");
+  });
+
+  expect(firstUrl).toContain("blob:");
 };
 
 test.describe("Complete Agreement Lifecycle", () => {
@@ -284,20 +317,16 @@ test.describe("Complete Agreement Lifecycle", () => {
     const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
     await expect(dialog).toBeVisible();
 
-    const finalizationReceiptPopupPromise = page.waitForEvent("popup");
+    await installWindowOpenSpy(page);
     await dialog.getByRole("button", { name: /^confirm$/i }).click();
-    const finalizationReceiptPopup = await finalizationReceiptPopupPromise;
-    await expectPopupOpened(finalizationReceiptPopup);
-    await finalizationReceiptPopup.close();
+    await expectWindowOpenCalledWithBlobUrl(page);
 
     await agreementsPage.filterByStatus("archived");
     await openAgreementActions(agreementsPage, agreementNumber);
 
-    const archivedReceiptPopupPromise = page.waitForEvent("popup");
+    await installWindowOpenSpy(page);
     await page.getByRole("menuitem", { name: "View Receipt" }).click();
-    const archivedReceiptPopup = await archivedReceiptPopupPromise;
-    await expectPopupOpened(archivedReceiptPopup);
-    await archivedReceiptPopup.close();
+    await expectWindowOpenCalledWithBlobUrl(page);
   });
 
   test("should open agreement PDF from 'View Agreement' row action", async ({
@@ -313,11 +342,9 @@ test.describe("Complete Agreement Lifecycle", () => {
     await agreementsPage.filterByStatus("active");
     await openAgreementActions(agreementsPage, agreementNumber);
 
-    const agreementPopupPromise = page.waitForEvent("popup");
+    await installWindowOpenSpy(page);
     await page.getByRole("menuitem", { name: "View Agreement" }).click();
-    const agreementPopup = await agreementPopupPromise;
-    await expectPopupOpened(agreementPopup);
-    await agreementPopup.close();
+    await expectWindowOpenCalledWithBlobUrl(page);
   });
 
   test("should open receipt PDF from 'View Receipt' row action", async ({
@@ -339,10 +366,8 @@ test.describe("Complete Agreement Lifecycle", () => {
     await agreementsPage.filterByStatus("archived");
     await openAgreementActions(agreementsPage, agreementNumber);
 
-    const receiptPopupPromise = page.waitForEvent("popup");
+    await installWindowOpenSpy(page);
     await page.getByRole("menuitem", { name: "View Receipt" }).click();
-    const receiptPopup = await receiptPopupPromise;
-    await expectPopupOpened(receiptPopup);
-    await receiptPopup.close();
+    await expectWindowOpenCalledWithBlobUrl(page);
   });
 });

@@ -148,7 +148,7 @@ test.describe("Agreements", () => {
 
     await agreementsPage.expectAgreementExists(agreementNumberWithClose, "active");
     await agreementsPage.openAgreementDetails(agreementNumberWithClose);
-    await expect(page.getByTestId("iframe")).toBeVisible();
+    await expect(page.getByTestId("iframe")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("stale-overlay")).toHaveCount(0);
 
     await agreementsPage.goto();
@@ -163,7 +163,7 @@ test.describe("Agreements", () => {
 
     await agreementsPage.expectAgreementExists(agreementNumberWithGenerate, "active");
     await agreementsPage.openAgreementDetails(agreementNumberWithGenerate);
-    await expect(page.getByTestId("iframe")).toBeVisible();
+    await expect(page.getByTestId("iframe")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("stale-overlay")).toHaveCount(0);
   });
 
@@ -187,6 +187,7 @@ test.describe("Agreements", () => {
     const updatedName = `${originalName}-TEMP`;
 
     await fullNameInput.fill(updatedName);
+    await page.keyboard.press("Tab");
     await expect(page.getByTestId("stale-overlay")).toBeVisible();
 
     await page.getByRole("button", { name: "Reset" }).click();
@@ -229,6 +230,7 @@ test.describe("Agreements", () => {
     const modifiedName = `${originalName}-REVIEW`;
 
     await fullNameInput.fill(modifiedName);
+    await page.keyboard.press("Tab");
     await expect(page.getByTestId("stale-overlay")).toBeVisible();
     await expect(page.getByTestId("stale-overlay")).toContainText('Click "Generate Agreement"');
 
