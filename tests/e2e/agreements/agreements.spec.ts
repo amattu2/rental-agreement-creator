@@ -72,7 +72,7 @@ test.describe("Agreements", () => {
 
     const row = agreementsPage.getAgreementRow(customer.full_name);
     await row.getByRole("link").click();
-    await expect(page).toHaveURL("**/agreement*");
+    await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
 
   test("should validate required fields in agreement form", async ({ agreementsPage, page }) => {
@@ -91,6 +91,6 @@ test.describe("Agreements", () => {
 
     const row = agreementsPage.getAgreementRow(customer.full_name);
     await row.getByRole("link").click();
-    await expect(page).toHaveURL("**/agreement*");
+    await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
 });

@@ -18,7 +18,7 @@ test.describe("Complete Agreement Lifecycle", () => {
 
     const row = agreementsPage.getAgreementRow(customer.full_name);
     await row.getByRole("link").click();
-    await expect(page).toHaveURL("**/agreement*");
+    await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
 
   test("should maintain data consistency across workflows", async ({
