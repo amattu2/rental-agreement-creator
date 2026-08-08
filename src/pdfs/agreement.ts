@@ -102,6 +102,7 @@ export const generateAgreement = async (
   roField.y = 31.5;
   roField.width = 44;
   roField.height = 5;
+  roField.readOnly = readonly;
   doc.addField(roField);
 
   let currentY = 36.5;
