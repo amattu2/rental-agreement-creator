@@ -48,7 +48,7 @@ const expectWindowOpenCalledWithBlobUrl = async (page: Page) => {
   expect(firstUrl).toContain("blob:");
 };
 
-test.describe("Complete Agreement Lifecycle", () => {
+test.describe("Agreement Lifecycle", () => {
   test("should support the complete agreement lifecycle", async ({
     page,
     agreementsPage,
