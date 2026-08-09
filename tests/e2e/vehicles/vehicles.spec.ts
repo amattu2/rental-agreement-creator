@@ -48,7 +48,7 @@ test.describe("Vehicles", () => {
     await expect(vehiclesPage.getVehicleRow(testVehicle2.VIN)).toHaveCount(0);
   });
 
-  test("should search for vehicles by make/model", async ({ vehiclesPage, testDataContext }) => {
+  test("should search for vehicles by make", async ({ vehiclesPage, testDataContext }) => {
     const testVehicle = testDataContext.vehicles[0];
     const otherVehicle = testDataContext.vehicles[1];
 
@@ -103,6 +103,56 @@ test.describe("Vehicles", () => {
 
     await expect(dialog.getByText("Duplicate rate units are not allowed")).toBeVisible();
     await expect(dialog.getByText("Duplicate usage types are not allowed")).toBeVisible();
+  });
+
+  test("should reject vehicle year in the future", async ({ page, testDataContext }) => {
+    const vehicle = testDataContext.vehicles[0];
+
+    await page.getByRole("button", { name: "Create" }).click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await dialog.waitFor({ state: "visible" });
+
+    await dialog.getByLabel("VIN").fill(`${vehicle.VIN}Y`);
+    await dialog.getByLabel("Stock number").fill(`${vehicle.stock_number}-FUTURE`);
+    await dialog.getByLabel("License plate").fill(`${vehicle.license_plate}F`);
+    await dialog.getByLabel("Year").fill("3000");
+    await dialog.getByLabel("Make").fill(vehicle.make);
+    await dialog.getByLabel("Model").fill(vehicle.model);
+    await dialog.getByLabel("Color").fill(vehicle.color);
+
+    await dialog.getByRole("button", { name: "Save" }).click();
+
+    await expect(dialog.getByText("Vehicle year cannot be in the future")).toBeVisible();
+  });
+
+  test("should require positive rental and usage costs", async ({ page, testDataContext }) => {
+    const vehicle = testDataContext.vehicles[1];
+
+    await page.getByRole("button", { name: "Create" }).click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await dialog.waitFor({ state: "visible" });
+
+    await dialog.getByLabel("VIN").fill(`${vehicle.VIN}P`);
+    await dialog.getByLabel("Stock number").fill(`${vehicle.stock_number}-POS`);
+    await dialog.getByLabel("License plate").fill(`${vehicle.license_plate}P`);
+    await dialog.getByLabel("Year").fill(vehicle.year.toString());
+    await dialog.getByLabel("Make").fill(vehicle.make);
+    await dialog.getByLabel("Model").fill(vehicle.model);
+    await dialog.getByLabel("Color").fill(vehicle.color);
+
+    await dialog.getByRole("button", { name: "Add Rate" }).click();
+    await dialog.getByRole("button", { name: "Add Usage Charge" }).click();
+
+    const costInputs = dialog.getByLabel("Cost Per Unit");
+    await costInputs.nth(0).fill("0");
+    await costInputs.nth(1).fill("0");
+
+    await dialog.getByRole("button", { name: "Save" }).click();
+
+    await expect(dialog.getByText("Rate cost must be a positive number").first()).toBeVisible();
+    await expect(dialog.getByText("Usage cost must be a positive number").first()).toBeVisible();
   });
 
   test("should create multiple distinct vehicles", async ({ vehiclesPage, testDataContext }) => {

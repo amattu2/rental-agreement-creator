@@ -41,7 +41,10 @@ test.describe("Agreements", () => {
     await agreementsPage.expectAgreementExists(agreementNumber, "active");
   });
 
-  test("should filter agreements by status", async ({ agreementsPage, testDataContext }) => {
+  test("should show newly created agreement in active status filter", async ({
+    agreementsPage,
+    testDataContext,
+  }) => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
@@ -91,7 +94,11 @@ test.describe("Agreements", () => {
     await agreementsPage.expectAgreementExists(agreementNumber2);
   });
 
-  test("should view agreement details", async ({ agreementsPage, testDataContext, page }) => {
+  test("should open agreement details from agreement row link", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
     const customer = testDataContext.customers[0];
     const vehicle = testDataContext.vehicles[0];
 
@@ -102,7 +109,10 @@ test.describe("Agreements", () => {
     await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
 
-  test("should validate required fields in agreement form", async ({ agreementsPage, page }) => {
+  test("should block generation until billing is confirmed and required fields are valid", async ({
+    agreementsPage,
+    page,
+  }) => {
     await agreementsPage.clickCreateAgreement();
 
     await expect(page.getByLabel("Agreement number")).toBeVisible();
@@ -193,15 +203,38 @@ test.describe("Agreements", () => {
     );
   });
 
-  test("should show daily rate calculations", async ({ agreementsPage, testDataContext, page }) => {
-    const customer = testDataContext.customers[0];
-    const vehicle = testDataContext.vehicles[0];
+  test("should recalculate and persist charges after quantity, tax, and deposit edits", async ({
+    agreementsPage,
+    page,
+  }) => {
+    await agreementsPage.gotoCreateAgreement();
 
-    const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
+    await page.getByRole("button", { name: "Add rate" }).click();
+    await page.getByLabel("Cost Per Unit").first().fill("50");
 
-    const row = agreementsPage.getAgreementRow(agreementNumber);
-    await row.getByRole("link").click();
-    await expect(page).toHaveURL(/\/agreement\?uuid=/);
+    await page.getByRole("button", { name: "Edit Charges" }).click();
+    const chargesDialog = page.locator('[role="dialog"]').filter({ hasText: "Edit Charges" });
+    await chargesDialog.waitFor({ state: "visible" });
+
+    await chargesDialog.getByLabel("Quantity").first().fill("3");
+    await chargesDialog.getByLabel("Sales Tax Rate (%)").fill("10");
+    await chargesDialog.getByLabel("Deposit Amount").fill("20");
+
+    await expect(chargesDialog.getByText("Sales Tax: $15.00")).toBeVisible();
+    await expect(chargesDialog.getByText("Total Due: $145.00")).toBeVisible();
+
+    await chargesDialog
+      .locator("button")
+      .filter({ hasText: /save.*close/i })
+      .click({ force: true });
+    await chargesDialog.waitFor({ state: "hidden" });
+
+    await page.getByRole("button", { name: "Edit Charges" }).click();
+    await chargesDialog.waitFor({ state: "visible" });
+
+    await expect(chargesDialog.getByLabel("Quantity").first()).toHaveValue("3");
+    await expect(chargesDialog.getByLabel("Sales Tax Rate (%)")).toHaveValue("10");
+    await expect(chargesDialog.getByLabel("Deposit Amount")).toHaveValue("20");
   });
 
   test("should require billing reconfirmation when billable inputs change", async ({
@@ -703,7 +736,7 @@ test.describe("Agreements", () => {
     await expect(agreementsPage.getAgreementRow(customer2.full_name)).toHaveCount(0);
   });
 
-  test("should support writing and saving a clerk signature", async ({
+  test("should persist clerk signature after saving", async ({
     agreementsPage,
     testDataContext,
     page,
@@ -784,5 +817,101 @@ test.describe("Agreements", () => {
     );
 
     expect(persistedCanvasHasInk).toBe(true);
+  });
+
+  test("should persist optional renter and protection sections after saving", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    await page.locator('input[name="rentee.alternate_phone"]').fill("555-0199");
+    await page.locator('input[name="rentee.employer.company"]').fill("Acme Corp");
+    await page.locator('input[name="rentee.employer.position"]').fill("Manager");
+    await page.locator('input[name="rentee.insurance.company"]').fill("SafeShield");
+    await page.locator('input[name="rentee.insurance.policy_number"]').fill("POL-7788");
+
+    await page.getByRole("button", { name: "Add Vehicle Damage Waiver" }).click();
+    await page.locator('input[name="vehicle_damage_waiver.rate_per_day"]').fill("12");
+    await page.locator('input[name="vehicle_damage_waiver.rate_per_week"]').fill("60");
+    await page.locator('input[name="vehicle_damage_waiver.damage_liability_limit"]').fill("500");
+
+    await page.getByRole("button", { name: "Add Personal Accident Insurance" }).click();
+    await page.locator('input[name="personal_accident_insurance.rate_per_day"]').fill("7");
+
+    await page.getByRole("button", { name: "Edit Charges" }).click();
+    const chargesDialog = page.locator('[role="dialog"]').filter({ hasText: "Edit Charges" });
+    await chargesDialog.waitFor({ state: "visible" });
+    await chargesDialog
+      .locator("button")
+      .filter({ hasText: /save.*generate/i })
+      .click({ force: true });
+    await chargesDialog.waitFor({ state: "hidden" });
+
+    // A successful submit resets form dirtiness, which enables stable persistence checks.
+    await expect(page.getByRole("button", { name: "Reset" })).toBeDisabled({ timeout: 15_000 });
+
+    await agreementsPage.goto();
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    await expect(page.locator('input[name="rentee.alternate_phone"]')).toHaveValue("555-0199");
+    await expect(page.locator('input[name="rentee.employer.company"]')).toHaveValue("Acme Corp");
+    await expect(page.locator('input[name="rentee.employer.position"]')).toHaveValue("Manager");
+    await expect(page.locator('input[name="rentee.insurance.company"]')).toHaveValue("SafeShield");
+    await expect(page.locator('input[name="rentee.insurance.policy_number"]')).toHaveValue(
+      "POL-7788"
+    );
+    await expect(page.locator('input[name="vehicle_damage_waiver.rate_per_day"]')).toHaveValue(
+      "12"
+    );
+    await expect(page.locator('input[name="vehicle_damage_waiver.rate_per_week"]')).toHaveValue(
+      "60"
+    );
+    await expect(
+      page.locator('input[name="vehicle_damage_waiver.damage_liability_limit"]')
+    ).toHaveValue("500");
+    await expect(
+      page.locator('input[name="personal_accident_insurance.rate_per_day"]')
+    ).toHaveValue("7");
+  });
+
+  test("should require additional driver name when an additional driver is added", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[1],
+      vehicle: testDataContext.vehicles[1],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    await page.getByRole("button", { name: "Add driver" }).click();
+    await page.locator('input[name="additional_drivers.0.driver_license_number"]').fill("ADL-100");
+
+    const additionalDobGroup = page.getByRole("group", { name: "Date of birth" }).nth(1);
+    await additionalDobGroup.locator('[data-sectionindex="0"]').click();
+    for (const char of "01011990") {
+      await page.keyboard.press(char);
+    }
+
+    const additionalExpirationGroup = page
+      .getByRole("group", { name: "Driver's license expiration" })
+      .nth(1);
+    await additionalExpirationGroup.locator('[data-sectionindex="0"]').click();
+    for (const char of "12312099") {
+      await page.keyboard.press(char);
+    }
+
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expect(page.getByText("Additional driver name is required").first()).toBeVisible();
+    await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
 });

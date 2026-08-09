@@ -127,7 +127,7 @@ const openPdfPopupAndCaptureScreenshot = async (
 };
 
 test.describe("Agreement Lifecycle", () => {
-  test("should support the complete agreement lifecycle", async ({
+  test("should create an active agreement and open its details", async ({
     page,
     agreementsPage,
     testDataContext,
@@ -144,7 +144,7 @@ test.describe("Agreement Lifecycle", () => {
     await expect(page).toHaveURL(/\/agreement\?uuid=/);
   });
 
-  test("should maintain data consistency across workflows", async ({
+  test("should surface agreement-created customers and vehicles in list pages", async ({
     agreementsPage,
     customersPage,
     vehiclesPage,

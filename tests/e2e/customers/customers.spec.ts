@@ -72,6 +72,31 @@ test.describe("Customers", () => {
     await expect(dialog.getByText(/invalid email/i)).toBeVisible();
   });
 
+  test("should reject customer date of birth in the future", async ({ page }) => {
+    await page.getByRole("button", { name: "Create" }).click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await dialog.waitFor({ state: "visible" });
+
+    await dialog.getByLabel("Full name").fill("Future DOB Customer");
+    await dialog.getByLabel("Street address").first().fill("123 Main St");
+    await dialog.getByLabel("City").first().fill("Dallas");
+    await dialog.getByLabel("State").first().fill("TX");
+    await dialog.getByLabel("Zip code").first().fill("75001");
+    await dialog.getByLabel("Cell phone").fill("555-0100");
+    await dialog.getByLabel("Driver's license number").fill("DL-FUTURE-DOB");
+    await dialog.getByLabel("Driver's license state").fill("TX");
+
+    await dialog.getByRole("group", { name: "Driver's license expiration" }).click();
+    await page.keyboard.type("12312099");
+
+    await dialog.getByRole("group", { name: "Date of birth" }).click();
+    await page.keyboard.type("12312099");
+
+    await dialog.getByRole("button", { name: "Save" }).click();
+    await expect(dialog.getByText("Date of birth must be in the past")).toBeVisible();
+  });
+
   test("should create multiple distinct customers", async ({ customersPage, testDataContext }) => {
     await customersPage.createCustomer(testDataContext.customers[0]);
     await customersPage.createCustomer(testDataContext.customers[1]);
