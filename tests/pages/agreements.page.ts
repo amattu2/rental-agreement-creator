@@ -217,6 +217,13 @@ export class AgreementsPage extends BasePage {
   }
 
   /**
+   * Type a Date into a MUI DateTimePicker field identified by its group label.
+   */
+  async typeDateTimeField(label: string, date: Date): Promise<void> {
+    await this.typeDateTime(label, date);
+  }
+
+  /**
    * Edit an existing agreement
    */
   async editAgreement(

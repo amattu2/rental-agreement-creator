@@ -1,8 +1,8 @@
-import { expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
 import { test } from "../../fixtures";
 
-const saveChargesAndClose = async (page: import("@playwright/test").Page) => {
+const saveChargesAndClose = async (page: Page) => {
   await page.getByRole("button", { name: "Edit Charges" }).click();
   const chargesDialog = page.locator('[role="dialog"]').filter({ hasText: "Edit Charges" });
   await chargesDialog.waitFor({ state: "visible" });
@@ -390,6 +390,137 @@ test.describe("Agreements", () => {
 
     await expect(page.getByText("Driver's license cannot be expired").first()).toBeVisible();
     await expect(page).toHaveURL(/\/agreement\?uuid=/);
+  });
+
+  test("should reject agreement submission when return date is before pickup date", async ({
+    agreementsPage,
+    customersPage,
+    vehiclesPage,
+    testDataContext,
+    page,
+  }) => {
+    const uniqueToken = Date.now().toString(36).toUpperCase();
+    const customer = {
+      ...testDataContext.customers[0],
+      full_name: `DATE-RULE-CUSTOMER-${uniqueToken}`,
+      email: `date-rule-${uniqueToken}@test.com`,
+      driver_license_number: `DL-DR-${uniqueToken}`,
+    };
+    const vehicle = {
+      ...testDataContext.vehicles[0],
+      VIN: `D${uniqueToken}AAA`.slice(0, 17),
+      stock_number: `STK-DR-${uniqueToken}`,
+      license_plate: `DR${uniqueToken.slice(-5)}`,
+    };
+
+    await customersPage.goto();
+    await customersPage.createCustomer(customer);
+    await vehiclesPage.goto();
+    await vehiclesPage.createVehicle(vehicle);
+
+    await agreementsPage.gotoCreateAgreement();
+    await page.getByLabel("Agreement number").fill(`AGR-DATE-${Date.now()}`);
+
+    await page.getByRole("button", { name: "Select an existing customer" }).click();
+    const customerDialog = page.getByRole("dialog", { name: /select customer/i });
+    await customerDialog.getByLabel("Search").fill(customer.full_name);
+    await customerDialog
+      .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    await page.getByRole("button", { name: "Select an existing vehicle" }).click();
+    const vehicleDialog = page.getByRole("dialog", { name: /select vehicle/i });
+    await vehicleDialog.getByLabel("Search").fill(vehicle.VIN);
+    await vehicleDialog
+      .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    const pickupDate = new Date();
+    pickupDate.setHours(10, 0, 0, 0);
+    const returnDate = new Date(pickupDate);
+    returnDate.setHours(9, 0, 0, 0);
+
+    await agreementsPage.typeDateTimeField("Pickup date", pickupDate);
+    await agreementsPage.typeDateTimeField("Return date", returnDate);
+    await page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1000");
+    await page.locator('input[name="rental_agreement_info.odometer_in"]').fill("1000");
+
+    await saveChargesAndClose(page);
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+
+    await expect(
+      page.getByText("Return date and time must be after pickup date and time").first()
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/agreement$/);
+  });
+
+  test("should reject agreement submission when return odometer is less than pickup odometer", async ({
+    agreementsPage,
+    customersPage,
+    vehiclesPage,
+    testDataContext,
+    page,
+  }) => {
+    const uniqueToken = Date.now().toString(36).toUpperCase();
+    const customer = {
+      ...testDataContext.customers[1],
+      full_name: `ODOMETER-RULE-CUSTOMER-${uniqueToken}`,
+      email: `odometer-rule-${uniqueToken}@test.com`,
+      driver_license_number: `DL-OR-${uniqueToken}`,
+    };
+    const vehicle = {
+      ...testDataContext.vehicles[1],
+      VIN: `O${uniqueToken}AAA`.slice(0, 17),
+      stock_number: `STK-OR-${uniqueToken}`,
+      license_plate: `OR${uniqueToken.slice(-5)}`,
+    };
+
+    await customersPage.goto();
+    await customersPage.createCustomer(customer);
+    await vehiclesPage.goto();
+    await vehiclesPage.createVehicle(vehicle);
+
+    await agreementsPage.gotoCreateAgreement();
+    await page.getByLabel("Agreement number").fill(`AGR-ODO-${Date.now()}`);
+
+    await page.getByRole("button", { name: "Select an existing customer" }).click();
+    const customerDialog = page.getByRole("dialog", { name: /select customer/i });
+    await customerDialog.getByLabel("Search").fill(customer.full_name);
+    await customerDialog
+      .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    await page.getByRole("button", { name: "Select an existing vehicle" }).click();
+    const vehicleDialog = page.getByRole("dialog", { name: /select vehicle/i });
+    await vehicleDialog.getByLabel("Search").fill(vehicle.VIN);
+    await vehicleDialog
+      .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+
+    const pickupDate = new Date();
+    pickupDate.setHours(9, 0, 0, 0);
+    const returnDate = new Date(pickupDate);
+    returnDate.setDate(returnDate.getDate() + 1);
+    returnDate.setHours(10, 0, 0, 0);
+
+    await agreementsPage.typeDateTimeField("Pickup date", pickupDate);
+    await agreementsPage.typeDateTimeField("Return date", returnDate);
+    await page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1500");
+    await page.locator('input[name="rental_agreement_info.odometer_in"]').fill("1400");
+
+    await saveChargesAndClose(page);
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+
+    await expect(
+      page
+        .getByText("Odometer at return must be greater than or equal to odometer at pickup")
+        .first()
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/agreement$/);
   });
 
   test("should carry vehicle rental rates into the Edit Charges dialog upon selection", async ({

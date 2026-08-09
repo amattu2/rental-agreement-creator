@@ -71,6 +71,40 @@ test.describe("Vehicles", () => {
     await expect(dialog.getByText("Vehicle VIN is required")).toBeVisible();
   });
 
+  test("should reject duplicate rental and usage rate types", async ({ page, testDataContext }) => {
+    const vehicle = testDataContext.vehicles[2];
+
+    await page.getByRole("button", { name: "Create" }).click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await dialog.waitFor({ state: "visible" });
+
+    await dialog.getByLabel("VIN").fill(vehicle.VIN);
+    await dialog.getByLabel("Stock number").fill(vehicle.stock_number);
+    await dialog.getByLabel("License plate").fill(vehicle.license_plate);
+    await dialog.getByLabel("Year").fill(vehicle.year.toString());
+    await dialog.getByLabel("Make").fill(vehicle.make);
+    await dialog.getByLabel("Model").fill(vehicle.model);
+    await dialog.getByLabel("Color").fill(vehicle.color);
+
+    await dialog.getByRole("button", { name: "Add Rate" }).click();
+    await dialog.getByRole("button", { name: "Add Rate" }).click();
+
+    await dialog.getByRole("button", { name: "Add Usage Charge" }).click();
+    await dialog.getByRole("button", { name: "Add Usage Charge" }).click();
+
+    const costInputs = dialog.getByLabel("Cost Per Unit");
+    await costInputs.nth(0).fill("10");
+    await costInputs.nth(1).fill("20");
+    await costInputs.nth(2).fill("3");
+    await costInputs.nth(3).fill("4");
+
+    await dialog.getByRole("button", { name: "Save" }).click();
+
+    await expect(dialog.getByText("Duplicate rate units are not allowed")).toBeVisible();
+    await expect(dialog.getByText("Duplicate usage types are not allowed")).toBeVisible();
+  });
+
   test("should create multiple distinct vehicles", async ({ vehiclesPage, testDataContext }) => {
     await vehiclesPage.createVehicle(testDataContext.vehicles[0]);
     await vehiclesPage.createVehicle(testDataContext.vehicles[1]);
