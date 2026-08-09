@@ -75,8 +75,8 @@ const TEST_RUN_ID = Date.now().toString(36); // e.g., "2pz8b1a"
 
 export const TEST_CUSTOMERS = [
   {
-    name: `TEST-CUSTOMER-${TEST_RUN_ID}-1`, // "TEST-CUSTOMER-2pz8b1a-1"
-    phone: "555-0101",
+    full_name: `TEST-CUSTOMER-${TEST_RUN_ID}-1`, // "TEST-CUSTOMER-2pz8b1a-1"
+    cell_phone: "555-0101",
     email: `test-${TEST_RUN_ID}-1@test.com`, // "test-2pz8b1a-1@test.com"
   },
   // ... more customers
@@ -168,7 +168,7 @@ test.describe("Feature Name", () => {
     await customersPage.createCustomer(testCustomer);
 
     // Use semantic assertions
-    await customersPage.expectCustomerExists(testCustomer.name);
+    await customersPage.expectCustomerExists(testCustomer.full_name);
   });
 });
 ```
@@ -194,6 +194,7 @@ npm run test:e2e
 
 ```bash
 npm run build
+PLAYWRIGHT_BASE_URL=http://localhost:3000 npx serve out -p 3000 &
 npm run test:e2e
 ```
 

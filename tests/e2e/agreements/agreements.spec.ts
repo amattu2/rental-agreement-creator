@@ -59,6 +59,7 @@ test.describe("Agreements", () => {
 
     await agreementsPage.search(customer1.full_name);
     await expect(agreementsPage.getAgreementRow(agreementNumber1)).toBeVisible();
+    await expect(agreementsPage.getAgreementRow(customer2.full_name)).toHaveCount(0);
   });
 
   test("should create multiple distinct agreements", async ({
@@ -101,6 +102,12 @@ test.describe("Agreements", () => {
     await expect(page.getByLabel("Agreement number")).toBeVisible();
     // Generate Agreement is disabled until billing is confirmed (by design)
     await expect(page.getByRole("button", { name: "Generate Agreement" })).toBeDisabled();
+
+    await saveChargesAndClose(page);
+    await expect(page.getByRole("button", { name: "Generate Agreement" })).toBeEnabled();
+
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expect(page.getByText("Rentee name is required").first()).toBeVisible();
   });
 
   test("should show daily rate calculations", async ({ agreementsPage, testDataContext, page }) => {

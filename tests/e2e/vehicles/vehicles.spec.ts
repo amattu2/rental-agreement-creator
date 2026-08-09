@@ -31,7 +31,9 @@ test.describe("Vehicles", () => {
     await vehiclesPage.createVehicle(testVehicle);
     await vehiclesPage.editVehicle(testVehicle.VIN, { model: updatedModel });
     await vehiclesPage.search(testVehicle.VIN);
-    await vehiclesPage.expectVehicleExists(testVehicle.VIN);
+    const row = vehiclesPage.getVehicleRow(testVehicle.VIN);
+    await expect(row).toBeVisible();
+    await expect(row).toContainText(updatedModel);
   });
 
   test("should search for vehicles by VIN", async ({ vehiclesPage, testDataContext }) => {
@@ -42,15 +44,19 @@ test.describe("Vehicles", () => {
     await vehiclesPage.createVehicle(testVehicle2);
 
     await vehiclesPage.search(testVehicle1.VIN);
-    await vehiclesPage.expectVehicleExists(testVehicle1.VIN);
+    await expect(vehiclesPage.getVehicleRow(testVehicle1.VIN)).toBeVisible();
+    await expect(vehiclesPage.getVehicleRow(testVehicle2.VIN)).toHaveCount(0);
   });
 
   test("should search for vehicles by make/model", async ({ vehiclesPage, testDataContext }) => {
     const testVehicle = testDataContext.vehicles[0];
+    const otherVehicle = testDataContext.vehicles[1];
 
     await vehiclesPage.createVehicle(testVehicle);
+    await vehiclesPage.createVehicle(otherVehicle);
     await vehiclesPage.search(testVehicle.make);
-    await vehiclesPage.expectVehicleExists(testVehicle.VIN);
+    await expect(vehiclesPage.getVehicleRow(testVehicle.VIN)).toBeVisible();
+    await expect(vehiclesPage.getVehicleRow(otherVehicle.VIN)).toHaveCount(0);
   });
 
   test("should validate VIN is required", async ({ page }) => {

@@ -12,18 +12,19 @@ on:
 permissions:
   contents: read
 
+env:
+  NEXT_PUBLIC_APP_NAME: "Rental Agreement Creator"
+  NEXT_PUBLIC_APP_DESCRIPTION: "A test deployment of the application for E2E tests."
+  NEXT_PUBLIC_COMPANY_NAME: "Mock E2E Company"
+  NEXT_PUBLIC_ADDRESS_LINE1: "123 CI Test Street"
+  NEXT_PUBLIC_ADDRESS_LINE2: "Hartford, CT 01758"
+  NEXT_PUBLIC_DEPLOYMENT_URL: "http://localhost:3000"
+
 jobs:
   e2e:
     name: End-to-End Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      NEXT_PUBLIC_APP_NAME: Rental Agreement Creator
-      NEXT_PUBLIC_APP_DESCRIPTION: End-to-end CI test build
-      NEXT_PUBLIC_COMPANY_NAME: CI Test Company
-      NEXT_PUBLIC_ADDRESS_LINE1: 123 CI Test Street
-      NEXT_PUBLIC_ADDRESS_LINE2: Suite 100
-      NEXT_PUBLIC_DEPLOYMENT_URL: https://example.com
 
     steps:
       - name: "Checkout Repository"
@@ -53,8 +54,24 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
-      - name: Build Application
+      - name: Cache Build
+        uses: actions/cache@v5
+        with:
+          path: source/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('source/package-lock.json') }}-${{ hashFiles('source/**/*.[jt]s', 'source/**/*.[jt]sx', 'source/**/*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('source/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
+
+      - name: Build
         run: npm run build
+        env:
+          NEXT_PUBLIC_APP_NAME: ${{ env.NEXT_PUBLIC_APP_NAME }}
+          NEXT_PUBLIC_APP_DESCRIPTION: ${{ env.NEXT_PUBLIC_APP_DESCRIPTION }}
+          NEXT_PUBLIC_COMPANY_NAME: ${{ env.NEXT_PUBLIC_COMPANY_NAME }}
+          NEXT_PUBLIC_ADDRESS_LINE1: ${{ env.NEXT_PUBLIC_ADDRESS_LINE1 }}
+          NEXT_PUBLIC_ADDRESS_LINE2: ${{ env.NEXT_PUBLIC_ADDRESS_LINE2 }}
+          NEXT_PUBLIC_DEPLOYMENT_URL: ${{ env.NEXT_PUBLIC_DEPLOYMENT_URL }}
 
       - name: Start Static Server
         run: npx serve out -p 3000 &
@@ -63,7 +80,7 @@ jobs:
 
       - name: Wait for Server
         run: |
-          max_attempts=30
+          max_attempts=15
           attempt=0
           until curl --silent http://localhost:3000 > /dev/null 2>&1 || [ $attempt -eq $max_attempts ]; do
             attempt=$((attempt + 1))
@@ -86,7 +103,7 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 30
+          retention-days: 0
 
       - name: Upload Results
         if: always()
@@ -94,9 +111,9 @@ jobs:
         with:
           name: test-results
           path: test-results/
-          retention-days: 30
+          retention-days: 0
 
-      - name: Publish Test Report
+      - name: Publish Report
         if: always()
         uses: dorny/test-reporter@v3
         with:

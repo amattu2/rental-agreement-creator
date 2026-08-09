@@ -41,9 +41,9 @@ test.describe("Customers", () => {
     await customersPage.createCustomer(testCustomer1);
     await customersPage.createCustomer(testCustomer2);
 
-    const partialName = testCustomer1.full_name.substring(0, 10);
-    await customersPage.searchByName(partialName);
-    await customersPage.expectCustomerExists(testCustomer1.full_name);
+    await customersPage.searchByName(testCustomer1.full_name);
+    await expect(customersPage.getCustomerRow(testCustomer1.full_name)).toBeVisible();
+    await expect(customersPage.getCustomerRow(testCustomer2.full_name)).toHaveCount(0);
   });
 
   test("should validate customer name is required", async ({ page }) => {
@@ -69,7 +69,7 @@ test.describe("Customers", () => {
 
     await dialog.getByRole("button", { name: "Save" }).click();
 
-    await expect(dialog).toBeVisible();
+    await expect(dialog.getByText(/invalid email/i)).toBeVisible();
   });
 
   test("should create multiple distinct customers", async ({ customersPage, testDataContext }) => {

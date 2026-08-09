@@ -263,6 +263,13 @@ export class AgreementsPage extends BasePage {
     const dialog = this.page.getByRole("dialog", { name: /finalize agreement/i });
     await dialog.waitFor({ state: "visible" });
 
+    const [datePart, timePart, meridiem] = finalizationData.vehicleReturnedAt.split(" ");
+    const [month, day, year] = datePart.split("/").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+    const hours24 = meridiem === "PM" && hours !== 12 ? hours + 12 : meridiem === "AM" && hours === 12 ? 0 : hours;
+    const returnedDate = new Date(year, month - 1, day, hours24, minutes);
+    await this.typeDateTime("Vehicle Returned Date/Time", returnedDate);
+
     await dialog.getByLabel(/^odometer in$/i).fill(finalizationData.actualOdometerIn.toString());
     await dialog.getByLabel(/^fuel level in$/i).click();
     await this.page.getByRole("option", { name: finalizationData.actualFuelLevel }).click();
