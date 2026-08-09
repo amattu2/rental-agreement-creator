@@ -82,7 +82,9 @@ export abstract class BasePage {
     return this.page.url();
   }
 
-  // Types a date+time value into a MUI DateTimePicker field group by keyboard
+  /**
+   * Type a date/time value into a MUI DateTimePicker field group using keyboard input.
+   */
   protected async typeDateTime(label: string, date: Date): Promise<void> {
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");

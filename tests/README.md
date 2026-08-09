@@ -238,22 +238,6 @@ await page.pause(); // Opens Inspector, click Play to continue
 npm run test:e2e:report
 ```
 
-## CI/CD Integration
-
-Tests run automatically on every PR via `.github/workflows/e2e-tests.yml`:
-
-1. **Trigger**: On push to main and all PRs
-2. **Build**: `npm run build` (static export to `/out`)
-3. **Serve**: Static server on port 3000
-4. **Test**: `npm run test:e2e` with 4 parallel workers
-5. **Retries**: Up to 2 retries on CI to reduce flakes
-6. **Report**: HTML report + GitHub checks + artifact upload on failure
-
-**View Results**:
-
-- GitHub PR checks (✅/❌)
-- Artifacts tab in workflow run (playwright-report/)
-
 ## Handling Common Issues
 
 ### Test Fails: "Locator is not found"
@@ -297,22 +281,3 @@ Then use in tests:
 ```typescript
 page.getByTestId("input-email").fill("test@test.com");
 ```
-
-## Performance Considerations
-
-- **Smoke tests**: ~90 seconds (includes UI setup)
-- **Full suite**: ~5 minutes (parallel execution on CI)
-- **Each test**: ~30-60 seconds (fixture setup + UI interactions)
-
-Optimization tips:
-
-- Use @smoke tag for quick pre-commit checks
-- Reuse fixtures to share test setup
-- Keep UI setup minimal (only create data needed for test)
-
-## Resources
-
-- [Playwright Documentation](https://playwright.dev/)
-- [Best Practices Guide](https://playwright.dev/docs/best-practices)
-- [Debugging Guide](https://playwright.dev/docs/debug)
-- [API Reference](https://playwright.dev/docs/api/class-test)

@@ -9,13 +9,11 @@ import { BasePage } from "./base.page";
  * Handles agreement CRUD operations, searches, and status filters
  */
 export class AgreementsPage extends BasePage {
-  // Home/List page selectors
   readonly searchInput: Locator;
   readonly statusFilter: Locator;
   readonly createButton: Locator;
   readonly agreementsTable: Locator;
 
-  // Create/Edit agreement form selectors
   readonly agreementDialog: Locator;
   readonly customerSelect: Locator;
   readonly vehicleSelect: Locator;
@@ -63,6 +61,9 @@ export class AgreementsPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  /**
+   * Filter agreements by status from the Status select control.
+   */
   async filterByStatus(status: "all" | AgreementStatus): Promise<void> {
     await this.statusFilter.click();
     // MUI Select renders options in a listbox outside the main DOM
@@ -232,7 +233,6 @@ export class AgreementsPage extends BasePage {
   ): Promise<void> {
     await this.gotoEditAgreement(uuid);
 
-    // Update fields
     if (updates.dailyRate) {
       const rateField = this.page.getByLabel(/daily rate|rate/i);
       await rateField.clear();
@@ -245,10 +245,7 @@ export class AgreementsPage extends BasePage {
       await mileageField.fill(updates.mileageIn);
     }
 
-    // Save
     await this.page.getByRole("button", { name: /save|submit/i }).click();
-
-    // Wait for navigation
     await this.page.waitForURL("**/");
   }
 
@@ -308,8 +305,6 @@ export class AgreementsPage extends BasePage {
    */
   async downloadAgreementPDF(identifier: string): Promise<void> {
     const row = this.getAgreementRow(identifier);
-
-    // Start download
     const downloadPromise = this.page.context().waitForEvent("download");
     await row.getByRole("button", { name: /pdf|download|view/i }).click();
 

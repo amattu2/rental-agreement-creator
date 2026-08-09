@@ -9,7 +9,6 @@ import { BasePage } from "./base.page";
  * Handles all customer-related interactions and assertions
  */
 export class CustomersPage extends BasePage {
-  // Selectors
   readonly searchInput: Locator;
   readonly createButton: Locator;
   readonly customersTable: Locator;
@@ -46,6 +45,9 @@ export class CustomersPage extends BasePage {
     return this.customersTable.locator(`[role="row"]:has-text("${customerName}")`);
   }
 
+  /**
+   * Create a customer via the create dialog.
+   */
   async createCustomer(customerData: RenteeSchema): Promise<void> {
     await this.createButton.click();
     await this.editorDialog.waitFor({ state: "visible" });
@@ -82,6 +84,9 @@ export class CustomersPage extends BasePage {
     await this.editorDialog.waitFor({ state: "hidden" });
   }
 
+  /**
+   * Edit a customer matched by name using the row edit action.
+   */
   async editCustomer(customerName: string, updates: Partial<RenteeSchema>): Promise<void> {
     await this.searchByName(customerName);
     // MUI DataGrid action buttons need force:true to bypass actionability checks

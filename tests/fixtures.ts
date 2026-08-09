@@ -6,17 +6,6 @@ import { CustomersPage } from "./pages/customers.page";
 import { VehiclesPage } from "./pages/vehicles.page";
 import { TEST_CUSTOMERS, TEST_VEHICLES } from "./test-data";
 
-/**
- * Custom test fixtures for E2E testing
- *
- * Provides:
- * - testDataContext: Contains unique test data for the current run
- * - Page objects: Initialized instances ready to use
- *
- * Test data uses unique identifiers per run to avoid collisions
- * with existing data in any environment (DEV, QA, PROD)
- */
-
 type TestFixtures = {
   testDataContext: {
     customers: typeof TEST_CUSTOMERS;
@@ -29,7 +18,6 @@ type TestFixtures = {
 
 export const test = base.extend<TestFixtures>({
   testDataContext: async ({}, use) => {
-    // Provide test data context (constants with unique run IDs)
     const context = {
       customers: TEST_CUSTOMERS,
       vehicles: TEST_VEHICLES,

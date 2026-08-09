@@ -9,7 +9,6 @@ import { BasePage } from "./base.page";
  * Handles all vehicle-related interactions and assertions
  */
 export class VehiclesPage extends BasePage {
-  // Selectors
   readonly searchInput: Locator;
   readonly createButton: Locator;
   readonly vehiclesTable: Locator;
@@ -41,6 +40,9 @@ export class VehiclesPage extends BasePage {
     await this.page.waitForTimeout(1000);
   }
 
+  /**
+   * Filter vehicles by status using the Status select control.
+   */
   async filterByStatus(status: BaseStatus): Promise<void> {
     await this.statusFilter.click();
     await this.page.getByRole("option", { name: new RegExp(`^${status}$`, "i") }).click();
@@ -54,6 +56,9 @@ export class VehiclesPage extends BasePage {
     return this.vehiclesTable.locator(`[role="row"]:has-text("${vin}")`);
   }
 
+  /**
+   * Create a vehicle via the create dialog.
+   */
   async createVehicle(vehicleData: VehicleSchema): Promise<void> {
     await this.createButton.click();
     await this.editorDialog.waitFor({ state: "visible" });
@@ -70,6 +75,9 @@ export class VehiclesPage extends BasePage {
     await this.editorDialog.waitFor({ state: "hidden" });
   }
 
+  /**
+   * Edit a vehicle matched by VIN using the row edit action.
+   */
   async editVehicle(vin: string, updates: Partial<VehicleSchema>): Promise<void> {
     await this.search(vin);
     // MUI DataGrid action buttons need force:true to bypass actionability checks
@@ -101,6 +109,9 @@ export class VehiclesPage extends BasePage {
     await this.editorDialog.waitFor({ state: "hidden" });
   }
 
+  /**
+   * Toggle active/inactive status for the first matching vehicle row.
+   */
   async toggleVehicleStatus(vin: string): Promise<void> {
     await this.search(vin);
     const row = this.getVehicleRow(vin);
