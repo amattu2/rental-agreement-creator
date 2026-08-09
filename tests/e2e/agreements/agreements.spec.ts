@@ -437,8 +437,8 @@ test.describe("Agreements", () => {
     await chargesDialog.waitFor({ state: "visible" });
 
     // The vehicle's rental rate should appear as a line item in the billing dialog
-    await expect(chargesDialog.getByText("HOURS")).toBeVisible();
-    await expect(chargesDialog.getByText(/\$50\.00 PER HOUR/)).toBeVisible();
+    await expect(chargesDialog.getByText("HOURS", { exact: true })).toBeVisible();
+    await expect(chargesDialog.getByText(/\$50\.00.*PER HOUR/).first()).toBeVisible();
   });
 
   test("should persist changes to an active agreement after saving", async ({
@@ -469,7 +469,10 @@ test.describe("Agreements", () => {
     await expect(page.locator('input[name="rentee.full_name"]')).toHaveValue(updatedName);
   });
 
-  test("should search agreements by agreement number", async ({ agreementsPage, testDataContext }) => {
+  test("should search agreements by agreement number", async ({
+    agreementsPage,
+    testDataContext,
+  }) => {
     const customer1 = testDataContext.customers[0];
     const customer2 = testDataContext.customers[1];
     const vehicle1 = testDataContext.vehicles[0];
