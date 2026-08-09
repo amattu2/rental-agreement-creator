@@ -1,6 +1,23 @@
+import { createCanvas } from "@napi-rs/canvas";
 import { expect, Page } from "@playwright/test";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 import { test } from "../../fixtures";
+
+declare global {
+  interface Window {
+    __openCalls?: Array<Array<unknown>>;
+    __originalOpen?: Window["open"];
+  }
+}
+
+const isCanvasRenderingContext2D = (value: unknown): value is CanvasRenderingContext2D => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return "canvas" in value && "fillRect" in value && "getImageData" in value;
+};
 
 const openAgreementActions = async (
   agreementsPage: import("../../pages/agreements.page").AgreementsPage,
@@ -12,19 +29,14 @@ const openAgreementActions = async (
 
 const installWindowOpenSpy = async (page: Page) => {
   await page.evaluate(() => {
-    const target = window as unknown as {
-      __openCalls?: Array<Array<unknown>>;
-      __originalOpen?: Window["open"];
-    };
+    window.__openCalls = [];
 
-    target.__openCalls = [];
-
-    if (!target.__originalOpen) {
-      target.__originalOpen = window.open;
+    if (!window.__originalOpen) {
+      window.__originalOpen = window.open;
     }
 
     window.open = (...args: Array<unknown>) => {
-      target.__openCalls?.push(args);
+      window.__openCalls?.push(args);
       return null;
     };
   });
@@ -34,18 +46,84 @@ const expectWindowOpenCalledWithBlobUrl = async (page: Page) => {
   await expect
     .poll(async () =>
       page.evaluate(() => {
-        const target = window as unknown as { __openCalls?: Array<Array<unknown>> };
-        return target.__openCalls?.length ?? 0;
+        return window.__openCalls?.length ?? 0;
       })
     )
     .toBeGreaterThan(0);
 
   const firstUrl = await page.evaluate(() => {
-    const target = window as unknown as { __openCalls?: Array<Array<unknown>> };
-    return String(target.__openCalls?.[0]?.[0] ?? "");
+    return String(window.__openCalls?.[0]?.[0] ?? "");
   });
 
   expect(firstUrl).toContain("blob:");
+};
+
+const getFirstWindowOpenUrl = async (page: Page): Promise<string> => {
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        return window.__openCalls?.length ?? 0;
+      })
+    )
+    .toBeGreaterThan(0);
+
+  return page.evaluate(() => {
+    return String(window.__openCalls?.[0]?.[0] ?? "");
+  });
+};
+
+const openPdfPopupAndCaptureScreenshot = async (
+  page: Page,
+  actionName: "View Agreement" | "View Receipt",
+  artifactBaseName: string
+) => {
+  await installWindowOpenSpy(page);
+  await page.getByRole("menuitem", { name: actionName }).click();
+
+  const pdfUrl = await getFirstWindowOpenUrl(page);
+  expect(pdfUrl).toContain("blob:");
+
+  const pdfBase64 = await page.evaluate(async (url: string) => {
+    const data = await fetch(url).then((response) => response.arrayBuffer());
+    const bytes = new Uint8Array(data);
+    let binary = "";
+    for (const byte of bytes) {
+      binary += String.fromCharCode(byte);
+    }
+
+    return btoa(binary);
+  }, pdfUrl);
+  const pdfBuffer = Buffer.from(pdfBase64, "base64");
+
+  await test.info().attach(`${artifactBaseName}.pdf`, {
+    body: pdfBuffer,
+    contentType: "application/pdf",
+  });
+
+  const pdfBytes = new Uint8Array(pdfBuffer);
+  const pdf = await pdfjsLib.getDocument({
+    data: pdfBytes,
+    useSystemFonts: true,
+  }).promise;
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const pdfPage = await pdf.getPage(pageNumber);
+    const viewport = pdfPage.getViewport({ scale: 1.5 });
+
+    const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+    const context = canvas.getContext("2d");
+    if (!isCanvasRenderingContext2D(context)) {
+      throw new Error("Failed to initialize a 2D canvas context for PDF screenshot rendering");
+    }
+
+    await pdfPage.render({ canvas: null, canvasContext: context, viewport }).promise;
+    const screenshot = canvas.toBuffer("image/png");
+
+    await test.info().attach(`${artifactBaseName}_${pageNumber}.png`, {
+      body: screenshot,
+      contentType: "image/png",
+    });
+  }
 };
 
 test.describe("Agreement Lifecycle", () => {
@@ -369,5 +447,41 @@ test.describe("Agreement Lifecycle", () => {
     await installWindowOpenSpy(page);
     await page.getByRole("menuitem", { name: "View Receipt" }).click();
     await expectWindowOpenCalledWithBlobUrl(page);
+  });
+
+  test("should generate an agreement PDF from 'View Agreement' row action @smoke", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.filterByStatus("active");
+    await openAgreementActions(agreementsPage, agreementNumber);
+    await openPdfPopupAndCaptureScreenshot(page, "View Agreement", "Agreement");
+  });
+
+  test("should generate a receipt PDF from 'View Receipt' row action @smoke", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[1],
+      vehicle: testDataContext.vehicles[1],
+    });
+
+    await agreementsPage.finalizeAgreement(agreementNumber, {
+      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      actualOdometerIn: 1100,
+      actualFuelLevel: "F",
+    });
+
+    await agreementsPage.filterByStatus("archived");
+    await openAgreementActions(agreementsPage, agreementNumber);
+    await openPdfPopupAndCaptureScreenshot(page, "View Receipt", "Receipt");
   });
 });
