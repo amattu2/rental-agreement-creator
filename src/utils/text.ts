@@ -119,3 +119,35 @@ export const formatAddress = <
 
   return final;
 };
+
+/**
+ * Flattens nested validation error objects into a unique list of resolved message strings.
+ *
+ * @param value A nested error object or value.
+ * @returns A de-duplicated list of non-empty validation messages.
+ */
+export const flattenValidationErrors = (value: unknown): string[] => {
+  const messages = new Set<string>();
+
+  const collectMessages = (nestedValue: unknown): void => {
+    if (!nestedValue || typeof nestedValue !== "object") {
+      return;
+    }
+
+    if (
+      "message" in nestedValue &&
+      typeof nestedValue.message === "string" &&
+      nestedValue.message.trim().length > 0
+    ) {
+      messages.add(nestedValue.message.trim());
+    }
+
+    Object.values(nestedValue).forEach((childValue) => {
+      collectMessages(childValue);
+    });
+  };
+
+  collectMessages(value);
+
+  return Array.from(messages);
+};

@@ -1,0 +1,123 @@
+name: Playwright
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "*"
+
+permissions:
+  contents: read
+
+env:
+  NEXT_PUBLIC_APP_NAME: "Rental Agreement Creator"
+  NEXT_PUBLIC_APP_DESCRIPTION: "A test deployment of the application for E2E tests."
+  NEXT_PUBLIC_COMPANY_NAME: "Mock E2E Company"
+  NEXT_PUBLIC_ADDRESS_LINE1: "123 CI Test Street"
+  NEXT_PUBLIC_ADDRESS_LINE2: "Hartford, CT 01758"
+  NEXT_PUBLIC_DEPLOYMENT_URL: "http://localhost:3000"
+
+jobs:
+  e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24.x"
+          cache: "npm"
+
+      - name: "Install Dependencies"
+        run: npm i
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Playwright system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Cache Build
+        uses: actions/cache@v5
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('**/*.[jt]s', '**/*.[jt]sx', '**/*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
+
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_APP_NAME: ${{ env.NEXT_PUBLIC_APP_NAME }}
+          NEXT_PUBLIC_APP_DESCRIPTION: ${{ env.NEXT_PUBLIC_APP_DESCRIPTION }}
+          NEXT_PUBLIC_COMPANY_NAME: ${{ env.NEXT_PUBLIC_COMPANY_NAME }}
+          NEXT_PUBLIC_ADDRESS_LINE1: ${{ env.NEXT_PUBLIC_ADDRESS_LINE1 }}
+          NEXT_PUBLIC_ADDRESS_LINE2: ${{ env.NEXT_PUBLIC_ADDRESS_LINE2 }}
+          NEXT_PUBLIC_DEPLOYMENT_URL: ${{ env.NEXT_PUBLIC_DEPLOYMENT_URL }}
+
+      - name: Start Static Server
+        run: npx serve out -p 3000 &
+        env:
+          CI: true
+
+      - name: Wait for Server
+        run: |
+          max_attempts=15
+          attempt=0
+          until curl --silent http://localhost:3000 > /dev/null 2>&1 || [ $attempt -eq $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Waiting for server... (attempt $attempt/$max_attempts)"
+            sleep 2
+          done
+          if [ $attempt -eq $max_attempts ]; then
+            echo "Server failed to start"
+            exit 1
+          fi
+
+      - name: Run Playwright
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 0
+
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 0
+
+      - name: Publish Report
+        if: always()
+        uses: dorny/test-reporter@v3
+        with:
+          name: Test Results
+          path: "test-results/junit.xml"
+          reporter: "java-junit"
+          fail-on-error: false

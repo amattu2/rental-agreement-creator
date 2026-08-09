@@ -3,6 +3,11 @@
 
 # testing
 /coverage
+test-results/
+playwright-report/
+videos/
+/tests/.auth/
+
 
 # next.js
 /.next/

@@ -61,6 +61,7 @@ Open <http://localhost:3000> to view the app.
 - React Hook Form + Zod validation
 - jsPDF
 - Vitest + Testing Library
+- Playwright (E2E testing)
 
 # Previews
 

@@ -36,6 +36,7 @@ import {
   DEFAULT_VEHICLE,
 } from "@/config/constants";
 import { FormSchema } from "@/schemas/form";
+import { flattenValidationErrors } from "@/utils/text";
 
 import { useBillingState } from "../BillingContext";
 import { ChargeConfirmationDialog } from "../ChargeConfirmationDialog";
@@ -60,7 +61,7 @@ const StyledIconButton = styled(IconButton)({
 export const RentalAgreementForm = () => {
   const {
     control,
-    formState: { isDirty, isSubmitting, disabled },
+    formState: { isDirty, isSubmitting, disabled, errors },
     reset,
     setValue,
     watch,
@@ -252,13 +253,29 @@ export const RentalAgreementForm = () => {
     return <>{adornments}</>;
   }, [customerUuid, disabled, setCustomerSelectionOpen, handleClearCustomer]);
 
-  const tooltipText = useMemo<string>(() => {
-    if (disabled) {
+  const tooltipText = useMemo<React.ReactNode>(() => {
+    const messages: string[] = [...flattenValidationErrors(errors), billingDescription].filter(
+      Boolean
+    );
+
+    if (disabled || !messages.length) {
       return "";
     }
 
-    return billingDescription;
-  }, [disabled, billingDescription]);
+    if (messages.length === 1) {
+      return messages[0];
+    }
+
+    return (
+      <Box component="ul" sx={{ m: 0, pl: 2 }}>
+        {messages.map((message) => (
+          <li key={message}>
+            <Typography variant="body2">{message}</Typography>
+          </li>
+        ))}
+      </Box>
+    );
+  }, [disabled, billingDescription, errors]);
 
   const handleResetClick = () => setIsResetDialogOpen(true);
 
