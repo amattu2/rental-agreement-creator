@@ -13,6 +13,12 @@ const saveChargesAndClose = async (page: Page) => {
   await chargesDialog.waitFor({ state: "hidden" });
 };
 
+const expectGenerateTooltip = async (page: Page, expectedText: string) => {
+  const generateButton = page.getByRole("button", { name: "Generate Agreement" });
+  await generateButton.locator("xpath=..").hover();
+  await expect(page.getByRole("tooltip").filter({ hasText: expectedText })).toBeVisible();
+};
+
 test.describe("Agreements", () => {
   test.beforeEach(async ({ agreementsPage }) => {
     await agreementsPage.goto();
@@ -108,6 +114,83 @@ test.describe("Agreements", () => {
 
     await page.getByRole("button", { name: "Generate Agreement" }).click();
     await expect(page.getByText("Rentee name is required").first()).toBeVisible();
+  });
+
+  test("should show a pending-billing tooltip before charges are confirmed", async ({
+    agreementsPage,
+    page,
+  }) => {
+    await agreementsPage.gotoCreateAgreement();
+
+    await expect(page.getByRole("button", { name: "Generate Agreement" })).toBeDisabled();
+    await expectGenerateTooltip(
+      page,
+      "No charges have been calculated yet. Please calculate the charges before proceeding."
+    );
+  });
+
+  test("should show a stale-billing tooltip when billable inputs change", async ({
+    agreementsPage,
+    page,
+  }) => {
+    await agreementsPage.gotoCreateAgreement();
+
+    const generateButton = page.getByRole("button", { name: "Generate Agreement" });
+    await saveChargesAndClose(page);
+    await expect(generateButton).toBeEnabled();
+
+    await page.getByRole("button", { name: "Add rate" }).click();
+    await expect(generateButton).toBeDisabled();
+
+    await expectGenerateTooltip(
+      page,
+      "The available charges have changed since they were last confirmed. Please review and save the charges again."
+    );
+  });
+
+  test("should show tooltip validation for odometer at return below pickup", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+    await page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1000");
+    await page.locator('input[name="rental_agreement_info.odometer_in"]').fill("900");
+    await page.keyboard.press("Tab");
+
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expectGenerateTooltip(
+      page,
+      "Odometer at return must be greater than or equal to odometer at pickup"
+    );
+  });
+
+  test("should show tooltip validation for odometer exceeding max distance", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[1],
+      vehicle: testDataContext.vehicles[1],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+    await page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1000");
+    await page.locator('input[name="rental_agreement_info.max_distance"]').fill("10");
+    await page.locator('input[name="rental_agreement_info.odometer_in"]').fill("1200");
+    await page.keyboard.press("Tab");
+
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expectGenerateTooltip(
+      page,
+      "Odometer at return cannot exceed odometer at pickup plus maximum distance"
+    );
   });
 
   test("should show daily rate calculations", async ({ agreementsPage, testDataContext, page }) => {
