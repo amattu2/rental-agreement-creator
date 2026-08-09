@@ -365,6 +365,127 @@ test.describe("Agreements", () => {
     await expect(page.locator('input[name="rental_vehicle.VIN"]')).toHaveValue("");
   });
 
+  test("should reject agreement submission when driver's license is expired", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    // Override DL expiration with a clearly past date
+    await page
+      .getByRole("group", { name: "Driver's license expiration" })
+      .locator("[data-sectionindex='0']")
+      .click();
+    for (const char of "01012020") {
+      await page.keyboard.press(char);
+    }
+
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+
+    await expect(page.getByText("Driver's license cannot be expired").first()).toBeVisible();
+    await expect(page).toHaveURL(/\/agreement\?uuid=/);
+  });
+
+  test("should carry vehicle rental rates into the Edit Charges dialog upon selection", async ({
+    vehiclesPage,
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const uniqueToken = Date.now().toString(36).toUpperCase();
+    const vehicle = {
+      ...testDataContext.vehicles[2],
+      VIN: `R${uniqueToken}AAA`.slice(0, 17),
+      stock_number: `STK-R-${uniqueToken}`,
+      license_plate: `RTE${uniqueToken.slice(-5)}`,
+    };
+
+    await vehiclesPage.goto();
+    await vehiclesPage.createButton.click();
+    await vehiclesPage.editorDialog.waitFor({ state: "visible" });
+    await vehiclesPage.editorDialog.getByLabel("VIN").fill(vehicle.VIN);
+    await vehiclesPage.editorDialog.getByLabel("Stock number").fill(vehicle.stock_number);
+    await vehiclesPage.editorDialog.getByLabel("License plate").fill(vehicle.license_plate);
+    await vehiclesPage.editorDialog.getByLabel("Year").fill(vehicle.year.toString());
+    await vehiclesPage.editorDialog.getByLabel("Make").fill(vehicle.make);
+    await vehiclesPage.editorDialog.getByLabel("Model").fill(vehicle.model);
+    await vehiclesPage.editorDialog.getByLabel("Color").fill(vehicle.color);
+    // Add a rental rate to the vehicle before saving
+    await vehiclesPage.editorDialog.getByRole("button", { name: "Add Rate" }).click();
+    await vehiclesPage.editorDialog.getByLabel("Cost Per Unit").fill("50");
+    await vehiclesPage.editorDialog.getByRole("button", { name: "Save" }).click();
+    await vehiclesPage.editorDialog.waitFor({ state: "hidden" });
+
+    await agreementsPage.gotoCreateAgreement();
+    await page.getByRole("button", { name: "Select an existing vehicle" }).click();
+    const selectionDialog = page.getByRole("dialog", { name: /select vehicle/i });
+    await selectionDialog.getByLabel("Search").fill(vehicle.VIN);
+    await selectionDialog
+      .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
+      .first()
+      .click({ force: true });
+    await expect(page.getByText("Existing Vehicle")).toBeVisible();
+
+    await page.getByRole("button", { name: "Edit Charges" }).click();
+    const chargesDialog = page.locator('[role="dialog"]').filter({ hasText: "Edit Charges" });
+    await chargesDialog.waitFor({ state: "visible" });
+
+    // The vehicle's rental rate should appear as a line item in the billing dialog
+    await expect(chargesDialog.getByText("HOURS")).toBeVisible();
+    await expect(chargesDialog.getByText(/\$50\.00 PER HOUR/)).toBeVisible();
+  });
+
+  test("should persist changes to an active agreement after saving", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    const fullNameInput = page.locator('input[name="rentee.full_name"]');
+    const originalName = await fullNameInput.inputValue();
+    const updatedName = `${originalName}-EDITED`;
+
+    await fullNameInput.fill(updatedName);
+    await page.keyboard.press("Tab");
+
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expect(page.getByTestId("iframe")).toBeVisible({ timeout: 15_000 });
+
+    await agreementsPage.goto();
+    await agreementsPage.openAgreementDetails(agreementNumber);
+
+    await expect(page.locator('input[name="rentee.full_name"]')).toHaveValue(updatedName);
+  });
+
+  test("should search agreements by agreement number", async ({ agreementsPage, testDataContext }) => {
+    const customer1 = testDataContext.customers[0];
+    const customer2 = testDataContext.customers[1];
+    const vehicle1 = testDataContext.vehicles[0];
+    const vehicle2 = testDataContext.vehicles[1];
+
+    const agreementNumber1 = await agreementsPage.createAgreement({
+      customer: customer1,
+      vehicle: vehicle1,
+    });
+    await agreementsPage.createAgreement({ customer: customer2, vehicle: vehicle2 });
+
+    await agreementsPage.search(agreementNumber1);
+    await expect(agreementsPage.getAgreementRow(agreementNumber1)).toBeVisible();
+    await expect(agreementsPage.getAgreementRow(customer2.full_name)).toHaveCount(0);
+  });
+
   test("should support writing and saving a clerk signature", async ({
     agreementsPage,
     testDataContext,
