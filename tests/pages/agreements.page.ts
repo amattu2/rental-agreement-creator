@@ -277,7 +277,7 @@ export class AgreementsPage extends BasePage {
           ? 0
           : hours;
     const returnedDate = new Date(year, month - 1, day, hours24, minutes);
-    await this.typeDateTime("Vehicle Returned Date/Time", returnedDate);
+    await this.typeDateTime("Return date", returnedDate);
 
     await dialog.getByLabel(/^odometer in$/i).fill(finalizationData.actualOdometerIn.toString());
     await dialog.getByLabel(/^fuel level in$/i).click();

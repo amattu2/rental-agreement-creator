@@ -395,9 +395,14 @@ test.describe("Agreement Lifecycle", () => {
     const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
     await expect(dialog).toBeVisible();
 
+    await dialog.getByLabel(/^odometer in$/i).fill("1100");
+    await dialog.getByLabel(/^fuel level in$/i).click();
+    await page.getByRole("option", { name: "F" }).click();
+
     await installWindowOpenSpy(page);
     await dialog.getByRole("button", { name: /^confirm$/i }).click();
     await expectWindowOpenCalledWithBlobUrl(page);
+    await dialog.waitFor({ state: "hidden" });
 
     await agreementsPage.filterByStatus("archived");
     await openAgreementActions(agreementsPage, agreementNumber);
