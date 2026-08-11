@@ -58,7 +58,6 @@ export class AgreementsPage extends BasePage {
    */
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
-    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -68,7 +67,6 @@ export class AgreementsPage extends BasePage {
     await this.statusFilter.click();
     // MUI Select renders options in a listbox outside the main DOM
     await this.page.getByRole("option", { name: new RegExp(`^${status}$`, "i") }).click();
-    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -98,9 +96,8 @@ export class AgreementsPage extends BasePage {
   /**
    * Create a new agreement by filling the form fields directly.
    *
-   * Avoids the selection dialogs (whose GridActionsCellItem onClick is unreliable under force:true)
-   * and instead fills rentee/vehicle fields in-place. The form's onSubmit handler then upserts
-   * those records into the database automatically.
+   * Avoids the selection dialogs and instead fills rentee/vehicle fields in-place.
+   * The form's onSubmit handler then upserts those records into the database automatically.
    */
   async createAgreement(data: { customer: RenteeSchema; vehicle: VehicleSchema }): Promise<string> {
     return this.createAgreementWithOptions(data, { chargesAction: "save-close" });
@@ -139,24 +136,10 @@ export class AgreementsPage extends BasePage {
       .fill(data.customer.driver_license_state);
 
     const licenseExpiry = data.customer.driver_license_expiration;
-    // Click the first editable section span directly — clicking the group fires React onClick async,
-    // which can leave focus on the previous field when keyboard.press() is called
-    await this.page
-      .getByRole("group", { name: "Driver's license expiration" })
-      .locator('[data-sectionindex="0"]')
-      .click();
-    for (const char of `${String(licenseExpiry.getMonth() + 1).padStart(2, "0")}${String(licenseExpiry.getDate()).padStart(2, "0")}${licenseExpiry.getFullYear()}`) {
-      await this.page.keyboard.press(char);
-    }
+    await this.typeDate("Driver's license expiration", licenseExpiry);
 
     const dob = data.customer.date_of_birth;
-    await this.page
-      .getByRole("group", { name: "Date of birth" })
-      .locator('[data-sectionindex="0"]')
-      .click();
-    for (const char of `${String(dob.getMonth() + 1).padStart(2, "0")}${String(dob.getDate()).padStart(2, "0")}${dob.getFullYear()}`) {
-      await this.page.keyboard.press(char);
-    }
+    await this.typeDate("Date of birth", dob);
 
     await this.page
       .locator('input[name="rental_vehicle.stock_number"]')
@@ -192,12 +175,12 @@ export class AgreementsPage extends BasePage {
       await chargesDialog
         .locator("button")
         .filter({ hasText: /save.*generate/i })
-        .click({ force: true });
+        .click();
     } else {
       await chargesDialog
         .locator("button")
         .filter({ hasText: /save.*close/i })
-        .click({ force: true });
+        .click();
       await this.page.getByRole("button", { name: "Generate Agreement" }).click();
     }
     await chargesDialog.waitFor({ state: "hidden" });
@@ -263,14 +246,18 @@ export class AgreementsPage extends BasePage {
     }
   ): Promise<void> {
     await this.openAgreementActions(identifier);
-    await this.page.getByRole("menuitem", { name: /^finalize$/i }).click();
+    const finalizeAction = this.page.getByRole("menuitem", { name: /^finalize$/i });
+    await finalizeAction.waitFor({ state: "visible" });
+    await finalizeAction.click();
 
     const dialog = this.page.getByRole("dialog", { name: /finalize agreement/i });
     await dialog.waitFor({ state: "visible" });
 
     await this.typeDateTime("Return date", finalizationData.vehicleReturnedAt);
 
-    await dialog.getByLabel(/^odometer in$/i).fill(finalizationData.actualOdometerIn.toString());
+    await dialog
+      .locator('input[name="actual_odometer_in"]')
+      .fill(finalizationData.actualOdometerIn.toString());
     await dialog.getByLabel(/^fuel level in$/i).click();
     await this.page.getByRole("option", { name: finalizationData.actualFuelLevel }).click();
 

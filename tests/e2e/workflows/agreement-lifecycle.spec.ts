@@ -229,6 +229,8 @@ test.describe("Agreement Lifecycle", () => {
     testDataContext,
     page,
   }) => {
+    test.slow();
+
     const activeAgreementNumber = await agreementsPage.createAgreement({
       customer: testDataContext.customers[0],
       vehicle: testDataContext.vehicles[0],
@@ -240,7 +242,9 @@ test.describe("Agreement Lifecycle", () => {
     await expect(page.getByRole("menuitem", { name: "Finalize" })).toBeVisible();
     await expect(page.getByRole("menuitem", { name: "Cancel" })).toBeVisible();
     await expect(page.getByRole("menuitem", { name: "View Receipt" })).toHaveCount(0);
-    await page.keyboard.press("Escape");
+    await page.mouse.click(8, 8);
+    await page.getByLabel("Status", { exact: true }).click();
+    await page.getByRole("option", { name: /^active$/i }).click();
 
     const vehicleReturnedAt = new Date();
     vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
@@ -258,7 +262,9 @@ test.describe("Agreement Lifecycle", () => {
     await expect(page.getByRole("menuitem", { name: "View Receipt" })).toBeVisible();
     await expect(page.getByRole("menuitem", { name: "Finalize" })).toHaveCount(0);
     await expect(page.getByRole("menuitem", { name: "Cancel" })).toHaveCount(0);
-    await page.keyboard.press("Escape");
+    await page.mouse.click(8, 8);
+    await page.getByLabel("Status", { exact: true }).click();
+    await page.getByRole("option", { name: /^archived$/i }).click();
 
     const canceledAgreementNumber = await agreementsPage.createAgreement({
       customer: testDataContext.customers[2],
@@ -327,6 +333,8 @@ test.describe("Agreement Lifecycle", () => {
     testDataContext,
     page,
   }) => {
+    test.slow();
+
     const archivedAgreementNumber = await agreementsPage.createAgreement({
       customer: testDataContext.customers[0],
       vehicle: testDataContext.vehicles[0],

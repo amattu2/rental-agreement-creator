@@ -35,7 +35,6 @@ export class CustomersPage extends BasePage {
    */
   async searchByName(name: string): Promise<void> {
     await this.searchInput.fill(name);
-    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -89,8 +88,7 @@ export class CustomersPage extends BasePage {
    */
   async editCustomer(customerName: string, updates: Partial<RenteeSchema>): Promise<void> {
     await this.searchByName(customerName);
-    // MUI DataGrid action buttons need force:true to bypass actionability checks
-    await this.page.locator('[aria-label="Edit"]').click({ force: true });
+    await this.getCustomerRow(customerName).getByLabel("Edit").click();
     await this.editorDialog.waitFor({ state: "visible" });
 
     if (updates.full_name) {
