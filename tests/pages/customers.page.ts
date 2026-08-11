@@ -35,7 +35,6 @@ export class CustomersPage extends BasePage {
    */
   async searchByName(name: string): Promise<void> {
     await this.searchInput.fill(name);
-    await this.page.waitForTimeout(1000);
   }
 
   /**

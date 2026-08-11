@@ -95,11 +95,18 @@ export abstract class BasePage {
     const hours12 = String(((hours24 + 11) % 12) + 1).padStart(2, "0");
 
     await this.page.getByRole("group", { name: label }).locator("[data-sectionindex='0']").click();
+    await this.page.keyboard.type(`${month}${day}${year}${hours12}${minutes}${meridiem[0]}`);
+  }
 
-    for (const char of `${month}${day}${year}${hours12}${minutes}${meridiem[0]}`) {
-      await this.page.keyboard.press(char);
-    }
+  /**
+   * Type a date value into a MUI DatePicker field group.
+   */
+  protected async typeDate(label: string, date: Date): Promise<void> {
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const year = date.getFullYear();
 
-    await this.page.keyboard.press("Tab");
+    await this.page.getByRole("group", { name: label }).locator("[data-sectionindex='0']").click();
+    await this.page.keyboard.type(`${month}${day}${year}`);
   }
 }

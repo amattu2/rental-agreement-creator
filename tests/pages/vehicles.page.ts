@@ -37,7 +37,6 @@ export class VehiclesPage extends BasePage {
    */
   async search(query: string): Promise<void> {
     await this.searchInput.fill(query);
-    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -46,7 +45,6 @@ export class VehiclesPage extends BasePage {
   async filterByStatus(status: BaseStatus): Promise<void> {
     await this.statusFilter.click();
     await this.page.getByRole("option", { name: new RegExp(`^${status}$`, "i") }).click();
-    await this.page.waitForTimeout(1000);
   }
 
   /**
@@ -119,7 +117,6 @@ export class VehiclesPage extends BasePage {
       .locator('[aria-label="Deactivate"], [aria-label="Activate"]')
       .first()
       .click({ force: true });
-    await this.page.waitForTimeout(1000);
   }
 
   /**
