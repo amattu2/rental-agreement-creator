@@ -172,13 +172,14 @@ export class AgreementsPage extends BasePage {
 
     // Rental agreement info — use name-attribute selectors, exact labels share substrings with DatePicker sections
     const pickupDate = new Date();
+    pickupDate.setDate(pickupDate.getDate() - 2);
     pickupDate.setHours(9, 0, 0, 0);
     await this.typeDateTime("Pickup date", pickupDate);
 
     await this.page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1000");
     await this.page.locator('input[name="rental_agreement_info.odometer_in"]').fill("1000");
 
-    const returnDate = new Date(pickupDate);
+    const returnDate = new Date();
     returnDate.setDate(returnDate.getDate() + 7);
     returnDate.setHours(10, 0, 0, 0);
     await this.typeDateTime("Return date", returnDate);
@@ -256,7 +257,7 @@ export class AgreementsPage extends BasePage {
   async finalizeAgreement(
     identifier: string,
     finalizationData: {
-      vehicleReturnedAt: string;
+      vehicleReturnedAt: Date;
       actualOdometerIn: number;
       actualFuelLevel: string;
     }
@@ -267,17 +268,7 @@ export class AgreementsPage extends BasePage {
     const dialog = this.page.getByRole("dialog", { name: /finalize agreement/i });
     await dialog.waitFor({ state: "visible" });
 
-    const [datePart, timePart, meridiem] = finalizationData.vehicleReturnedAt.split(" ");
-    const [month, day, year] = datePart.split("/").map(Number);
-    const [hours, minutes] = timePart.split(":").map(Number);
-    const hours24 =
-      meridiem === "PM" && hours !== 12
-        ? hours + 12
-        : meridiem === "AM" && hours === 12
-          ? 0
-          : hours;
-    const returnedDate = new Date(year, month - 1, day, hours24, minutes);
-    await this.typeDateTime("Vehicle Returned Date/Time", returnedDate);
+    await this.typeDateTime("Return date", finalizationData.vehicleReturnedAt);
 
     await dialog.getByLabel(/^odometer in$/i).fill(finalizationData.actualOdometerIn.toString());
     await dialog.getByLabel(/^fuel level in$/i).click();
