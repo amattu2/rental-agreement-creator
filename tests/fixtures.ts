@@ -17,6 +17,13 @@ type TestFixtures = {
 };
 
 export const test = base.extend<TestFixtures>({
+  page: async ({ page }, use) => {
+    // Show mouse cursor and highlight elements during test execution
+    await page.screencast.showActions({ cursor: 'pointer' });
+    
+    await use(page);
+  },
+    
   testDataContext: async ({}, use) => {
     const context = {
       customers: TEST_CUSTOMERS,
