@@ -172,13 +172,14 @@ export class AgreementsPage extends BasePage {
 
     // Rental agreement info — use name-attribute selectors, exact labels share substrings with DatePicker sections
     const pickupDate = new Date();
+    pickupDate.setDate(pickupDate.getDate() - 2);
     pickupDate.setHours(9, 0, 0, 0);
     await this.typeDateTime("Pickup date", pickupDate);
 
     await this.page.locator('input[name="rental_agreement_info.odometer_out"]').fill("1000");
     await this.page.locator('input[name="rental_agreement_info.odometer_in"]').fill("1000");
 
-    const returnDate = new Date(pickupDate);
+    const returnDate = new Date();
     returnDate.setDate(returnDate.getDate() + 7);
     returnDate.setHours(10, 0, 0, 0);
     await this.typeDateTime("Return date", returnDate);
