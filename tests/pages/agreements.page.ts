@@ -96,7 +96,7 @@ export class AgreementsPage extends BasePage {
   /**
    * Create a new agreement by filling the form fields directly.
    *
-   * Avoids the selection dialogs (whose GridActionsCellItem onClick is unreliable under force:true)
+   * Avoids the selection dialogs and instead fills rentee/vehicle fields in-place.
    * and instead fills rentee/vehicle fields in-place. The form's onSubmit handler then upserts
    * those records into the database automatically.
    */
@@ -176,12 +176,12 @@ export class AgreementsPage extends BasePage {
       await chargesDialog
         .locator("button")
         .filter({ hasText: /save.*generate/i })
-        .click({ force: true });
+        .click();
     } else {
       await chargesDialog
         .locator("button")
         .filter({ hasText: /save.*close/i })
-        .click({ force: true });
+        .click();
       await this.page.getByRole("button", { name: "Generate Agreement" }).click();
     }
     await chargesDialog.waitFor({ state: "hidden" });

@@ -3,7 +3,7 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import prettier from "eslint-config-prettier/flat";
 import importPlugin from "eslint-plugin-import";
-import playwright from 'eslint-plugin-playwright'
+import playwright from "eslint-plugin-playwright";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -33,10 +33,27 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-    {
-    files: ['tests/**'],
-    extends: [playwright.configs['flat/recommended']],
-    rules: {},
+  {
+    files: ["tests/**"],
+    extends: [playwright.configs["flat/recommended"]],
+    rules: {
+      "playwright/expect-expect": [
+        "warn",
+        {
+          assertFunctionNames: [
+            "expectAgreementExists",
+            "expectAgreementNotExists",
+            "expectCustomerExists",
+            "expectCustomerNotExists",
+            "expectVehicleExists",
+            "expectVehicleNotExists",
+            "expectWindowOpenCalledWithBlobUrl",
+            "expectGenerateTooltip",
+            "openPdfPopupAndCaptureScreenshot",
+          ],
+        },
+      ],
+    },
   },
   prettier,
   globalIgnores([

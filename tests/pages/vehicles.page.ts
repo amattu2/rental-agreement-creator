@@ -78,8 +78,7 @@ export class VehiclesPage extends BasePage {
    */
   async editVehicle(vin: string, updates: Partial<VehicleSchema>): Promise<void> {
     await this.search(vin);
-    // MUI DataGrid action buttons need force:true to bypass actionability checks
-    await this.page.locator('[aria-label="Edit"]').click({ force: true });
+    await this.page.locator('[aria-label="Edit"]').click();
     await this.editorDialog.waitFor({ state: "visible" });
 
     if (updates.make) {
@@ -113,10 +112,7 @@ export class VehiclesPage extends BasePage {
   async toggleVehicleStatus(vin: string): Promise<void> {
     await this.search(vin);
     const row = this.getVehicleRow(vin);
-    await row
-      .locator('[aria-label="Deactivate"], [aria-label="Activate"]')
-      .first()
-      .click({ force: true });
+    await row.locator('[aria-label="Deactivate"], [aria-label="Activate"]').first().click();
   }
 
   /**

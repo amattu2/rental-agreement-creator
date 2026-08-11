@@ -19,10 +19,10 @@ export abstract class BasePage {
   }
 
   /**
-   * Wait for the page to fully load (network idle)
+   * Wait for the page load event.
    */
   async waitForPageLoad(): Promise<void> {
-    await this.page.waitForLoadState("networkidle");
+    await this.page.waitForLoadState("load");
   }
 
   /**
@@ -54,10 +54,12 @@ export abstract class BasePage {
   }
 
   /**
-   * Wait for navigation to complete after an action
+   * Wait for URL change after an action that triggers navigation.
    */
   async waitForNavigation(action: () => Promise<void>): Promise<void> {
-    await Promise.all([this.page.waitForNavigation(), action()]);
+    const initialUrl = this.page.url();
+
+    await Promise.all([this.page.waitForURL((url) => url.toString() !== initialUrl), action()]);
   }
 
   /**

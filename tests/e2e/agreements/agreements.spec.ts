@@ -9,7 +9,7 @@ const saveChargesAndClose = async (page: Page) => {
   await chargesDialog
     .locator("button")
     .filter({ hasText: /save.*close/i })
-    .click({ force: true });
+    .click();
   await chargesDialog.waitFor({ state: "hidden" });
 };
 
@@ -226,7 +226,7 @@ test.describe("Agreements", () => {
     await chargesDialog
       .locator("button")
       .filter({ hasText: /save.*close/i })
-      .click({ force: true });
+      .click();
     await chargesDialog.waitFor({ state: "hidden" });
 
     await page.getByRole("button", { name: "Edit Charges" }).click();
@@ -399,7 +399,7 @@ test.describe("Agreements", () => {
     await customerDialog
       .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     await expect(page.getByText("Existing Customer")).toBeVisible();
     await expect(page.locator('input[name="rentee.full_name"]')).toHaveValue(customer.full_name);
@@ -411,7 +411,7 @@ test.describe("Agreements", () => {
     await vehicleDialog
       .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     await expect(page.getByText("Existing Vehicle")).toBeVisible();
     await expect(page.locator('input[name="rental_vehicle.stock_number"]')).toHaveValue(
@@ -454,7 +454,7 @@ test.describe("Agreements", () => {
     await customerDialog
       .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     await page.getByRole("button", { name: "Select an existing vehicle" }).click();
     const vehicleDialog = page.getByRole("dialog", { name: /select vehicle/i });
@@ -462,17 +462,13 @@ test.describe("Agreements", () => {
     await vehicleDialog
       .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     await expect(page.getByText("Existing Customer")).toBeVisible();
     await expect(page.getByText("Existing Vehicle")).toBeVisible();
 
-    await page
-      .locator('[aria-label="Clear customer selection"] .MuiChip-deleteIcon')
-      .click({ force: true });
-    await page
-      .locator('[aria-label="Clear vehicle selection"] .MuiChip-deleteIcon')
-      .click({ force: true });
+    await page.locator('[aria-label="Clear customer selection"] .MuiChip-deleteIcon').click();
+    await page.locator('[aria-label="Clear vehicle selection"] .MuiChip-deleteIcon').click();
 
     await expect(page.getByText("Existing Customer")).toHaveCount(0);
     await expect(page.getByText("Existing Vehicle")).toHaveCount(0);
@@ -543,7 +539,7 @@ test.describe("Agreements", () => {
     await customerDialog
       .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     await page.getByRole("button", { name: "Select an existing vehicle" }).click();
     const vehicleDialog = page.getByRole("dialog", { name: /select vehicle/i });
@@ -551,7 +547,7 @@ test.describe("Agreements", () => {
     await vehicleDialog
       .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     const pickupDate = new Date();
     pickupDate.setHours(10, 0, 0, 0);
@@ -607,7 +603,7 @@ test.describe("Agreements", () => {
     await customerDialog
       .locator(`[role="row"]:has-text("${customer.full_name}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     await page.getByRole("button", { name: "Select an existing vehicle" }).click();
     const vehicleDialog = page.getByRole("dialog", { name: /select vehicle/i });
@@ -615,7 +611,7 @@ test.describe("Agreements", () => {
     await vehicleDialog
       .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
 
     const pickupDate = new Date();
     pickupDate.setHours(9, 0, 0, 0);
@@ -676,7 +672,7 @@ test.describe("Agreements", () => {
     await selectionDialog
       .locator(`[role="row"]:has-text("${vehicle.VIN}") [aria-label="Select"]`)
       .first()
-      .click({ force: true });
+      .click();
     await expect(page.getByText("Existing Vehicle")).toBeVisible();
 
     await page.getByRole("button", { name: "Edit Charges" }).click();
@@ -851,7 +847,7 @@ test.describe("Agreements", () => {
     await chargesDialog
       .locator("button")
       .filter({ hasText: /save.*generate/i })
-      .click({ force: true });
+      .click();
     await chargesDialog.waitFor({ state: "hidden" });
 
     // A successful submit resets form dirtiness, which enables stable persistence checks.
