@@ -395,6 +395,11 @@ test.describe("Agreement Lifecycle", () => {
     const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
     await expect(dialog).toBeVisible();
 
+    const finalizedReturnDate = new Date();
+    finalizedReturnDate.setDate(finalizedReturnDate.getDate() + 1);
+    finalizedReturnDate.setHours(10, 15, 0, 0);
+    await agreementsPage.typeDateTimeField("Return date", finalizedReturnDate);
+
     await dialog.getByLabel(/^odometer in$/i).fill("1100");
     await dialog.getByLabel(/^fuel level in$/i).click();
     await page.getByRole("option", { name: "F" }).click();
