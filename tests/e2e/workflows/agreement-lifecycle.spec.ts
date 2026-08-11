@@ -188,8 +188,12 @@ test.describe("Agreement Lifecycle", () => {
     const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
     await agreementsPage.expectAgreementExists(agreementNumber, "active");
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(agreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -238,8 +242,12 @@ test.describe("Agreement Lifecycle", () => {
     await expect(page.getByRole("menuitem", { name: "View Receipt" })).toHaveCount(0);
     await page.keyboard.press("Escape");
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(activeAgreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -323,8 +331,13 @@ test.describe("Agreement Lifecycle", () => {
       customer: testDataContext.customers[0],
       vehicle: testDataContext.vehicles[0],
     });
+
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(archivedAgreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -352,7 +365,7 @@ test.describe("Agreement Lifecycle", () => {
     await expect(page.locator('input[name="rentee.full_name"]')).toBeDisabled();
   });
 
-  test("should prevent finalization when odometer in is invalid", async ({
+  test("should prevent finalization when odometer in is less than pickup odometer", async ({
     agreementsPage,
     testDataContext,
     page,
@@ -369,10 +382,54 @@ test.describe("Agreement Lifecycle", () => {
     const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
     await expect(dialog).toBeVisible();
 
-    await dialog.getByLabel(/^odometer in$/i).fill("-1");
+    const finalizedReturnDate = new Date();
+    finalizedReturnDate.setDate(finalizedReturnDate.getDate() + 1);
+    finalizedReturnDate.setHours(10, 15, 0, 0);
+    await agreementsPage.typeDateTimeField("Return date", finalizedReturnDate);
+
+    await dialog.getByLabel(/^odometer in$/i).fill("999");
+    await dialog.getByLabel(/^fuel level in$/i).click();
+    await page.getByRole("option", { name: "F" }).click();
     await dialog.getByRole("button", { name: /^confirm$/i }).click();
 
-    await expect(dialog.getByText("Odometer reading cannot be negative")).toBeVisible();
+    await expect(
+      dialog.getByText("Odometer at return must be greater than or equal to odometer at pickup")
+    ).toBeVisible();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole("button", { name: /^cancel$/i }).click();
+    await expect(dialog).toBeHidden();
+  });
+
+  test("should prevent finalization when return date is before pickup date", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+
+    await agreementsPage.filterByStatus("active");
+    await openAgreementActions(agreementsPage, agreementNumber);
+    await page.getByRole("menuitem", { name: /^finalize$/i }).click();
+
+    const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
+    await expect(dialog).toBeVisible();
+
+    const invalidReturnDate = new Date();
+    invalidReturnDate.setDate(invalidReturnDate.getDate() - 30);
+    invalidReturnDate.setHours(8, 0, 0, 0);
+    await agreementsPage.typeDateTimeField("Return date", invalidReturnDate);
+
+    await dialog.getByLabel(/^odometer in$/i).fill("1100");
+    await dialog.getByLabel(/^fuel level in$/i).click();
+    await page.getByRole("option", { name: "F" }).click();
+    await dialog.getByRole("button", { name: /^confirm$/i }).click();
+
+    await expect(
+      dialog.getByText("Return date and time must be after pickup date and time")
+    ).toBeVisible();
     await expect(dialog).toBeVisible();
     await dialog.getByRole("button", { name: /^cancel$/i }).click();
     await expect(dialog).toBeHidden();
@@ -395,9 +452,19 @@ test.describe("Agreement Lifecycle", () => {
     const dialog = page.getByRole("dialog", { name: /finalize agreement/i });
     await expect(dialog).toBeVisible();
 
+    const finalizedReturnDate = new Date();
+    finalizedReturnDate.setDate(finalizedReturnDate.getDate() + 1);
+    finalizedReturnDate.setHours(10, 15, 0, 0);
+    await agreementsPage.typeDateTimeField("Return date", finalizedReturnDate);
+
+    await dialog.getByLabel(/^odometer in$/i).fill("1100");
+    await dialog.getByLabel(/^fuel level in$/i).click();
+    await page.getByRole("option", { name: "F" }).click();
+
     await installWindowOpenSpy(page);
     await dialog.getByRole("button", { name: /^confirm$/i }).click();
     await expectWindowOpenCalledWithBlobUrl(page);
+    await dialog.waitFor({ state: "hidden" });
 
     await agreementsPage.filterByStatus("archived");
     await openAgreementActions(agreementsPage, agreementNumber);
@@ -435,8 +502,12 @@ test.describe("Agreement Lifecycle", () => {
       vehicle: testDataContext.vehicles[1],
     });
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(agreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -474,8 +545,12 @@ test.describe("Agreement Lifecycle", () => {
       vehicle: testDataContext.vehicles[1],
     });
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(agreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
