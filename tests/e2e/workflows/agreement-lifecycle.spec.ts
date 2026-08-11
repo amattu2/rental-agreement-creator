@@ -188,8 +188,12 @@ test.describe("Agreement Lifecycle", () => {
     const agreementNumber = await agreementsPage.createAgreement({ customer, vehicle });
     await agreementsPage.expectAgreementExists(agreementNumber, "active");
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(agreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -238,8 +242,12 @@ test.describe("Agreement Lifecycle", () => {
     await expect(page.getByRole("menuitem", { name: "View Receipt" })).toHaveCount(0);
     await page.keyboard.press("Escape");
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(activeAgreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -323,8 +331,13 @@ test.describe("Agreement Lifecycle", () => {
       customer: testDataContext.customers[0],
       vehicle: testDataContext.vehicles[0],
     });
+
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(archivedAgreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -445,8 +458,12 @@ test.describe("Agreement Lifecycle", () => {
       vehicle: testDataContext.vehicles[1],
     });
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(agreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
@@ -484,8 +501,12 @@ test.describe("Agreement Lifecycle", () => {
       vehicle: testDataContext.vehicles[1],
     });
 
+    const vehicleReturnedAt = new Date();
+    vehicleReturnedAt.setDate(vehicleReturnedAt.getDate() + 1);
+    vehicleReturnedAt.setHours(10, 15, 0, 0);
+
     await agreementsPage.finalizeAgreement(agreementNumber, {
-      vehicleReturnedAt: "08/01/2026 10:15 AM",
+      vehicleReturnedAt,
       actualOdometerIn: 1100,
       actualFuelLevel: "F",
     });
