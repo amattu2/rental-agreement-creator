@@ -97,8 +97,7 @@ export class AgreementsPage extends BasePage {
    * Create a new agreement by filling the form fields directly.
    *
    * Avoids the selection dialogs and instead fills rentee/vehicle fields in-place.
-   * and instead fills rentee/vehicle fields in-place. The form's onSubmit handler then upserts
-   * those records into the database automatically.
+   * The form's onSubmit handler then upserts those records into the database automatically.
    */
   async createAgreement(data: { customer: RenteeSchema; vehicle: VehicleSchema }): Promise<string> {
     return this.createAgreementWithOptions(data, { chargesAction: "save-close" });

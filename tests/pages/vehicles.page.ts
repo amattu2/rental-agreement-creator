@@ -78,7 +78,7 @@ export class VehiclesPage extends BasePage {
    */
   async editVehicle(vin: string, updates: Partial<VehicleSchema>): Promise<void> {
     await this.search(vin);
-    await this.page.locator('[aria-label="Edit"]').click();
+    await this.getVehicleRow(vin).getByLabel("Edit").click();
     await this.editorDialog.waitFor({ state: "visible" });
 
     if (updates.make) {

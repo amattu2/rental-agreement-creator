@@ -88,7 +88,7 @@ export class CustomersPage extends BasePage {
    */
   async editCustomer(customerName: string, updates: Partial<RenteeSchema>): Promise<void> {
     await this.searchByName(customerName);
-    await this.page.locator('[aria-label="Edit"]').click();
+    await this.getCustomerRow(customerName).getByLabel("Edit").click();
     await this.editorDialog.waitFor({ state: "visible" });
 
     if (updates.full_name) {
