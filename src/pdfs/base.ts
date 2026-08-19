@@ -21,18 +21,20 @@ jsPDF.API.buildTextField = function (
   w: number,
   height = 5,
   value = "",
-  readonly = false
+  readonly = false,
+  multiline = false
 ): void {
   const field = new AcroFormTextField();
   field.value = value;
   field.defaultValue = value;
   field.fontName = "Helvetica";
   field.fontStyle = "normal";
-  field.fontSize = 8;
+  field.fontSize = multiline ? 0 : 8;
   field.maxFontSize = 8;
   field.textAlign = "left";
   field.fieldName = name;
-  field.multiline = false;
+  field.multiline = multiline;
+  field.hasAppearanceStream = multiline;
   field.readOnly = readonly;
   field.x = x + 0.2;
   field.y = y;

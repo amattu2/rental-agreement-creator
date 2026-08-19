@@ -649,17 +649,16 @@ export const generateAgreement = async (
     doc.setTextColor(0, 0, 0);
     doc.setCharSpace(0);
     doc.text("COMMENTS", 5, currentY + 4.5);
-
-    doc.setTextColor(59, 59, 59);
-    doc.setCharSpace(-0.2);
-    doc.setLineHeightFactor(0.96);
-    // TODO: This should be a textbox
-    doc.text(form?.rental_agreement_info.comments ?? "", 5, currentY + 9, {
-      maxWidth: dividerX,
-    });
-
-    doc.setCharSpace(0);
-    doc.setLineHeightFactor(1);
+    doc.buildTextField(
+      "RENTAL_AGREEMENT_COMMENTS",
+      5,
+      currentY + 6,
+      dividerX - 5,
+      25,
+      form.rental_agreement_info.comments,
+      readonly,
+      true
+    );
   }
 
   currentY += 34;

@@ -10,7 +10,8 @@ declare module "jspdf" {
       w: number,
       height?: number,
       value?: string,
-      readonly?: boolean
+      readonly?: boolean,
+      multiline?: boolean
     ): void;
     buildComboField(
       name: string,
@@ -52,7 +53,8 @@ declare module "jspdf" {
       w: number,
       height?: number,
       value?: string,
-      readonly?: boolean
+      readonly?: boolean,
+      multiline?: boolean
     ): void;
     buildComboField(
       name: string,
