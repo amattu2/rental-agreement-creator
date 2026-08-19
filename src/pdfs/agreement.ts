@@ -643,7 +643,25 @@ export const generateAgreement = async (
   doc.setLineWidth(0.4);
   doc.line(5, currentY, dividerX, currentY);
 
-  // NOTE: This is a buffer section that can be adjusted as needed
+  if (form?.rental_agreement_info.comments_public && !!form?.rental_agreement_info.comments) {
+    doc.setFont("Cousine", "normal", 400);
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    doc.setCharSpace(0);
+    doc.text("COMMENTS", 5, currentY + 4.5);
+
+    doc.setTextColor(59, 59, 59);
+    doc.setCharSpace(-0.2);
+    doc.setLineHeightFactor(0.96);
+    // TODO: This should be a textbox
+    doc.text(form?.rental_agreement_info.comments ?? "", 5, currentY + 9, {
+      maxWidth: dividerX,
+    });
+
+    doc.setCharSpace(0);
+    doc.setLineHeightFactor(1);
+  }
+
   currentY += 34;
   doc.line(5, currentY, dividerX, currentY);
 

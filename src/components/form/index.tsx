@@ -331,6 +331,22 @@ export const RentalAgreementForm = () => {
               />
             </FieldCell>
           </FieldRow>
+
+          <FieldRow>
+            <FieldCell>
+              <TextInput
+                name="rental_agreement_info.comments"
+                label="Comments"
+                minRows={2}
+                maxRows={4}
+                multiline
+              />
+              <CheckboxInput
+                name="rental_agreement_info.comments_public"
+                label="Include on agreement document"
+              />
+            </FieldCell>
+          </FieldRow>
         </Stack>
       </Section>
 
