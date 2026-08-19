@@ -1,8 +1,25 @@
-import { Page, Locator, expect } from "@playwright/test";
+import { createCanvas } from "@napi-rs/canvas";
+import { Page, Locator, expect, type TestInfo } from "@playwright/test";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 import type { RenteeSchema, VehicleSchema } from "@/schemas/form";
 
 import { BasePage } from "./base.page";
+
+declare global {
+  interface Window {
+    __openCalls?: Array<Array<unknown>>;
+    __originalOpen?: Window["open"];
+  }
+}
+
+const isCanvasRenderingContext2D = (value: unknown): value is CanvasRenderingContext2D => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return "canvas" in value && "fillRect" in value && "getImageData" in value;
+};
 
 /**
  * Page Object for Agreements list page (/) and create/edit agreement form
@@ -91,6 +108,110 @@ export class AgreementsPage extends BasePage {
   private async openAgreementActions(identifier: string): Promise<void> {
     const row = this.getAgreementRow(identifier);
     await row.getByRole("menuitem", { name: /^more$/i }).click();
+  }
+
+  /**
+   * Spy on window.open calls so PDF popup URLs can be inspected in tests.
+   */
+  async installWindowOpenSpy(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.__openCalls = [];
+
+      if (!window.__originalOpen) {
+        window.__originalOpen = window.open;
+      }
+
+      window.open = (...args: Array<unknown>) => {
+        window.__openCalls?.push(args);
+        return null;
+      };
+    });
+  }
+
+  /**
+   * Wait for the first captured window.open URL and return it.
+   */
+  private async getFirstWindowOpenUrl(): Promise<string> {
+    await expect
+      .poll(async () =>
+        this.page.evaluate(() => {
+          return window.__openCalls?.length ?? 0;
+        })
+      )
+      .toBeGreaterThan(0);
+
+    return this.page.evaluate(() => {
+      return String(window.__openCalls?.[0]?.[0] ?? "");
+    });
+  }
+
+  /**
+   * Assert that a captured window.open call points to a generated PDF blob URL.
+   */
+  async expectWindowOpenCalledWithBlobUrl(): Promise<void> {
+    const firstUrl = await this.getFirstWindowOpenUrl();
+
+    expect(firstUrl).toContain("blob:");
+  }
+
+  /**
+   * Open an agreement row PDF action, attach the PDF and rendered page screenshots, and return PDF form fields.
+   */
+  async capturePdfScreenshot(
+    actionName: "View Agreement" | "View Receipt",
+    artifactBaseName: string,
+    testInfo: TestInfo
+  ): Promise<Record<string, Array<object>> | null> {
+    await this.installWindowOpenSpy();
+    await this.page.getByRole("menuitem", { name: actionName }).click();
+
+    const pdfUrl = await this.getFirstWindowOpenUrl();
+    expect(pdfUrl).toContain("blob:");
+
+    const pdfBase64 = await this.page.evaluate(async (url: string) => {
+      const data = await fetch(url).then((response) => response.arrayBuffer());
+      const bytes = new Uint8Array(data);
+      let binary = "";
+      for (const byte of bytes) {
+        binary += String.fromCharCode(byte);
+      }
+
+      return btoa(binary);
+    }, pdfUrl);
+    const pdfBuffer = Buffer.from(pdfBase64, "base64");
+
+    await testInfo.attach(`${artifactBaseName}.pdf`, {
+      body: pdfBuffer,
+      contentType: "application/pdf",
+    });
+
+    const pdfBytes = new Uint8Array(pdfBuffer);
+    const pdf = await pdfjsLib.getDocument({
+      data: pdfBytes,
+      useSystemFonts: true,
+    }).promise;
+    const fieldObjects = await pdf.getFieldObjects();
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const pdfPage = await pdf.getPage(pageNumber);
+      const viewport = pdfPage.getViewport({ scale: 1.5 });
+
+      const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+      const context = canvas.getContext("2d");
+      if (!isCanvasRenderingContext2D(context)) {
+        throw new Error("Failed to initialize a 2D canvas context for PDF screenshot rendering");
+      }
+
+      await pdfPage.render({ canvas: null, canvasContext: context, viewport }).promise;
+      const screenshot = canvas.toBuffer("image/png");
+
+      await testInfo.attach(`${artifactBaseName}_${pageNumber}.png`, {
+        body: screenshot,
+        contentType: "image/png",
+      });
+    }
+
+    return fieldObjects;
   }
 
   /**
