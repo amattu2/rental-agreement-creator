@@ -726,8 +726,10 @@ test.describe("Agreements", () => {
     await agreementsPage.openAgreementDetails(agreementNumber);
     await page.locator('[name="rental_agreement_info.comments"]').fill(comments);
     await page.getByLabel("Include on agreement document").check();
+
+    await expect(page.getByTestId("stale-overlay")).toBeVisible();
     await page.getByRole("button", { name: "Generate Agreement" }).click();
-    await expect(page.getByTestId("iframe")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("stale-overlay")).toBeHidden();
 
     await agreementsPage.goto();
     await agreementsPage.filterByStatus("active");
@@ -762,8 +764,10 @@ test.describe("Agreements", () => {
       .locator('[name="rental_agreement_info.comments"]')
       .fill("These are private comments and should be kept internal only.");
     await page.getByLabel("Include on agreement document").uncheck();
+
+    await expect(page.getByTestId("stale-overlay")).toBeVisible();
     await page.getByRole("button", { name: "Generate Agreement" }).click();
-    await expect(page.getByTestId("iframe")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("stale-overlay")).toBeHidden();
 
     await agreementsPage.goto();
     await agreementsPage.filterByStatus("active");
