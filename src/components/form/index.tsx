@@ -338,8 +338,8 @@ export const RentalAgreementForm = () => {
                 name="rental_agreement_info.comments"
                 label="Comments"
                 minRows={2}
-                maxRows={4}
                 multiline
+                resizable
               />
               <CheckboxInput
                 name="rental_agreement_info.comments_visible"
