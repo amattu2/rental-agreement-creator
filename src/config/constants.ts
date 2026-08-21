@@ -143,6 +143,8 @@ export const DEFAULT_FORM: FormSchema = {
     max_payload_measurement: "LB",
     fuel_level_in: "F",
     fuel_level_out: "F",
+    comments: "",
+    comments_visible: false,
   },
   agreement_charges: {
     line_items: [],

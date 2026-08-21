@@ -219,6 +219,8 @@ const RENTAL_AGREEMENT_INFO_SCHEMA = z
       PAYLOAD_MEASUREMENT_OPTIONS.map((option) => option.value),
       "Maximum payload measurement must be either 'LB' or 'KG'"
     ),
+    comments: z.string().max(750, "Maximum of 750 characters allowed").optional(),
+    comments_visible: z.boolean().optional(),
   })
   .superRefine((data, ctx) => {
     if (!dayjs(data.date_in).isAfter(data.date_out)) {

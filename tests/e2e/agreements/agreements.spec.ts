@@ -712,6 +712,79 @@ test.describe("Agreements", () => {
     await expect(page.locator('input[name="rentee.full_name"]')).toHaveValue(updatedName);
   });
 
+  test("should include comments in the agreement PDF when checked", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[0],
+      vehicle: testDataContext.vehicles[0],
+    });
+    const comments = `Customer requested curbside pickup at terminal B.\nFuel receipt and gate pass are attached to the agreement packet.`;
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+    await page.locator('[name="rental_agreement_info.comments"]').fill(comments);
+    await page.getByLabel("Show comments on agreement").check();
+
+    await expect(page.getByTestId("stale-overlay")).toBeVisible();
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expect(page.getByTestId("stale-overlay")).toBeHidden();
+
+    await agreementsPage.goto();
+    await agreementsPage.filterByStatus("active");
+    await agreementsPage
+      .getAgreementRow(agreementNumber)
+      .getByRole("menuitem", { name: /^more$/i })
+      .click();
+
+    const fieldObjects = await agreementsPage.capturePdfScreenshot(
+      "View Agreement",
+      "Agreement-with-comments",
+      test.info()
+    );
+
+    expect(fieldObjects?.RENTAL_AGREEMENT_COMMENTS?.[0]).toMatchObject({
+      value: comments,
+    });
+  });
+
+  test("should not include comments in the agreement PDF when unchecked", async ({
+    agreementsPage,
+    testDataContext,
+    page,
+  }) => {
+    const agreementNumber = await agreementsPage.createAgreement({
+      customer: testDataContext.customers[1],
+      vehicle: testDataContext.vehicles[1],
+    });
+
+    await agreementsPage.openAgreementDetails(agreementNumber);
+    await page
+      .locator('[name="rental_agreement_info.comments"]')
+      .fill("These are private comments and should be kept internal only.");
+    await page.getByLabel("Show comments on agreement").uncheck();
+
+    await expect(page.getByTestId("stale-overlay")).toBeVisible();
+    await page.getByRole("button", { name: "Generate Agreement" }).click();
+    await expect(page.getByTestId("stale-overlay")).toBeHidden();
+
+    await agreementsPage.goto();
+    await agreementsPage.filterByStatus("active");
+    await agreementsPage
+      .getAgreementRow(agreementNumber)
+      .getByRole("menuitem", { name: /^more$/i })
+      .click();
+
+    const fieldObjects = await agreementsPage.capturePdfScreenshot(
+      "View Agreement",
+      "Agreement-with-comments",
+      test.info()
+    );
+
+    expect(fieldObjects?.RENTAL_AGREEMENT_COMMENTS).toStrictEqual(undefined);
+  });
+
   test("should search agreements by agreement number", async ({
     agreementsPage,
     testDataContext,

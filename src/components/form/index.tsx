@@ -294,7 +294,7 @@ export const RentalAgreementForm = () => {
         title="Agreement Information"
         description="Enter the automotive rental agreement information."
       >
-        <Stack spacing={3}>
+        <Stack spacing={2}>
           <TextInput name="agreement_number" label="Agreement number" />
 
           <FieldRow>
@@ -328,6 +328,22 @@ export const RentalAgreementForm = () => {
                 name="rental_agreement_info.max_payload_measurement"
                 label="Payload unit"
                 options={PAYLOAD_MEASUREMENT_OPTIONS}
+              />
+            </FieldCell>
+          </FieldRow>
+
+          <FieldRow>
+            <FieldCell>
+              <TextInput
+                name="rental_agreement_info.comments"
+                label="Comments"
+                minRows={2}
+                multiline
+                resizable
+              />
+              <CheckboxInput
+                name="rental_agreement_info.comments_visible"
+                label="Show comments on agreement"
               />
             </FieldCell>
           </FieldRow>

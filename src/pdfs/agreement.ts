@@ -643,7 +643,24 @@ export const generateAgreement = async (
   doc.setLineWidth(0.4);
   doc.line(5, currentY, dividerX, currentY);
 
-  // NOTE: This is a buffer section that can be adjusted as needed
+  if (form?.rental_agreement_info.comments_visible && !!form?.rental_agreement_info.comments) {
+    doc.setFont("Cousine", "normal", 400);
+    doc.setFontSize(8);
+    doc.setTextColor(0, 0, 0);
+    doc.setCharSpace(0);
+    doc.text("COMMENTS", 5, currentY + 4.5);
+    doc.buildTextField(
+      "RENTAL_AGREEMENT_COMMENTS",
+      5,
+      currentY + 6,
+      dividerX - 5,
+      25,
+      form.rental_agreement_info.comments,
+      readonly,
+      true
+    );
+  }
+
   currentY += 34;
   doc.line(5, currentY, dividerX, currentY);
 
