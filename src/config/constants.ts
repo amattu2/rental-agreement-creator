@@ -144,7 +144,7 @@ export const DEFAULT_FORM: FormSchema = {
     fuel_level_in: "F",
     fuel_level_out: "F",
     comments: "",
-    comments_public: false,
+    comments_visible: false,
   },
   agreement_charges: {
     line_items: [],

@@ -294,7 +294,7 @@ export const RentalAgreementForm = () => {
         title="Agreement Information"
         description="Enter the automotive rental agreement information."
       >
-        <Stack spacing={3}>
+        <Stack spacing={2}>
           <TextInput name="agreement_number" label="Agreement number" />
 
           <FieldRow>
@@ -342,8 +342,8 @@ export const RentalAgreementForm = () => {
                 multiline
               />
               <CheckboxInput
-                name="rental_agreement_info.comments_public"
-                label="Include on agreement document"
+                name="rental_agreement_info.comments_visible"
+                label="Show comments on agreement"
               />
             </FieldCell>
           </FieldRow>

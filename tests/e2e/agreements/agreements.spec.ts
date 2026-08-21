@@ -725,7 +725,7 @@ test.describe("Agreements", () => {
 
     await agreementsPage.openAgreementDetails(agreementNumber);
     await page.locator('[name="rental_agreement_info.comments"]').fill(comments);
-    await page.getByLabel("Include on agreement document").check();
+    await page.getByLabel("Show comments on agreement").check();
 
     await expect(page.getByTestId("stale-overlay")).toBeVisible();
     await page.getByRole("button", { name: "Generate Agreement" }).click();
@@ -763,7 +763,7 @@ test.describe("Agreements", () => {
     await page
       .locator('[name="rental_agreement_info.comments"]')
       .fill("These are private comments and should be kept internal only.");
-    await page.getByLabel("Include on agreement document").uncheck();
+    await page.getByLabel("Show comments on agreement").uncheck();
 
     await expect(page.getByTestId("stale-overlay")).toBeVisible();
     await page.getByRole("button", { name: "Generate Agreement" }).click();

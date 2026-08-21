@@ -643,7 +643,7 @@ export const generateAgreement = async (
   doc.setLineWidth(0.4);
   doc.line(5, currentY, dividerX, currentY);
 
-  if (form?.rental_agreement_info.comments_public && !!form?.rental_agreement_info.comments) {
+  if (form?.rental_agreement_info.comments_visible && !!form?.rental_agreement_info.comments) {
     doc.setFont("Cousine", "normal", 400);
     doc.setFontSize(8);
     doc.setTextColor(0, 0, 0);
