@@ -23,6 +23,7 @@ vi.mock("@mui/x-date-pickers/DateTimePicker", () => ({
 
 const renderForm = () => {
   const databaseApi: DatabaseApi = {
+    getExportSnapshot: vi.fn(),
     createAgreement: vi.fn(),
     updateAgreement: vi.fn(),
     getAgreement: vi.fn(),
@@ -131,6 +132,7 @@ describe("RentalAgreementForm", () => {
 
   it("renders the updated rental rates after selecting an existing vehicle", async () => {
     const databaseApi: DatabaseApi = {
+      getExportSnapshot: vi.fn(),
       createAgreement: vi.fn(),
       updateAgreement: vi.fn(),
       getAgreement: vi.fn(),
@@ -209,6 +211,7 @@ describe("RentalAgreementForm", () => {
 
   it("removes existing rental rates when the selected vehicle has none", async () => {
     const databaseApi: DatabaseApi = {
+      getExportSnapshot: vi.fn(),
       createAgreement: vi.fn(),
       updateAgreement: vi.fn(),
       getAgreement: vi.fn(),
@@ -318,6 +321,7 @@ describe("RentalAgreementForm", () => {
 
   it("displays selected customer chip and buttons on rentee name field when customer_uuid is set", () => {
     const databaseApi: DatabaseApi = {
+      getExportSnapshot: vi.fn(),
       createAgreement: vi.fn(),
       updateAgreement: vi.fn(),
       getAgreement: vi.fn(),

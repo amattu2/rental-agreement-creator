@@ -9,6 +9,7 @@ The test suite covers all major user workflows:
 - **Customers**: Create, read, update, search customer profiles
 - **Vehicles**: Create, read, update, search vehicle inventory
 - **Agreements**: Create, edit, search rental agreements with lifecycle management (finalize, cancel)
+- **Settings**: Export backup of data
 
 ### Key Features
 
@@ -54,6 +55,7 @@ tests/
 │   ├── base.page.ts         # Base class with common actions
 │   ├── agreements.page.ts   # Agreements list & form interactions
 │   ├── customers.page.ts    # Customers CRUD operations
+│   ├── settings.page.ts     # Settings navigation
 │   └── vehicles.page.ts     # Vehicles CRUD operations
 ├── e2e/
 │   ├── agreements/          # Agreement workflow tests
