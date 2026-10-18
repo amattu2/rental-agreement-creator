@@ -352,7 +352,36 @@ const getExportSnapshot = async (): Promise<DatabaseSnapshot> => {
   return { agreements, customers, vehicles };
 };
 
+const restoreSnapshot = async (snapshot: DatabaseSnapshot): Promise<void> => {
+  const db = await openDatabase();
+  const transaction = db.transaction(
+    [INDEXED_DB_AGREEMENT_STORE, INDEXED_DB_CUSTOMER_STORE, INDEXED_DB_VEHICLE_STORE],
+    "readwrite"
+  );
+
+  try {
+    for (const [name, records] of [
+      [INDEXED_DB_AGREEMENT_STORE, snapshot.agreements],
+      [INDEXED_DB_CUSTOMER_STORE, snapshot.customers],
+      [INDEXED_DB_VEHICLE_STORE, snapshot.vehicles],
+    ] as const) {
+      const store = transaction.objectStore(name);
+      store.clear();
+      for (const record of records) store.add(record);
+    }
+  } catch (error) {
+    transaction.abort();
+    throw error;
+  }
+
+  await transactionDone(transaction);
+};
+
 export class IndexedDbDatabaseApi implements DatabaseApi {
+  restoreSnapshot(snapshot: DatabaseSnapshot): Promise<void> {
+    return restoreSnapshot(snapshot);
+  }
+
   getExportSnapshot(): Promise<DatabaseSnapshot> {
     return getExportSnapshot();
   }

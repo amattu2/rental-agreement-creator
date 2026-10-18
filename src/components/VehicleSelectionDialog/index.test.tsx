@@ -28,6 +28,7 @@ const createVehicleRecord = (overrides?: Partial<VehicleRecord>): VehicleRecord 
 
 const createDatabaseApi = (overrides?: Partial<DatabaseApi>): DatabaseApi => ({
   getExportSnapshot: vi.fn(),
+  restoreSnapshot: vi.fn(),
   createAgreement: vi.fn(),
   updateAgreement: vi.fn(),
   getAgreement: vi.fn(),

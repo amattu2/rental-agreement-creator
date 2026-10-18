@@ -9,7 +9,9 @@ The test suite covers all major user workflows:
 - **Customers**: Create, read, update, search customer profiles
 - **Vehicles**: Create, read, update, search vehicle inventory
 - **Agreements**: Create, edit, search rental agreements with lifecycle management (finalize, cancel)
-- **Settings**: Export backup of data
+- **Settings**: Export backups and restore them after creating records through the UI,
+  including cancellation and unreadable-file handling. Import requires the manifest
+  and three table JSON files, without size limits or schema validation.
 
 ### Key Features
 

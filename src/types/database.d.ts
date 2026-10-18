@@ -39,6 +39,7 @@ type DatabaseSnapshot = {
 };
 
 type DatabaseApi = {
+  restoreSnapshot(snapshot: DatabaseSnapshot): Promise<void>;
   getExportSnapshot(): Promise<DatabaseSnapshot>;
   createAgreement(input: AgreementData): Promise<AgreementRecord>;
   updateAgreement(uuid: string, input: AgreementData): Promise<AgreementRecord>;
