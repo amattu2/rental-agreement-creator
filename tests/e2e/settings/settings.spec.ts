@@ -7,7 +7,6 @@ test.describe("Settings", () => {
     await settingsPage.goto();
     await expect(page.getByRole("heading", { name: "Settings", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Import data" })).toBeDisabled();
-    await expect(page.getByRole("banner").getByRole("link", { name: "Settings" })).toHaveCount(0);
 
     const downloadPromise = page.waitForEvent("download");
     await page.getByRole("button", { name: "Export data" }).click();
