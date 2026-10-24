@@ -21,8 +21,8 @@ env:
   NEXT_PUBLIC_DEPLOYMENT_URL: "http://localhost:3000"
 
 jobs:
-  e2e:
-    name: End-to-End Tests
+  build:
+    name: Build Application
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -37,10 +37,7 @@ jobs:
           cache: "npm"
 
       - name: "Install Dependencies"
-        run: npm i
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npm ci
 
       - name: Cache Build
         uses: actions/cache@v5
@@ -53,13 +50,47 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          NEXT_PUBLIC_APP_NAME: ${{ env.NEXT_PUBLIC_APP_NAME }}
-          NEXT_PUBLIC_APP_DESCRIPTION: ${{ env.NEXT_PUBLIC_APP_DESCRIPTION }}
-          NEXT_PUBLIC_COMPANY_NAME: ${{ env.NEXT_PUBLIC_COMPANY_NAME }}
-          NEXT_PUBLIC_ADDRESS_LINE1: ${{ env.NEXT_PUBLIC_ADDRESS_LINE1 }}
-          NEXT_PUBLIC_ADDRESS_LINE2: ${{ env.NEXT_PUBLIC_ADDRESS_LINE2 }}
-          NEXT_PUBLIC_DEPLOYMENT_URL: ${{ env.NEXT_PUBLIC_DEPLOYMENT_URL }}
+
+      - name: Upload Static Build
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-build
+          path: out/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+
+  e2e:
+    name: End-to-End Tests (${{ matrix.shard }}/4)
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24.x"
+          cache: "npm"
+
+      - name: "Install Dependencies"
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Download Static Build
+        uses: actions/download-artifact@v8
+        with:
+          name: playwright-build
+          path: out/
 
       - name: Start Static Server
         run: npx serve out -p 3000 &
@@ -68,44 +99,95 @@ jobs:
 
       - name: Wait for Server
         run: |
-          max_attempts=15
-          attempt=0
-          until curl --silent http://localhost:3000 > /dev/null 2>&1 || [ $attempt -eq $max_attempts ]; do
-            attempt=$((attempt + 1))
-            echo "Waiting for server... (attempt $attempt/$max_attempts)"
-            sleep 2
-          done
-          if [ $attempt -eq $max_attempts ]; then
-            echo "Server failed to start"
-            exit 1
-          fi
+          curl --fail --silent --show-error \
+            --retry 15 --retry-connrefused --retry-delay 2 \
+            --retry-max-time 60 --max-time 5 \
+            http://localhost:3000 > /dev/null
 
       - name: Run Playwright
-        run: npm run test:e2e
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4 --reporter=blob,github
         env:
           CI: true
 
-      - name: Upload Report
+      - name: Upload Blob Report
         if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-blob-report-${{ matrix.shard }}
+          path: blob-report/
+          if-no-files-found: error
+          retention-days: 1
+
+  report:
+    name: Merge Playwright Reports
+    needs: e2e
+    if: ${{ !cancelled() && (needs.e2e.result == 'success' || needs.e2e.result == 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24.x"
+          cache: "npm"
+
+      - name: "Install Dependencies"
+        run: npm ci
+
+      - name: Download Blob Reports
+        uses: actions/download-artifact@v8
+        with:
+          pattern: playwright-blob-report-*
+          path: blob-reports/
+          merge-multiple: true
+
+      - name: Verify All Shard Reports
+        id: verify
+        run: |
+          report_count=$(find blob-reports -maxdepth 1 -name '*.zip' -type f | wc -l)
+          if [ "$report_count" -ne 4 ]; then
+            echo "::error::Expected reports from all 4 shards, found $report_count"
+            exit 1
+          fi
+
+      - name: Merge Reports
+        id: merge
+        if: ${{ !cancelled() && (steps.verify.outcome == 'success' || steps.verify.outcome == 'failure') }}
+        run: npx playwright merge-reports --reporter=html,junit blob-reports
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: test-results/junit.xml
+
+      - name: Upload Report
+        if: ${{ !cancelled() && steps.merge.outcome == 'success' }}
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
+          if-no-files-found: error
           retention-days: 0
 
       - name: Upload Results
-        if: always()
+        if: ${{ !cancelled() && steps.merge.outcome == 'success' }}
         uses: actions/upload-artifact@v7
         with:
           name: test-results
           path: test-results/
+          if-no-files-found: error
           retention-days: 0
 
       - name: Publish Report
-        if: always()
+        if: ${{ !cancelled() && steps.merge.outcome == 'success' }}
         uses: dorny/test-reporter@v3
         with:
           name: Test Results
           path: "test-results/junit.xml"
           reporter: "java-junit"
+          use-actions-summary: true
+          only-summary: true
           fail-on-error: false
