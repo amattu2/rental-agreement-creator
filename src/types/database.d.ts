@@ -32,7 +32,14 @@ type CustomerRecord = {
   updatedAt: string;
 };
 
+type DatabaseSnapshot = {
+  agreements: AgreementRecord[];
+  customers: CustomerRecord[];
+  vehicles: VehicleRecord[];
+};
+
 type DatabaseApi = {
+  getExportSnapshot(): Promise<DatabaseSnapshot>;
   createAgreement(input: AgreementData): Promise<AgreementRecord>;
   updateAgreement(uuid: string, input: AgreementData): Promise<AgreementRecord>;
   getAgreement(uuid: string): Promise<AgreementRecord | undefined>;

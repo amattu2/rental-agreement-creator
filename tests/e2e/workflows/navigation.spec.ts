@@ -37,4 +37,10 @@ test.describe("Navigation", () => {
     await expect(page.getByLabel("Agreement number")).toBeVisible();
     await expect(page.getByRole("button", { name: "Generate Agreement" })).toBeDisabled();
   });
+
+  test("should navigate to settings from header @smoke", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: "Settings" }).click();
+    await expect(page).toHaveURL(/\/settings$/);
+  });
 });

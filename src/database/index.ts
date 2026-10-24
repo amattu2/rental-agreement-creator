@@ -333,7 +333,30 @@ const cancelAgreement = async (uuid: string): Promise<AgreementRecord> => {
   return record;
 };
 
+const getExportSnapshot = async (): Promise<DatabaseSnapshot> => {
+  const db = await openDatabase();
+  const transaction = db.transaction(
+    [INDEXED_DB_AGREEMENT_STORE, INDEXED_DB_CUSTOMER_STORE, INDEXED_DB_VEHICLE_STORE],
+    "readonly"
+  );
+
+  const [agreements, customers, vehicles] = await Promise.all([
+    requestToPromise<AgreementRecord[]>(
+      transaction.objectStore(INDEXED_DB_AGREEMENT_STORE).getAll()
+    ),
+    requestToPromise<CustomerRecord[]>(transaction.objectStore(INDEXED_DB_CUSTOMER_STORE).getAll()),
+    requestToPromise<VehicleRecord[]>(transaction.objectStore(INDEXED_DB_VEHICLE_STORE).getAll()),
+    transactionDone(transaction),
+  ]);
+
+  return { agreements, customers, vehicles };
+};
+
 export class IndexedDbDatabaseApi implements DatabaseApi {
+  getExportSnapshot(): Promise<DatabaseSnapshot> {
+    return getExportSnapshot();
+  }
+
   createAgreement(input: AgreementData): Promise<AgreementRecord> {
     return createAgreement(input);
   }

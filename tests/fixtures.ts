@@ -3,6 +3,7 @@ import { test as base } from "@playwright/test";
 
 import { AgreementsPage } from "./pages/agreements.page";
 import { CustomersPage } from "./pages/customers.page";
+import { SettingsPage } from "./pages/settings.page";
 import { VehiclesPage } from "./pages/vehicles.page";
 import { TEST_CUSTOMERS, TEST_VEHICLES } from "./test-data";
 
@@ -13,6 +14,7 @@ type TestFixtures = {
   };
   agreementsPage: AgreementsPage;
   customersPage: CustomersPage;
+  settingsPage: SettingsPage;
   vehiclesPage: VehiclesPage;
 };
 
@@ -41,6 +43,11 @@ export const test = base.extend<TestFixtures>({
   customersPage: async ({ page }, use) => {
     const customersPage = new CustomersPage(page);
     await use(customersPage);
+  },
+
+  settingsPage: async ({ page }, use) => {
+    const settingsPage = new SettingsPage(page);
+    await use(settingsPage);
   },
 
   vehiclesPage: async ({ page }, use) => {
