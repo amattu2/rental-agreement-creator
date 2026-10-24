@@ -212,6 +212,24 @@ Tests will pass identically in all environments because:
 - ✅ Tests search for their unique data, not affected by existing records
 - ✅ No assumptions about initial database state
 
+## CI Sharding
+
+The Playwright GitHub Actions workflow splits the suite across four parallel shards.
+The application is built once in a prerequisite job; each shard downloads and serves
+the same static build. Shards install only Chromium's headless shell, and a failing
+shard does not cancel the others. Each shard uploads a blob report, including failure
+attachments. A final job merges these into one `playwright-report` HTML artifact and
+one `test-results` JUnit artifact, and publishes a test summary with per-suite counts
+and individual test results. Reporting runs
+even when tests fail; missing shard reports fail the reporting job rather than
+silently presenting a partial result as complete.
+
+To run a single shard locally:
+
+```bash
+npm run test:e2e -- --shard=1/4
+```
+
 ## Debugging Failed Tests
 
 ### 1. Run in Headed Mode (See Browser)
