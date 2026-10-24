@@ -11,4 +11,8 @@ export default [
     label: "Vehicles",
     href: "/vehicles",
   },
+  {
+    label: "Settings",
+    href: "/settings",
+  },  
 ] as Array<{ label: string; href: string }>;
