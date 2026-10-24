@@ -14,5 +14,5 @@ export default [
   {
     label: "Settings",
     href: "/settings",
-  },  
+  },
 ] as Array<{ label: string; href: string }>;
