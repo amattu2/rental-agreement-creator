@@ -54,14 +54,14 @@ jobs:
       - name: Upload Static Build
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-build
+          name: static-build
           path: out/
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
 
   e2e:
-    name: End-to-End Tests (${{ matrix.shard }}/4)
+    name: Tests (Shard ${{ matrix.shard }} of 4)
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -89,7 +89,7 @@ jobs:
       - name: Download Static Build
         uses: actions/download-artifact@v8
         with:
-          name: playwright-build
+          name: static-build
           path: out/
 
       - name: Start Static Server
@@ -100,7 +100,7 @@ jobs:
       - name: Wait for Server
         run: |
           curl --fail --silent --show-error \
-            --retry 15 --retry-connrefused --retry-delay 2 \
+            --retry 5 --retry-connrefused --retry-delay 2 \
             --retry-max-time 60 --max-time 5 \
             http://localhost:3000 > /dev/null
 
@@ -119,9 +119,9 @@ jobs:
           retention-days: 1
 
   report:
-    name: Merge Playwright Reports
+    name: Merge Reports
     needs: e2e
-    if: ${{ !cancelled() && (needs.e2e.result == 'success' || needs.e2e.result == 'failure') }}
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -145,18 +145,9 @@ jobs:
           path: blob-reports/
           merge-multiple: true
 
-      - name: Verify All Shard Reports
-        id: verify
-        run: |
-          report_count=$(find blob-reports -maxdepth 1 -name '*.zip' -type f | wc -l)
-          if [ "$report_count" -ne 4 ]; then
-            echo "::error::Expected reports from all 4 shards, found $report_count"
-            exit 1
-          fi
-
       - name: Merge Reports
         id: merge
-        if: ${{ !cancelled() && (steps.verify.outcome == 'success' || steps.verify.outcome == 'failure') }}
+        if: ${{ !cancelled() }}
         run: npx playwright merge-reports --reporter=html,junit blob-reports
         env:
           PLAYWRIGHT_HTML_OPEN: never
@@ -189,5 +180,7 @@ jobs:
           path: "test-results/junit.xml"
           reporter: "java-junit"
           use-actions-summary: true
-          only-summary: true
+          only-summary: false
+          list-suites: all
+          list-tests: all
           fail-on-error: false

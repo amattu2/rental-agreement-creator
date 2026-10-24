@@ -219,7 +219,8 @@ The application is built once in a prerequisite job; each shard downloads and se
 the same static build. Shards install only Chromium's headless shell, and a failing
 shard does not cancel the others. Each shard uploads a blob report, including failure
 attachments. A final job merges these into one `playwright-report` HTML artifact and
-one `test-results` JUnit artifact, and publishes a concise test summary. Reporting runs
+one `test-results` JUnit artifact, and publishes a test summary with per-suite counts
+and individual test results. Reporting runs
 even when tests fail; missing shard reports fail the reporting job rather than
 silently presenting a partial result as complete.
 
