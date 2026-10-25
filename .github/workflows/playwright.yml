@@ -93,7 +93,7 @@ jobs:
           path: out/
 
       - name: Start Static Server
-        run: npx serve@14.2.6 out -p 3000 &
+        run: npm run serve -- -p 3000 &
         env:
           CI: true
 
